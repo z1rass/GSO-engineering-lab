@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import type { Language } from '../i18n';
 import { authCopy } from './copy';
 
 const profileResponse = z.object({ user: z.object({
-  id: z.string(), name: z.string(), email: z.email(), affiliation: z.literal('MEMBER'),
+  id: z.string(), name: z.string(), email: z.email(), affiliation: z.literal('MEMBER'), role: z.enum(['MEMBER', 'OPS']),
   education: z.string().nullable(), year: z.number().nullable(), interests: z.array(z.string()).nullable(),
 }) });
 type Profile = z.infer<typeof profileResponse>['user'];
@@ -87,6 +87,7 @@ export function ProfilePage({ language }: { language: Language }) {
   if (state === 'loading') return <section className="account-page"><p role="status">{t.loading}</p></section>;
   if (state === 'error' || !profile) return <section className="account-page"><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></section>;
   return <section className="account-page"><div className="account-heading"><p className="eyebrow">GSO engineering lab</p><h1>{t.profileTitle}</h1><p>{t.profileIntro}</p></div>
+    <div>{profile.role === 'OPS' && <Link className="text-link ops-profile-link" to="/ops">{language === 'de' ? 'Ops verwalten' : 'Manage Ops'} ↗</Link>}
     <form className="account-form" onSubmit={save} aria-busy={busy} onChange={() => setFeedback(null)}>
       <label>{t.name}<input name="name" autoComplete="name" required maxLength={100} defaultValue={profile.name} /></label>
       <label>{t.email}<input type="email" readOnly value={profile.email} aria-describedby="private-email" /></label>
@@ -98,6 +99,6 @@ export function ProfilePage({ language }: { language: Language }) {
       <p id="interests-hint" className="field-hint">{t.interestsHint}</p></fieldset>
       {feedback && <p role={feedback === 'error' ? 'alert' : 'status'} className={feedback === 'error' ? 'form-error' : 'form-success'}>{t[feedback]}</p>}
       <div className="account-actions"><button className="button-primary" disabled={busy}>{busy ? t.saving : t.save}</button><button type="button" className="text-link" disabled={busy} onClick={() => void logout()}>{t.logout}</button></div>
-    </form>
+    </form></div>
   </section>;
 }

@@ -262,3 +262,20 @@ button:disabled { opacity: .6; cursor: wait; }
  .site-header nav { gap: 16px; }
  .site-header .about-link { display: none; }
 }
+
+.ops-page { padding: 40px 0 80px; }
+.ops-page > .account-heading { margin: 32px 0 48px; }
+.ops-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+.ops-grid > div { min-width: 0; }
+.ops-grid h2 { font-size: 24px; letter-spacing: -.03em; }
+.ops-team, .ops-history { list-style: none; padding: 0; margin: 20px 0 0; }
+.ops-team li { display: flex; gap: 24px; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.ops-appointment { margin-top: 40px; }
+.ops-note, .ops-history p, .ops-history time { color: var(--muted); font-size: 14px; line-height: 1.65; }
+.ops-history li { border-top: 1px solid var(--line); padding: 20px 0; overflow-wrap: anywhere; }
+.ops-history p { margin: 8px 0; }
+.ops-history time { font-size: 12px; }
+.account-form select { width: 100%; min-width: 0; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 13px; font: inherit; font-size: 16px; background: var(--paper); color: var(--ink); }
+.account-form select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.ops-profile-link { margin-bottom: 24px; }
+@media (max-width: 760px) { .ops-grid { grid-template-columns: 1fr; gap: 48px; } }

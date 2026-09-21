@@ -17,10 +17,13 @@ export const seasons = pgTable('seasons', {
   check('season_number_nonnegative', sql`${table.number} >= 0`),
 ]);
 
+export const globalRole = pgEnum('global_role', ['MEMBER', 'OPS']);
+
 export const user = pgTable('users', {
   id: text('id').primaryKey(), name: text('name').notNull(), email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false), image: text('image'),
   createdAt: timestamp('created_at').notNull().defaultNow(), updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  role: globalRole('role').notNull().default('MEMBER'),
   affiliation: text('affiliation').notNull().default('MEMBER'),
   education: text('education'), year: integer('year'), interests: text('interests').array(),
 });
@@ -44,4 +47,13 @@ export const verification = pgTable('verifications', {
 export const rateLimit = pgTable('rate_limits', {
   id: text('id').primaryKey(), key: text('key').notNull().unique(), count: integer('count').notNull(),
   lastRequest: bigint('last_request', { mode: 'number' }).notNull(),
+});
+
+export const roleChanges = pgTable('role_changes', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  targetId: text('target_id').references(() => user.id, { onDelete: 'set null' }),
+  actorId: text('actor_id').references(() => user.id, { onDelete: 'set null' }),
+  previousRole: globalRole('previous_role').notNull(), newRole: globalRole('new_role').notNull(),
+  source: text('source').notNull(), operator: text('operator'), confirmedBy: text('confirmed_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

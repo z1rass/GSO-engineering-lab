@@ -10,7 +10,8 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx src/seed.ts"
+    "db:seed": "tsx src/seed.ts",
+    "ops:bootstrap": "tsx src/modules/ops/bootstrap.ts"
   },
   "dependencies": {
     "better-auth": "^1.7.5",

@@ -1,3 +1,4 @@
+import { OpsPage } from './ops/page';
 import { LoginPage, ProfilePage } from './auth/pages';
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
@@ -83,6 +84,7 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/ops" element={<OpsPage language={language} />} />
         <Route path="/login" element={<LoginPage language={language} />} />
         <Route path="/profile" element={<ProfilePage language={language} />} />
         <Route path="/me" element={<ProfilePage language={language} />} />

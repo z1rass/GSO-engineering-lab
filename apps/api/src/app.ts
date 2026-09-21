@@ -1,3 +1,4 @@
+import { mountOps } from './modules/ops/index.js';
 import { mountAuth } from './modules/auth/index.js';
 import express, { type ErrorRequestHandler } from 'express';
 import { eq } from 'drizzle-orm';
@@ -9,7 +10,8 @@ export function createApp(pool: Pool) {
   const app = express();
   const db = drizzle(pool);
   app.disable('x-powered-by');
-  mountAuth(app, pool);
+  const { requireMember } = mountAuth(app, pool);
+  mountOps(app, pool, requireMember);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');

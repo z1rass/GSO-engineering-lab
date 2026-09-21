@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login and a minimal editable profile. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile and initial/normal Ops appointments. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Ideas, Events, Projects and Ops management belong to later tickets.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Ideas, Events, Projects and other Ops workflows belong to later tickets.
 
 ## Architecture
 
@@ -50,6 +50,12 @@ A persisted `affiliation` is separate from User identity. `ALUMNI` preserves the
 
 Rate limiting is stored in PostgreSQL: 5 login-link requests per minute per direct peer, 100 other auth requests per minute. Client-supplied forwarding headers are ignored. In local Compose the Vite proxy is one peer, so users share that limit. Before public deployment, configure the actual trusted proxy boundary and tune limits for the school's shared network; never trust arbitrary forwarded headers.
 
+## Ops appointments
+
+After a Member verifies their email, a server admin can appoint the first Ops using the documented [bootstrap procedure](docs/operations/ops-appointments.md). Bootstrap requires external sponsor confirmation and refuses to run if any Ops already exist. The role change and its attribution are persisted atomically.
+
+Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. Recovery and role removal are outside this slice.
+
 ## Environment variables
 
 All local defaults work without a configuration file. `.env.example` documents them; host commands read exported environment variables, not an automatically loaded `.env` file.
@@ -79,7 +85,7 @@ The database enforces a single active Season, unique Season numbers and ordered 
 
 ## Tests and checks
 
-The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth and profile fixtures. Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
+The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth, profile and Ops fixtures (including resetting test roles and clearing the role journal). Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
 
 ```sh
 docker compose --profile test up -d --wait test-db mailpit

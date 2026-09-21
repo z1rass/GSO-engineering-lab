@@ -1,3 +1,4 @@
+import { requestTestLink, redeemTestLink } from './helpers/magic-link.js';
 import { once } from 'node:events';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -24,21 +25,9 @@ afterAll(async () => { if (server) await new Promise<void>(r => server.close(() 
 function post(path: string, body: unknown, cookie = '') {
   return fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', origin, cookie }, body: JSON.stringify(body) });
 }
-async function requestLink() {
-  const email = `test-${randomUUID()}@gso.schule.koeln`;
-  const response = await post('/api/auth/sign-in/magic-link', { email, name: 'Ada', callbackURL: '/profile' });
-  expect(response.status).toBe(200);
-  const mailbox = await fetch(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
-  expect(mailbox.messages).toHaveLength(1);
-  const mail = await fetch(`http://127.0.0.1:8025/api/v1/message/${mailbox.messages[0].ID}`).then(r => r.json());
-  const url = new URL(mail.Text.match(/https?:\/\/\S+/)[0]);
-  return { email, url };
-}
 async function login() {
-  const { email, url } = await requestLink();
-  const verified = await fetch(`${base}${url.pathname}${url.search}`, { redirect: 'manual' });
-  expect(verified.status).toBe(302);
-  const cookie = verified.headers.getSetCookie().map(c => c.split(';')[0]).join('; ');
+  const { email, url } = await requestTestLink(base, origin);
+  const { verified, cookie } = await redeemTestLink(base, url);
   return { cookie, email, url, verified };
 }
 test('School email ownership is verified through a delivered magic link before a Member can read their profile', async () => {
@@ -81,7 +70,7 @@ test('Magic links are single use, invalid and expired links cannot create sessio
   expect(replay.headers.get('set-cookie')).toBeNull();
   const invalid = await fetch(`${base}/api/auth/magic-link/verify?token=invalid&errorCallbackURL=/login`, { redirect: 'manual' });
   expect(invalid.headers.get('location')).toContain('error=');
-  const pending = await requestLink();
+  const pending = await requestTestLink(base, origin);
   await pool.query("UPDATE verifications SET expires_at=NOW()-INTERVAL '1 hour' WHERE value LIKE $1", [`%${pending.email}%`]);
   const expired = await fetch(`${base}${pending.url.pathname}${pending.url.search}`, { redirect: 'manual' });
   expect(expired.headers.get('location')).toContain('error=');
@@ -126,13 +115,8 @@ test('HTTPS deployments issue Secure HttpOnly cookies and a fixed seven-day sess
   await once(secureServer, 'listening');
   const secureBase = `http://127.0.0.1:${(secureServer.address() as AddressInfo).port}`;
   try {
-    const email = `secure-${randomUUID()}@gso.schule.koeln`;
-    const requested = await fetch(`${secureBase}/api/auth/sign-in/magic-link`, { method: 'POST', headers: { origin: 'https://lab.example', 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Ada', email, callbackURL: '/profile' }) });
-    expect(requested.status).toBe(200);
-    const mailbox = await fetch(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
-    const mail = await fetch(`http://127.0.0.1:8025/api/v1/message/${mailbox.messages[0].ID}`).then(r => r.json());
-    const url = new URL(mail.Text.match(/https?:\/\/\S+/)[0]);
-    const response = await fetch(`${secureBase}${url.pathname}${url.search}`, { redirect: 'manual' });
+    const { url } = await requestTestLink(secureBase, 'https://lab.example');
+    const { verified: response } = await redeemTestLink(secureBase, url);
     const cookies = response.headers.getSetCookie().join(';');
     expect(cookies).toContain('Secure');
     expect(cookies).toContain('HttpOnly');

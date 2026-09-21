@@ -6,7 +6,7 @@ import { magicLink } from 'better-auth/plugins';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Express } from 'express';
+import type { Express, RequestHandler } from 'express';
 import express from 'express';
 import type { Pool } from 'pg';
 import nodemailer from 'nodemailer';
@@ -68,7 +68,7 @@ export function mountAuth(app: Express, pool: Pool) {
     education: z.string().trim().max(100).nullable().optional(), year: z.number().int().min(1).max(6).nullable().optional(),
     interests: z.array(z.string().trim().min(1).max(50)).max(20).optional(),
   }).strict();
-  app.route('/api/me').all(async (request, response, next) => {
+  const requireMember: RequestHandler = async (request, response, next) => {
     response.set('Cache-Control', 'no-store');
     if (request.method !== 'GET' && request.get('origin') !== new URL(baseURL).origin) {
       response.status(403).json({ error: 'INVALID_ORIGIN' }); return;
@@ -79,9 +79,10 @@ export function mountAuth(app: Express, pool: Pool) {
     }
     response.locals.userId = current.user.id;
     next();
-  }).get(async (_request, response) => {
+  };
+  app.route('/api/me').all(requireMember).get(async (_request, response) => {
     const [profile] = await db.select({ id: schema.user.id, name: schema.user.name, email: schema.user.email,
-      affiliation: schema.user.affiliation, education: schema.user.education, year: schema.user.year, interests: schema.user.interests })
+      role: schema.user.role, affiliation: schema.user.affiliation, education: schema.user.education, year: schema.user.year, interests: schema.user.interests })
       .from(schema.user).where(eq(schema.user.id, response.locals.userId));
     response.json({ user: profile });
   }).patch(async (request, response) => {
@@ -90,4 +91,5 @@ export function mountAuth(app: Express, pool: Pool) {
     await db.update(schema.user).set({ ...parsed.data, updatedAt: new Date() }).where(eq(schema.user.id, response.locals.userId));
     response.json({ saved: true });
   });
+  return { requireMember };
 }
