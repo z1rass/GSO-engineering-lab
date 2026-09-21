@@ -1,0 +1,48 @@
+export const copy = {
+  de: {
+    tagline: 'LERNEN / BAUEN / TEILEN', model: 'ENTDECKEN → MITMACHEN → VERANTWORTUNG',
+    skip: 'Zum Inhalt', about: 'Das Lab', seasonNav: 'Season entdecken',
+    eyebrow: 'VON LERNENDEN. FÜR MACHERINNEN UND MACHER.',
+    headline: 'Aus Ideen wird', emphasis: 'echte Technik.',
+    introduction: 'Dein technisches Community-Lab am GSO Berufskolleg. Gemeinsam lernen, Dinge bauen und eigene Ideen auf die Beine stellen.',
+    secondary: 'So funktioniert’s', current: 'Aktuelle Season', active: 'Läuft gerade',
+    dates: 'Zeitraum', community: 'GSO Berufskolleg · Köln',
+    discoverTitle: 'Nicht nur dabei sein. Mitgestalten.',
+    discoverIntro: 'Das Lab lebt von Menschen, die neugierig sind. Du musst kein Profi sein — nur Lust haben, etwas auszuprobieren.',
+    steps: [
+      ['Entdecken', 'Finde Projekte, Events und Ideen, die dich interessieren.'],
+      ['Mitmachen', 'Lerne gemeinsam mit anderen und bring deine Perspektive ein.'],
+      ['Verantwortung übernehmen', 'Starte etwas Eigenes oder übernimm eine konkrete Aufgabe.'],
+    ],
+    footer: 'Gemeinsam lernen. Eigenständig bauen.', back: 'Zur Startseite',
+    periodNote: 'Eine Season. Viele Möglichkeiten, etwas zu bauen.',
+    loading: 'Season wird geladen …',
+    emptyTitle: 'Die nächste Season entsteht.', emptyBody: 'Zurzeit ist keine Season aktiv. Schau bald wieder vorbei — hier findest du dann die nächsten gemeinsamen Schritte.',
+    errorTitle: 'Die Season konnte nicht geladen werden.', errorBody: 'Bitte versuche es in einem Moment noch einmal.', retry: 'Erneut versuchen',
+    notFound: 'Diese Seite gibt es nicht.',
+  },
+  en: {
+    tagline: 'LEARN / BUILD / SHARE', model: 'DISCOVER → JOIN → OWN',
+    skip: 'Skip to content', about: 'About the Lab', seasonNav: 'Explore the season',
+    eyebrow: 'BY LEARNERS. FOR BUILDERS.',
+    headline: 'Turn ideas into', emphasis: 'real things.',
+    introduction: 'Your technical community lab at GSO Berufskolleg. Learn together, build things and bring your own ideas to life.',
+    secondary: 'How it works', current: 'Current season', active: 'Happening now',
+    dates: 'Dates', community: 'GSO Berufskolleg · Cologne',
+    discoverTitle: 'Take part. Make it yours.',
+    discoverIntro: 'The Lab is built by curious people. You don’t have to be an expert — just willing to try something new.',
+    steps: [
+      ['Discover', 'Find projects, events and ideas that spark your curiosity.'],
+      ['Join', 'Learn alongside others and bring your own perspective.'],
+      ['Own', 'Start something yourself or take responsibility for a specific task.'],
+    ],
+    footer: 'Learn together. Build independently.', back: 'Back to home',
+    periodNote: 'One season. Many ways to build something.',
+    loading: 'Loading season …',
+    emptyTitle: 'The next season is taking shape.', emptyBody: 'There is no active season right now. Check back soon for the next steps we’ll take together.',
+    errorTitle: 'The season could not be loaded.', errorBody: 'Please try again in a moment.', retry: 'Try again',
+    notFound: 'This page does not exist.',
+  },
+} as const;
+
+export type Language = keyof typeof copy;

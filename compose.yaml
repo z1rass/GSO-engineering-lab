@@ -1,0 +1,60 @@
+name: gso-engineering-lab
+services:
+  setup:
+    build: .
+    environment:
+      DATABASE_URL: postgres://lab:lab_local@db:5432/lab
+    depends_on:
+      db: { condition: service_healthy }
+    command: ["sh", "-c", "npm run db:migrate && npm run db:seed"]
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgres://lab:lab_local@db:5432/lab
+      PORT: 3001
+    depends_on:
+      setup: { condition: service_completed_successfully }
+    command: ["npm", "run", "dev:api"]
+    ports: ["127.0.0.1:3001:3001"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/seasons/current').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+  web:
+    build: .
+    environment:
+      API_PROXY_TARGET: http://api:3001
+    depends_on:
+      api: { condition: service_healthy }
+    command: ["npm", "run", "dev:web"]
+    ports: ["127.0.0.1:5173:5173"]
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: lab_local
+      POSTGRES_DB: lab
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: ["lab-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d lab"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  test-db:
+    image: postgres:16-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: lab_local
+      POSTGRES_DB: lab_test
+    ports: ["127.0.0.1:55433:5432"]
+    tmpfs: ["/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d lab_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+volumes:
+  lab-data:
