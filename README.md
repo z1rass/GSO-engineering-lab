@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. The first implemented slice is the public homepage and current Season, backed by PostgreSQL, with German and English interface copy.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login and a minimal editable profile. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Authentication, Ideas, Events, Projects and Ops management belong to later tickets. The homepage intentionally has no non-working sign-up buttons or invented activity counts.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Ideas, Events, Projects and Ops management belong to later tickets.
 
 ## Architecture
 
@@ -22,12 +22,12 @@ Open **http://localhost:5173**. Compose waits for PostgreSQL, applies migrations
 
 The local seed explicitly marks Season 0 as ACTIVE so the screen can be explored before its November 2026–January 2027 dates. Current Season is selected by ACTIVE status, not the machine's date. Only one Season may be ACTIVE; unpublished and past Seasons are not fallback results. With no ACTIVE Season the API returns `{"season":null}` and the page shows an empty state. User-authored content stays in its original language when the interface changes.
 
-Compose is a **local development** setup with disposable local credentials and development servers. Production HTTPS, email, hosting, backups and operator procedures belong to later tickets. For container code changes, rebuild; bind-mounted hot reload is not configured.
+Compose is a **local development** setup with disposable local credentials and development servers. Production HTTPS, SMTP provisioning, hosting, backups and operator procedures belong to later tickets. For container code changes, rebuild; bind-mounted hot reload is not configured.
 
 For host-based development use Node.js **24** (the pinned version is recorded in `.node-version`) and its bundled npm:
 
 ```sh
-docker compose up -d --wait db
+docker compose up -d --wait db mailpit
 npm ci
 npm run db:migrate
 npm run db:seed
@@ -38,6 +38,18 @@ npm run dev:web
 
 Do not run the host servers and Compose web/API simultaneously: they use the same ports. `docker compose stop web api` frees the ports while keeping local data. `docker compose down` stops the stack and preserves the named development volume.
 
+## Local login and profile
+
+Open `/login`, enter a name and any **fictional** address on the exact `@gso.schule.koeln` domain, for example `local-demo@gso.schule.koeln`. Open Mailpit at **http://localhost:8025** and follow the delivered link. Mailpit captures SMTP locally; it does not deliver to the school. Never expose Mailpit publicly or use it for production. No seed account bypasses email verification.
+
+The `/profile` page (`/me` is an alias) edits name, optional education programme, year and comma-separated interests. Email is read-only and only returned by authenticated `/api/me`. Name is required when requesting a link; a subsequent login does not overwrite an existing profile. Language selection persists in this browser.
+
+Better Auth owns token/session security; tokens are hashed, single-use and expire after 15 minutes. Sessions last 7 days with no sliding renewal; logout revokes them. Session cookies are HttpOnly and SameSite=Lax; HTTPS uses Secure cookies. Mutations require the configured exact Origin. Only the magic-link request/verification and logout endpoints are exposed from the auth library. General user mutations, password registration and email changes are unavailable.
+
+A persisted `affiliation` is separate from User identity. `ALUMNI` preserves the account but cannot access Member endpoints or sign in. There is no alumni onboarding or automatic graduation detection in this slice. Expired sessions require another school email confirmation.
+
+Rate limiting is stored in PostgreSQL: 5 login-link requests per minute per direct peer, 100 other auth requests per minute. Client-supplied forwarding headers are ignored. In local Compose the Vite proxy is one peer, so users share that limit. Before public deployment, configure the actual trusted proxy boundary and tune limits for the school's shared network; never trust arbitrary forwarded headers.
+
 ## Environment variables
 
 All local defaults work without a configuration file. `.env.example` documents them; host commands read exported environment variables, not an automatically loaded `.env` file.
@@ -46,8 +58,16 @@ All local defaults work without a configuration file. `.env.example` documents t
 | --- | --- | --- |
 | `DATABASE_URL` | API, migrations, seed | `postgres://lab:lab_local@127.0.0.1:55432/lab` |
 | `TEST_DATABASE_URL` | Isolated API/browser test database | `postgres://lab:lab_local@127.0.0.1:55433/lab_test` |
+| `AUTH_BASE_URL` | Exact public origin used in email links and CSRF checks | `http://localhost:5173` |
+| `AUTH_SECRET` | Auth signing secret; production requires 32+ random characters | Disposable local secret |
+| `SMTP_HOST` / `SMTP_PORT` | SMTP delivery | `127.0.0.1` / `1025` |
+| `SMTP_FROM` | Sender address | `GSO engineering lab <lab@localhost>` |
+| `SMTP_SECURE` | Implicit TLS (usually port 465) | `false` |
+| `SMTP_USER` / `SMTP_PASSWORD` | SMTP credentials if required | Unset |
 | `PORT` | API listen port | `3001` |
 | `API_PROXY_TARGET` | Vite API destination | `http://127.0.0.1:3001` |
+
+Production refuses to start without an explicit HTTPS origin, signing secret, SMTP host and sender; SMTP requires TLS in production. This is not a complete production deployment.
 
 Compose supplies container-specific addresses. Keep deployment credentials outside version control.
 
@@ -59,10 +79,10 @@ The database enforces a single active Season, unique Season numbers and ordered 
 
 ## Tests and checks
 
-The agreed testing seams are the public HTTP API with real PostgreSQL and a small set of browser journeys. Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and clear its Season rows. Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
+The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth and profile fixtures. Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
 
 ```sh
-docker compose --profile test up -d --wait test-db
+docker compose --profile test up -d --wait test-db mailpit
 npm run typecheck
 npm run lint
 npm test

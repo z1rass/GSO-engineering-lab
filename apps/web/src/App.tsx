@@ -1,5 +1,6 @@
+import { LoginPage, ProfilePage } from './auth/pages';
 import { useEffect, useState } from 'react';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { z } from 'zod';
 import { copy, type Language } from './i18n';
 
@@ -9,7 +10,18 @@ const seasonResponse = z.object({ season: z.object({
 }).nullable() });
 type Season = NonNullable<z.infer<typeof seasonResponse>['season']>;
 
-function Arrow() { return <span aria-hidden="true">↗</span>; }
+function Arrow() { return <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M5 19 19 5M5 5h14v14" /></svg>; }
+
+function Blueprint() {
+  return <svg className="blueprint" aria-hidden="true" viewBox="0 0 440 180" fill="none">
+    <g stroke="currentColor" strokeWidth="1">
+      <path d="M20 30h400M20 90h400M20 150h400M70 10v160M220 10v160M370 10v160" strokeDasharray="2 7" opacity=".2" />
+      <g className="frame-back"><path d="m90 42 126-24 62 38-126 24z" fill="var(--diagram-fill)" /><path d="m90 42 62 38v54l-62-38zm62 38 126-24v54l-126 24z" fill="var(--surface)" /></g>
+      <g className="frame-front"><path d="m172 86 126-24 62 38-126 24z" fill="var(--diagram-fill)" /><path d="m172 86 62 38v38l-62-38zm62 38 126-24v38l-126 24z" fill="var(--surface)" /></g>
+      <path d="M34 30h12m-6-6v12m354 114h12m-6-6v12" />
+    </g>
+  </svg>;
+}
 
 function SeasonCard({ season, language }: { season: Season; language: Language }) {
   const t = copy[language];
@@ -18,15 +30,14 @@ function SeasonCard({ season, language }: { season: Season; language: Language }
   }).format(new Date(`${value}T00:00:00Z`));
   return <article className="season-card" aria-labelledby="season-title">
     <div className="season-top"><span className="eyebrow">{t.current}</span><span className="status"><i aria-hidden="true" />{t.active}</span></div>
-    <div className="season-identity"><span className="season-word">SEASON</span><span className="season-number" aria-label={`Season ${season.number}`}>{String(season.number).padStart(2, '0')}</span></div>
-    <div className="season-body"><h2 id="season-title">{season.title}</h2><p>{season.description}</p></div>
+    <div className="season-body"><p className="season-word">Season {season.number}</p><h2 id="season-title">{season.title}</h2><Blueprint /><p className="season-description">{season.description}</p></div>
     <div className="season-dates"><span className="eyebrow">{t.dates}</span><p><time dateTime={season.startsOn}>{format(season.startsOn)}</time><span aria-hidden="true"> — </span><time dateTime={season.endsOn}>{format(season.endsOn)}</time></p></div>
-    <div className="season-foot"><span>{t.community}</span><span className="corner-mark" aria-hidden="true">+</span></div>
+    <div className="season-foot"><span>{t.community}</span></div>
   </article>;
 }
 
 export function App() {
-  const [language, setLanguage] = useState<Language>('de');
+  const [language, setLanguage] = useState<Language>(() => localStorage.getItem('lab-language') === 'en' ? 'en' : 'de');
   const [season, setSeason] = useState<Season | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -37,7 +48,7 @@ export function App() {
   useEffect(() => {
     if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
   }, [location]);
-  useEffect(() => { document.documentElement.lang = language; }, [language]);
+  useEffect(() => { document.documentElement.lang = language; localStorage.setItem('lab-language', language); }, [language]);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -63,8 +74,8 @@ export function App() {
   return <>
     <a className="skip-link" href="#main">{t.skip}</a>
     <header className="site-header page-width">
-      <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="brand-mark" aria-hidden="true">GSO<span>↗</span></span><span>ENGINEERING<br />LAB</span></Link>
-      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><Link to="/season">{t.seasonNav}</Link><Link to="/#about" className="about-link">{t.about}</Link></nav>
+      <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="lab-mark" aria-hidden="true"><span /><span /><span /></span><span className="brand-name">GSO <strong>engineering lab</strong></span></Link>
+      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><NavLink to="/season">{t.seasonNav}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/profile">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
       <div className="languages" aria-label={language === 'de' ? 'Sprache' : 'Language'}>
         <button aria-label="Deutsch" aria-pressed={language === 'de'} onClick={() => setLanguage('de')}>DE</button>
         <button aria-label="English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
@@ -72,12 +83,15 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/login" element={<LoginPage language={language} />} />
+        <Route path="/profile" element={<ProfilePage language={language} />} />
+        <Route path="/me" element={<ProfilePage language={language} />} />
         <Route path="/" element={<>
           <div className="hero-grid">
-            <section className="hero-copy"><p className="eyebrow hero-eyebrow"><span aria-hidden="true">↳</span> {t.eyebrow}</p>
+            <section className="hero-copy"><p className="eyebrow hero-eyebrow">{t.eyebrow}</p>
               <h1>{t.headline}<br /><span>{t.emphasis}</span></h1><p className="intro">{t.introduction}</p>
               <div className="hero-actions"><a className="button-primary" href="#season">{t.seasonNav}<Arrow /></a><a className="text-link" href="#about">{t.secondary}<span aria-hidden="true">↓</span></a></div>
-              <div className="hero-bottom"><span className="eyebrow">{t.tagline}</span><span className="crosshair" aria-hidden="true">+</span></div>
+
             </section>{currentSeason}
           </div>
           <section id="about" className="about-section"><div className="about-heading"><p className="eyebrow">{t.model}</p><h2>{t.discoverTitle}</h2><p>{t.discoverIntro}</p></div>
@@ -88,6 +102,6 @@ export function App() {
         <Route path="*" element={<section className="season-page"><h1>{t.notFound}</h1><Link to="/">{t.back}</Link></section>} />
       </Routes>
     </main>
-    <footer className="page-width site-footer"><span>GSO ENGINEERING LAB</span><span>{t.footer}</span><span>KÖLN / COLOGNE</span></footer>
+    <footer className="page-width site-footer"><span className="footer-brand">GSO <strong>engineering lab</strong></span><span>{t.footer}</span><span className="footer-tagline">{t.tagline}</span></footer>
   </>;
 }

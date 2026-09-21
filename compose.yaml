@@ -12,6 +12,7 @@ services:
     environment:
       DATABASE_URL: postgres://lab:lab_local@db:5432/lab
       PORT: 3001
+      SMTP_HOST: mailpit
     depends_on:
       setup: { condition: service_completed_successfully }
     command: ["npm", "run", "dev:api"]
@@ -29,6 +30,9 @@ services:
       api: { condition: service_healthy }
     command: ["npm", "run", "dev:web"]
     ports: ["127.0.0.1:5173:5173"]
+  mailpit:
+    image: axllent/mailpit:v1.29
+    ports: ["127.0.0.1:1025:1025", "127.0.0.1:8025:8025"]
   db:
     image: postgres:16-alpine
     environment:

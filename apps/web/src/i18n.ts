@@ -2,11 +2,11 @@ export const copy = {
   de: {
     tagline: 'LERNEN / BAUEN / TEILEN', model: 'ENTDECKEN → MITMACHEN → VERANTWORTUNG',
     skip: 'Zum Inhalt', about: 'Das Lab', seasonNav: 'Season entdecken',
-    eyebrow: 'VON LERNENDEN. FÜR MACHERINNEN UND MACHER.',
+    eyebrow: 'FÜR ALLE, DIE GERNE DINGE BAUEN.',
     headline: 'Aus Ideen wird', emphasis: 'echte Technik.',
     introduction: 'Dein technisches Community-Lab am GSO Berufskolleg. Gemeinsam lernen, Dinge bauen und eigene Ideen auf die Beine stellen.',
     secondary: 'So funktioniert’s', current: 'Aktuelle Season', active: 'Läuft gerade',
-    dates: 'Zeitraum', community: 'GSO Berufskolleg · Köln',
+    dates: 'Zeitraum', community: 'Von Menschen am GSO · Köln',
     discoverTitle: 'Nicht nur dabei sein. Mitgestalten.',
     discoverIntro: 'Das Lab lebt von Menschen, die neugierig sind. Du musst kein Profi sein — nur Lust haben, etwas auszuprobieren.',
     steps: [
@@ -24,11 +24,11 @@ export const copy = {
   en: {
     tagline: 'LEARN / BUILD / SHARE', model: 'DISCOVER → JOIN → OWN',
     skip: 'Skip to content', about: 'About the Lab', seasonNav: 'Explore the season',
-    eyebrow: 'BY LEARNERS. FOR BUILDERS.',
+    eyebrow: 'FOR PEOPLE WHO LOVE BUILDING THINGS.',
     headline: 'Turn ideas into', emphasis: 'real things.',
     introduction: 'Your technical community lab at GSO Berufskolleg. Learn together, build things and bring your own ideas to life.',
     secondary: 'How it works', current: 'Current season', active: 'Happening now',
-    dates: 'Dates', community: 'GSO Berufskolleg · Cologne',
+    dates: 'Dates', community: 'Built by people at GSO · Cologne',
     discoverTitle: 'Take part. Make it yours.',
     discoverIntro: 'The Lab is built by curious people. You don’t have to be an expert — just willing to try something new.',
     steps: [

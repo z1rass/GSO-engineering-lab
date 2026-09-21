@@ -13,8 +13,10 @@
     "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
+    "better-auth": "^1.7.5",
     "drizzle-orm": "0.45.3",
     "express": "5.2.1",
+    "nodemailer": "^10.0.10",
     "pg": "8.23.0",
     "zod": "4.6.5"
   }

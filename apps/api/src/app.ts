@@ -1,4 +1,5 @@
-import express from 'express';
+import { mountAuth } from './modules/auth/index.js';
+import express, { type ErrorRequestHandler } from 'express';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Pool } from 'pg';
@@ -8,6 +9,7 @@ export function createApp(pool: Pool) {
   const app = express();
   const db = drizzle(pool);
   app.disable('x-powered-by');
+  mountAuth(app, pool);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');
@@ -19,5 +21,11 @@ export function createApp(pool: Pool) {
       response.status(503).json({ error: 'Season temporarily unavailable' });
     }
   });
+  const handleError: ErrorRequestHandler = (error, _request, response, _next) => {
+    void _next;
+    const badJson = error instanceof SyntaxError;
+    response.status(badJson ? 400 : 503).json({ error: badJson ? 'INVALID_JSON' : 'SERVICE_UNAVAILABLE' });
+  };
+  app.use(handleError);
   return app;
 }
