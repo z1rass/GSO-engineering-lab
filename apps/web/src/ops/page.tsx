@@ -6,14 +6,14 @@ import type { Language } from '../i18n';
 const copy = {
   de: { title: 'Ops-Team', intro: 'Menschen, die das Lab am Laufen halten.', back: 'Mein Profil', appoint: 'Ops ernennen',
     member: 'Member', select: 'Member auswählen', hint: 'Ops können Seasons verwalten, moderieren und auf das private Club Network zugreifen. Wähle die Person sorgfältig aus.',
-    team: 'Aktuelles Team', history: 'Rollenverlauf', latest: 'Die letzten 100 Änderungen.', bootstrap: 'Erstes Team', normal: 'Ernannt von', sponsor: 'Bestätigt durch', admin: 'Ausgeführt von',
+    team: 'Aktuelles Team', profiles: 'Profile verwalten', history: 'Rollenverlauf', latest: 'Die letzten 100 Änderungen.', bootstrap: 'Erstes Team', normal: 'Ernannt von', sponsor: 'Bestätigt durch', admin: 'Ausgeführt von',
     loading: 'Team wird geladen …', saving: 'Wird ernannt …', success: 'Neues Ops-Mitglied ernannt.', error: 'Das hat nicht geklappt. Bitte versuche es erneut.',
     conflict: 'Diese Person ist nicht mehr verfügbar oder bereits Ops. Lade das Team erneut.', denied: 'Dieser Bereich ist nur für Ops zugänglich.',
     retry: 'Erneut laden', empty: 'Keine weiteren bestätigten Members.', deleted: 'Gelöschter Account', noChanges: 'Noch keine Änderungen.',
   },
   en: { title: 'Ops team', intro: 'The people who keep the Lab running.', back: 'My profile', appoint: 'Appoint Ops',
     member: 'Member', select: 'Select a Member', hint: 'Ops can manage Seasons, moderate and access the private Club Network. Choose the person carefully.',
-    team: 'Current team', history: 'Role history', latest: 'The latest 100 changes.', bootstrap: 'Initial team', normal: 'Appointed by', sponsor: 'Confirmed by', admin: 'Run by',
+    team: 'Current team', profiles: 'Manage profiles', history: 'Role history', latest: 'The latest 100 changes.', bootstrap: 'Initial team', normal: 'Appointed by', sponsor: 'Confirmed by', admin: 'Run by',
     loading: 'Loading team …', saving: 'Appointing …', success: 'New Ops member appointed.', error: 'Something went wrong. Please try again.',
     conflict: 'This person is no longer eligible or is already Ops. Reload the team.', denied: 'This area is only available to Ops.',
     retry: 'Reload', empty: 'No other verified Members.', deleted: 'Deleted account', noChanges: 'No changes yet.',
@@ -64,14 +64,14 @@ export function OpsPage({ language }: { language: Language }) {
       : state === 'denied' ? <p role="alert">{t.denied}</p>
       : state === 'error' ? <div><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></div>
       : data && <div className="ops-grid"><div>
-        <h2>{t.team}</h2><ul className="ops-team" aria-label={t.title}>{data.members.filter(member => member.role === 'OPS').map(member => <li key={member.id}><strong>{member.name}</strong><span className="eyebrow">OPS</span></li>)}</ul>
+        <h2>{t.team}</h2><ul className="ops-team" aria-label={t.title}>{data.members.filter(member => member.role === 'OPS').map(member => <li key={member.id}><strong>{member.name}</strong><span className="eyebrow">OPS</span><Link className="text-link" to={`/ops/users/${member.id}/profile-deletion`}>{language === 'de' ? 'Profil entfernen' : 'Remove profile'}</Link></li>)}</ul>
         <form className="account-form ops-appointment" onSubmit={appoint} aria-busy={busy}><h2>{t.appoint}</h2><p className="ops-note" id="ops-permissions">{t.hint}</p>
           {candidates.length ? <><label><span id="ops-member-label">{t.member}</span><select aria-labelledby="ops-member-label" value={selected} onChange={event => { setSelected(event.target.value); setFeedback(null); }} required aria-describedby="ops-permissions">
-            <option value="">{t.select}</option>{candidates.map(member => <option key={member.id} value={member.id}>{member.name} · {member.education ?? 'Member'} · {member.id}</option>)}
+          <option value="">{t.select}</option>{candidates.map(member => <option key={member.id} value={member.id}>{member.name} · {member.education ?? 'Member'} · {member.id}</option>)}
           </select></label><button className="button-primary" disabled={busy || !selected}>{busy ? t.saving : t.appoint}</button></> : <p>{t.empty}</p>}
           {feedback && <p role={feedback === 'success' ? 'status' : 'alert'} className={feedback === 'success' ? 'form-success' : 'form-error'}>{t[feedback]}</p>}
           {feedback === 'conflict' && <button className="text-link" type="button" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button>}
-        </form></div>
+        </form><div className="ops-profile-list"><h2>{t.profiles}</h2>{data.members.filter(member => member.role === 'MEMBER').map(member => <p key={member.id}><span>{member.name}</span><Link className="text-link" to={`/ops/users/${member.id}/profile-deletion`}>{language === 'de' ? 'Profil entfernen' : 'Remove profile'}</Link></p>)}</div></div>
         <div><h2>{t.history}</h2><p className="ops-note">{t.latest}</p><ol className="ops-history" aria-label={t.history}>{data.changes.map(change => <li key={change.id}>
           <strong>{change.targetName ?? t.deleted} → Ops</strong>
           <p>{change.source === 'BOOTSTRAP' ? `${t.bootstrap} · ${t.admin}: ${change.operator} · ${t.sponsor}: ${change.confirmedBy}` : `${t.normal}: ${change.actorName ?? t.deleted}`}</p>

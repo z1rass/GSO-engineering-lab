@@ -146,6 +146,11 @@ h1 { font-family: 'Barlow Condensed', Impact, sans-serif; font-size: clamp(56px,
 .steps h3 { font-size: 18px; margin-top: 12px; }
 .step-number { font-size: 12px; }
 .site-footer > span:first-child { color: var(--ink); font-weight: 700; }
+.deletion-activities { display: grid; gap: 12px; margin: 24px 0; }
+.deletion-activities label, .ops-profile-list p { display: flex; align-items: center; gap: 12px; min-height: 44px; border-top: 1px solid var(--line); padding: 8px 0; }
+.deletion-activities small { margin-left: auto; color: var(--muted); font-family: ui-monospace, monospace; font-size: 11px; }
+.ops-profile-list { margin-top: 32px; }
+.ops-profile-list p { justify-content: space-between; }
 .season-page h1 { font-size: clamp(44px,5vw,64px); }
 @media(max-width:1100px) { .hero-grid { gap: 36px; } }
 @media(max-width:760px) {

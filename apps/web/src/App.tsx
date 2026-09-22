@@ -2,6 +2,7 @@ import {OpsSeasonsPage,SeasonsPage,SeasonPage,SeasonContents,RecentActivities} f
 import { MyActivityPage } from './my-activity/page';
 import { NetworkPage } from './network/page';
 import { ModerationPage } from './moderation/page';
+import { ProfileDeletionPage } from './ops/profile-deletion';
 import { RoomQueue } from './rooms/pages';
 import { EventsPage, EventPage, EventEditor } from './events/pages';
 import { ProjectsPage, ProjectPage, ProjectEditor } from './projects/pages';
@@ -94,6 +95,7 @@ export function App() {
     <main id="main" className="page-width">
       <Routes>
         <Route path="/ops/moderation" element={<ModerationPage language={language} />} />
+        <Route path="/ops/users/:id/profile-deletion" element={<ProfileDeletionPage language={language} />} />
         <Route path="/network" element={<NetworkPage language={language} />} />
         <Route path="/my-activity" element={<MyActivityPage language={language} />} />
         <Route path="/ops/seasons" element={<OpsSeasonsPage language={language}/>} />

@@ -11,7 +11,7 @@ The interface is German-first with English available. Community-authored content
 
 ## Project status
 
-The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, the personal My Activity overview, private Club Network contacts, and moderation. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, the personal My Activity overview, private Club Network contacts, moderation and Ops profile deletion. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
 
 Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
 
@@ -250,3 +250,5 @@ Ops use `/ops/moderation` to hide or restore Ideas/Activities and block or unblo
 Hidden content is excluded from ordinary lists, recent Activities, Seasons and My Activity. Direct content routes and child resources return 404 to Visitors and ordinary Members, including owners. Ops retain direct access for review. A hidden source Idea is not linked or available for new Activity creation. Hiding never deletes tasks, participation, ownership or materials; restoring makes the retained data accessible again.
 
 User blocking is checked against the database on each authenticated mutation, including existing sessions and Ops writes. Blocked Users can still read, sign in and sign out; their profile shows the reason and directs them to Ops through Discord. Responsibilities remain assigned until resolved. Moderation does not send messages or add a complaints system. Migration `0016` adds visibility/block state and the audit table.
+
+Ops can remove a profile from `/ops/users/:id/profile-deletion` (there is no self-service deletion screen). The API first reports active Activities owned by the person; Ops must explicitly select every one to cancel before deletion can proceed. The account is then anonymized as `Deleted participant`, sessions and authentication records are revoked, ideas lose personal authorship, and project/task/history/contact attribution remains available without the old name or email. The route is `POST /api/ops/users/:id/profile-deletion` with `{ "cancelActivityIds": [] }`.
