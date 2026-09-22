@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a focused improvement to the community workflow
+title: "feat: "
+labels: [needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Which community problem does this solve?
+      description: Explain who is blocked and what they need to do.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful user flow.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This complements Discord/GitHub rather than replacing them.
+        - label: This does not add chat, rankings, or unnecessary complexity.

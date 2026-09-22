@@ -7,3 +7,12 @@ coverage/
 playwright-report/
 test-results/
 .DS_Store
+
+# Local agent and design-tool state
+.agents/
+.claude/
+.impeccable/
+.kimchi/
+apps/web/.impeccable/
+skills/
+skills-lock.json

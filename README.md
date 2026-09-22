@@ -1,14 +1,36 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, Project team membership, school room requests, Event Going, Task ownership, Activity ownership transfer, and completion/cancellation with past activities. German and English interface copy; PostgreSQL-backed data.
+[![CI](https://github.com/z1rass/GSO-engineering-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/z1rass/GSO-engineering-lab/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/Node.js-24.18-339933?logo=node.js&logoColor=white)](.node-version)
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Remaining lifecycle and Ops workflows belong to later tickets.
+Build things. Learn together. Run your own ideas.
 
-## Architecture
+GSO Engineering Lab is a student-led technical community for people who want to turn ideas into projects, events and useful results. The platform supports a simple loop: **Discover → Join → Own**. It is deliberately complementary to Discord and GitHub: the site keeps ownership, structure, history and outcomes visible.
+
+The interface is German-first with English available. Community-authored content stays in its original language. The app is built as a responsive web application with a TypeScript modular monolith and PostgreSQL.
+
+## Project status
+
+The repository contains a working MVP foundation for Season 0: public Season, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, and completion/cancellation with past Activity pages. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+
+Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
+
+## Contents
+
+- [Quick start with Docker](#quick-start-with-docker)
+- [Local development](#local-development)
+- [How the app fits together](#how-the-app-fits-together)
+- [Product areas](#ideas)
+- [Environment variables](#environment-variables)
+- [Database migrations](#database-migrations)
+- [Tests and checks](#tests-and-checks)
+- [Contributing](CONTRIBUTING.md)
+
+## How the app fits together
 
 React + Vite + React Router + Tailwind → same-origin REST API → Express + Drizzle → PostgreSQL. TypeScript throughout, with npm workspaces. The Vite development proxy forwards API requests, including within Compose. No microservices or external fonts are required.
 
-## Requirements and local setup
+## Quick start with Docker
 
 With Docker Engine and Docker Compose:
 
@@ -24,7 +46,9 @@ The local seed explicitly marks Season 0 as ACTIVE so the screen can be explored
 
 Compose is a **local development** setup with disposable local credentials and development servers. Production HTTPS, SMTP provisioning, hosting, backups and operator procedures belong to later tickets. For container code changes, rebuild; bind-mounted hot reload is not configured.
 
-For host-based development use Node.js **24** (the pinned version is recorded in `.node-version`) and its bundled npm:
+## Local development
+
+For host-based development use Node.js **24.18.0** (the pinned version is recorded in `.node-version`) and its bundled npm:
 
 ```sh
 docker compose up -d --wait db mailpit
@@ -55,6 +79,8 @@ Rate limiting is stored in PostgreSQL: 5 login-link requests per minute per dire
 After a Member verifies their email, a server admin can appoint the first Ops using the documented [bootstrap procedure](docs/operations/ops-appointments.md). Bootstrap requires external sponsor confirmation and refuses to run if any Ops already exist. The role change and its attribution are persisted atomically.
 
 Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. Recovery and role removal are outside this slice.
+
+The product areas below follow the same model: public discovery, deliberate participation, and explicit responsibility.
 
 ## Ideas
 
