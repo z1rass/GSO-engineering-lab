@@ -1,3 +1,4 @@
+import { mountOwnership } from './modules/ownership/index.js';
 import { mountTasks } from './modules/tasks/index.js';
 import { mountGoing } from './modules/going/index.js';
 import { mountRooms } from './modules/rooms/index.js';
@@ -28,6 +29,7 @@ export function createApp(pool: Pool) {
   mountRooms(app, pool, requireMember, getMember);
   mountGoing(app, pool, requireMember, getMember);
   mountTasks(app, pool, requireMember, getMember);
+  mountOwnership(app, pool, requireMember);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');

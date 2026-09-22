@@ -66,6 +66,8 @@ export function mountProjects(app: Express, pool: Pool, requireMember: RequestHa
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const authority=await client.query("SELECT owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS') AS allowed FROM activities WHERE id=$1 FOR UPDATE",[response.locals.projectId,response.locals.userId]);
+      if(!authority.rows[0]?.allowed){await client.query('ROLLBACK');response.status(403).json({error:'EDITOR_REQUIRED'});return;}
       await client.query('UPDATE activities SET title=$2,description=$3,materials=$4,private_instructions=$5,discord_url=$6,updated_at=NOW() WHERE id=$1',
         [response.locals.projectId,input.title,input.description,input.materials,input.privateInstructions,input.discordUrl]);
       await client.query('UPDATE project_details SET goal=$2,tech_stack=$3,repository_url=$4,documentation_url=$5 WHERE activity_id=$1',
@@ -76,7 +78,7 @@ export function mountProjects(app: Express, pool: Pool, requireMember: RequestHa
   });
   app.post('/api/projects/:id/start', requireMember, requireEditor, async (request, response) => {
     if (!z.object({}).strict().safeParse(request.body).success) { response.status(400).json({ error: 'INVALID_TRANSITION' }); return; }
-    const changed = await pool.query("UPDATE activities SET status='ACTIVE',updated_at=NOW() WHERE id=$1 AND status IN ('PLANNING','ACTIVE') RETURNING id", [response.locals.projectId]);
+    const changed = await pool.query("UPDATE activities SET status='ACTIVE',updated_at=NOW() WHERE id=$1 AND status IN ('PLANNING','ACTIVE') AND (owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS')) RETURNING id", [response.locals.projectId,response.locals.userId]);
     if (!changed.rowCount) { response.status(409).json({ error: 'INVALID_TRANSITION' }); return; }
     response.json({ started: true });
   });

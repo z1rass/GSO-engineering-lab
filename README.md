@@ -1,6 +1,6 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, Project team membership, school room requests, Event Going, and Task ownership. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, Project team membership, school room requests, Event Going, Task ownership, and Activity ownership transfer. German and English interface copy; PostgreSQL-backed data.
 
 The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Remaining lifecycle and Ops workflows belong to later tickets.
 
@@ -66,7 +66,7 @@ API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/idea
 
 ## Projects
 
-`/projects` lists Projects; `/projects/new` creates one, `/projects/:id` shows it and `/projects/:id/edit` edits its content. A Member becomes the single Activity Owner immediately; no Ops approval is required. New Projects start in PLANNING; owner or Ops can move them to ACTIVE with **Start work**. Completion and ownership transfer belong to later tickets.
+`/projects` lists Projects; `/projects/new` creates one, `/projects/:id` shows it and `/projects/:id/edit` edits its content. A Member becomes the single Activity Owner immediately; no Ops approval is required. New Projects start in PLANNING; owner or Ops can move them to ACTIVE with **Start work**. Completion belongs to a later ticket.
 
 A Project can be independent or based on an Idea. The Idea page links to the creation form with that Idea selected. Multiple Projects may reference the same Idea without changing its author or assigning them responsibility.
 
@@ -96,7 +96,7 @@ Each target supports `GET`, `POST` and `DELETE` on `/api/ideas/:id/interested`, 
 
 ## Project team membership
 
-The Project detail page has a **Join project / Leave team** control, a count, and a team list visible only to current Members. Joining works immediately in PLANNING and ACTIVE, with no application or approval. Completed/cancelled Projects do not accept joins. Ownership stays a separate responsibility: creating a Project does not implicitly enroll its owner in the team count; an owner may explicitly join, but cannot Leave without first transferring responsibility. Transfer is a later ticket.
+The Project detail page has a **Join project / Leave team** control, a count, and a team list visible only to current Members. Joining works immediately in PLANNING and ACTIVE, with no application or approval. Completed/cancelled Projects do not accept joins. Ownership stays a separate responsibility: creating a Project does not implicitly enroll its owner in the team count; an owner may explicitly join, but cannot Leave without first transferring responsibility.
 
 `GET /api/projects/:id/membership` returns only `{ count }` publicly. For a Member it also returns `members` (id/name only), `joined`, `isOwner`, `canJoin`, and their own `history` of `{ joinedAt, leftAt }` periods. No email or another person's historical participation is returned. `POST` joins; `DELETE` leaves; both accept `{}` (or no body), require Member/Origin, and act only on the authenticated user. Repeated writes do not duplicate participation or alter an already-ended period. Owner Leave returns 409, including for Ops who own that Project; there is no override here.
 
@@ -180,3 +180,11 @@ Keep the approved domain vocabulary and scope. German and English interface copy
 Event and Project pages share a Tasks panel. Activity Owner/Ops create and edit tasks with a title, description and optional due date. Any current Member can take an OPEN task; this immediately assigns them and starts work. Taking a task never joins a Project or registers Going. The Task Owner or Activity Owner/Ops can complete it or release it back to OPEN; Activity Owner/Ops can also cancel unfinished tasks. DONE preserves the responsible person's attribution. Terminal tasks cannot be taken or released.
 
 `GET/POST /api/activities/:id/tasks` lists/creates tasks; `PATCH /api/tasks/:id` edits content. `POST /api/tasks/:id/take`, `/complete`, `/release`, and `/cancel` change responsibility/status. Actions lock the Activity and Task rows in a transaction, so competing takes have one winner. Writes require a current Member and a same-origin request. Closed Activities reject task writes. Public reads omit assignee identity and action permissions; Member responses include them and use `Cache-Control: no-store`. UI actions and errors are available in DE/EN.
+
+## Ownership transfer
+
+The current owner proposes a successor from the current Members on the Event/Project page. They remain the sole owner until that recipient accepts. The proposal and acceptance do not enroll either person in a Project/Event or reassign Tasks. The owner, recipient or Ops can cancel a pending proposal; Ops cannot force acceptance or propose in the owner's place. Share the Activity link manually through Discord. Departure without a successor and Activity cancellation are delivered in ticket 13.
+
+`GET /api/activities/:id/ownership` is Member-only: the current owner can see eligible Members by name (no emails); only the owner, recipient and Ops see the pending proposal. `POST` on the same path takes `{recipientId}`. `POST .../accept` and `POST .../cancel` require `{transferId}` so a stale page cannot act on a replacement proposal. Only PLANNING/ACTIVE Activities allow proposing/accepting. Cancelling a pending proposal remains available after closure.
+
+`ownership_transfers` preserves accepted/cancelled proposals and permits one pending proposal per Activity. Writes lock the Activity row and commit the owner change and acceptance together. Project/Event editing rechecks authority under the same Activity lock; starting a Project checks it in the UPDATE. The previous owner loses owner-specific controls after acceptance, while any independent Ops or Task Owner rights remain.

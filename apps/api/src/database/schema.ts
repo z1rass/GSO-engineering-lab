@@ -134,3 +134,14 @@ export const tasks = pgTable('tasks', {
   createdAt: timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
   updatedAt: timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(),
 });
+
+export const ownershipTransferStatus = pgEnum('ownership_transfer_status',['PENDING','ACCEPTED','CANCELLED']);
+export const ownershipTransfers = pgTable('ownership_transfers', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  activityId: integer('activity_id').notNull().references(()=>activities.id,{onDelete:'cascade'}),
+  fromOwnerId: text('from_owner_id').notNull().references(()=>user.id),
+  recipientId: text('recipient_id').notNull().references(()=>user.id),
+  status: ownershipTransferStatus('status').notNull().default('PENDING'),
+  createdAt: timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
+  resolvedAt: timestamp('resolved_at',{withTimezone:true}),
+}, table=>[uniqueIndex('one_pending_ownership_transfer').on(table.activityId).where(sql`${table.status} = 'PENDING'`)]);

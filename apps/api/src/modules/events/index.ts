@@ -79,9 +79,10 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
       await client.query('BEGIN');
       const previous = await client.query(`SELECT
         (p.planned_date,p.start_time,coalesce(p.end_date,p.planned_date),p.end_time)
-        IS DISTINCT FROM ($2::date,$3::text,coalesce($4::date,$2::date),$5::text) AS rescheduled
+        IS DISTINCT FROM ($2::date,$3::text,coalesce($4::date,$2::date),$5::text) AS rescheduled, (a.owner_id=$6 OR EXISTS(SELECT 1 FROM users WHERE id=$6 AND role='OPS')) AS allowed
         FROM activities a JOIN event_details p ON p.activity_id=a.id WHERE a.id=$1 FOR UPDATE OF a`,
-        [response.locals.eventId,input.plannedDate,input.startTime,input.endDate,input.endTime]);
+        [response.locals.eventId,input.plannedDate,input.startTime,input.endDate,input.endTime,response.locals.userId]);
+      if(!previous.rows[0]?.allowed){await client.query('ROLLBACK');response.status(403).json({error:'EDITOR_REQUIRED'});return;}
       if (previous.rows[0]?.rescheduled) {
         await client.query('INSERT INTO activity_interests(activity_id,user_id) SELECT event_id,user_id FROM event_going WHERE event_id=$1 ON CONFLICT DO NOTHING',[response.locals.eventId]);
         await client.query('DELETE FROM event_going WHERE event_id=$1',[response.locals.eventId]);

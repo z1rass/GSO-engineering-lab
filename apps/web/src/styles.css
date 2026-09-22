@@ -363,3 +363,6 @@ button:disabled { opacity: .6; cursor: wait; }
 .task-card h3 { font-size: 22px; margin: 12px 0; overflow-wrap: anywhere; }
 .task-card .idea-description { font-size: 16px; }
 .task-panel .account-form { margin: 16px 0 24px; }
+
+.ownership-panel { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 24px; }
+.ownership-panel .account-form { margin-top: 24px; }

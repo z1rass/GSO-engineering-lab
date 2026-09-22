@@ -1,3 +1,4 @@
+import { OwnershipPanel } from '../ownership/panel';
 import { TaskPanel } from '../tasks/panel';
 import { EventGoing } from './going';
 import { RoomPanel } from '../rooms/pages';
@@ -58,6 +59,7 @@ export function EventPage({ language }: { language: Language }) {
         : <p className="ideas-note">{t.privateLogin} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>}
       <TaskPanel key={`tasks-${event.id}`} id={event.id} language={language} />
       <RoomPanel key={`room-${event.id}`} id={event.id} language={language} onRequested={resource.retry} />
+      {event.owner && <OwnershipPanel key={`ownership-${event.id}`} id={event.id} language={language} refresh={resource.retry} />}
       {event.canEdit && <div className="account-actions project-actions"><Link className="text-link" to={`/events/${event.id}/edit`}>{t.edit}</Link></div>}
     </article>}
   </section>;

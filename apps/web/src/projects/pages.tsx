@@ -1,3 +1,4 @@
+import { OwnershipPanel } from '../ownership/panel';
 import { TaskPanel } from '../tasks/panel';
 import { RoomPanel } from '../rooms/pages';
 import { ProjectTeam } from './team';
@@ -59,6 +60,7 @@ export function ProjectPage({ language }: { language: Language }) {
       <ProjectTeam key={`team-${project.id}`} id={project.id} language={language} />
       <TaskPanel key={`tasks-${project.id}`} id={project.id} language={language} />
       <RoomPanel key={`room-${project.id}`} id={project.id} language={language} />
+      {project.owner && <OwnershipPanel key={`ownership-${project.id}`} id={project.id} language={language} refresh={resource.retry} />}
       {project.canEdit && <div className="account-actions project-actions"><Link className="text-link" to={`/projects/${project.id}/edit`}>{t.edit}</Link>{project.status === 'PLANNING' && <button className="button-primary" disabled={busy} onClick={() => void start()}>{busy ? t.starting : t.start}</button>}</div>}
       {error && <p className="form-error" role="alert">{t.error}</p>}
     </article>}
