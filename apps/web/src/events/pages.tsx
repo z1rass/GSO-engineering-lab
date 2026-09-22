@@ -1,3 +1,4 @@
+import { RoomPanel } from '../rooms/pages';
 import { InterestedControl } from '../interested/control';
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -51,6 +52,7 @@ export function EventPage({ language }: { language: Language }) {
       {event.materials && <section><h2>{t.materials}</h2><p className="idea-description">{event.materials}</p></section>}
       {event.owner ? (event.exactRoom || event.privateInstructions || event.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{event.exactRoom && <p>{t.exactRoom}: {event.exactRoom} · {t.tentative}</p>}{event.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{event.privateInstructions}</p></>}{event.discordUrl && <a className="text-link" href={event.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>
         : <p className="ideas-note">{t.privateLogin} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>}
+      <RoomPanel key={`room-${event.id}`} id={event.id} language={language} />
       {event.canEdit && <div className="account-actions project-actions"><Link className="text-link" to={`/events/${event.id}/edit`}>{t.edit}</Link></div>}
     </article>}
   </section>;

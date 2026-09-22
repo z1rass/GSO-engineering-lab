@@ -349,3 +349,11 @@ button:disabled { opacity: .6; cursor: wait; }
 .project-team { border-top: 1px solid var(--line); padding-top: 24px; }
 .team-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
 .team-list li { padding: 10px 16px; background: var(--surface); border-radius: 8px; overflow-wrap: anywhere; max-width: 100%; }
+
+.project-room, .room-request { border-top: 1px solid var(--line); padding-top: 24px; margin-top: 32px; }
+.room-request h2 { font-size: 26px; overflow-wrap: anywhere; }
+.room-request .account-form { margin: 24px 0 48px; }
+.room-slot { line-height: 1.8; overflow-wrap: anywhere; }
+.room-slot small { color: var(--muted); }
+.account-form .room-agreement { display: flex; flex-direction: row; align-items: center; gap: 12px; min-height: 44px; line-height: 1.5; }
+.account-form .room-agreement input { width: 20px; min-height: 20px; flex-shrink: 0; }

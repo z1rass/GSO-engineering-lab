@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, and Project team membership. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, Project team membership, and school room requests. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Room requests, Event Going, Tasks and remaining Ops workflows belong to later tickets.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Event Going, Tasks and remaining Ops workflows belong to later tickets.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ API: `GET /api/projects`, `GET /api/projects/:id`, `POST /api/projects`, `PATCH 
 
 `/events` lists Events; `/events/new` creates one, `/events/:id` shows it and `/events/:id/edit` edits it. Members can create independent Events or start from an Idea; multiple Events may share the same Idea. The creator immediately owns the Event in PLANNING, without Ops approval. Only the owner and Ops can edit.
 
-Planned date, end date, start/end times and general location are optional. Dates are ISO calendar dates and times are `HH:mm` wall times in **Europe/Berlin**, not browser-local or UTC timestamps. An omitted end date means the same day when comparing known times. A supplied end date requires a start date and cannot precede it; on the same day the end time must follow the start. Multi-day Events may end at an earlier clock time on the later day. Unknown fields stay explicit in DE/EN, and all plans are labelled unconfirmed. Room requests and Going are separate later tickets; entering a room does not confirm a reservation.
+Planned date, end date, start/end times and general location are optional. Dates are ISO calendar dates and times are `HH:mm` wall times in **Europe/Berlin**, not browser-local or UTC timestamps. An omitted end date means the same day when comparing known times. A supplied end date requires a start date and cannot precede it; on the same day the end time must follow the start. Multi-day Events may end at an earlier clock time on the later day. Unknown fields stay explicit in DE/EN, and all plans are labelled unconfirmed. Room requests are handled separately below; Going is a later ticket; entering a room does not confirm a reservation.
 
 Public fields include category, description, tentative schedule/general location, materials and repository link. Exact room, access instructions, owner identity and the manually entered Discord link are returned only to current Members on the detail endpoint. Lists always use public fields. No attendee identities are stored in this slice.
 
@@ -101,6 +101,14 @@ The Project detail page has a **Join project / Leave team** control, a count, an
 `GET /api/projects/:id/membership` returns only `{ count }` publicly. For a Member it also returns `members` (id/name only), `joined`, `isOwner`, `canJoin`, and their own `history` of `{ joinedAt, leftAt }` periods. No email or another person's historical participation is returned. `POST` joins; `DELETE` leaves; both accept `{}` (or no body), require Member/Origin, and act only on the authenticated user. Repeated writes do not duplicate participation or alter an already-ended period. Owner Leave returns 409, including for Ops who own that Project; there is no override here.
 
 `project_memberships` records participation periods. A partial unique index allows one open period per User/Project. Leave sets `left_at`; rejoining creates a new period. Writes lock the Project row in a transaction so concurrent actions cannot bypass ownership checks. Interested is unchanged by Join/Leave, joining does not grant editor rights, and leaving never releases Activity or Task ownership. Task ownership is not implemented yet.
+
+## School room requests
+
+On an Event or Project page the owner can send one room request describing preferred dates, group size and plans. Ops see the queue at `/ops/rooms` (linked from `/ops`) and either offer an alternative or explicitly confirm a room/time. Alternatives are coordinated with the owner through Discord; offering one never confirms it automatically. The Ops form asks them to acknowledge agreement with owner and school before final confirmation. No equipment catalogue, booking engine or confirmation revocation is included.
+
+A request is PENDING, ALTERNATIVE or CONFIRMED. Confirmation is final: the API rejects every later update, including an alternative or changed room. Dates and times use Cologne wall time (Europe/Berlin), with an optional end date for multi-day bookings. Known slots must have an end after the start. Room confirmation does not modify Activity status, planned Event fields, Interested or membership, and does not open Going. The confirmed conditions are displayed separately; later registration must validate its Event plan against them.
+
+`GET /api/activities/:id/room-request` exposes only status publicly. Current Members can see confirmed dates/times and exact room; only the Activity owner and Ops see request wishes, alternatives and reply notes. `POST` on that route accepts `{ note }` from the owner only, including when that owner is Ops; Ops cannot request on someone else's behalf. Duplicate requests return 409. `GET /api/ops/room-requests` lists all requests, unresolved first. `PATCH /api/ops/room-requests/:id` accepts `{ status: 'ALTERNATIVE' | 'CONFIRMED', date, endDate?, startTime, endTime, room, message? }` from Ops. Confirmed rows cannot be changed (409); no delete endpoint exists.
 
 ## Environment variables
 

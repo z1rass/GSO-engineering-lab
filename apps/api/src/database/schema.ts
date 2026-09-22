@@ -107,3 +107,13 @@ export const projectMemberships = pgTable('project_memberships', {
   joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
   leftAt: timestamp('left_at', { withTimezone: true }),
 }, table => [uniqueIndex('one_current_project_membership').on(table.projectId, table.userId).where(sql`${table.leftAt} IS NULL`)]);
+
+export const roomRequestStatus = pgEnum('room_request_status', ['PENDING','ALTERNATIVE','CONFIRMED']);
+export const roomRequests = pgTable('room_requests', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  activityId: integer('activity_id').notNull().unique().references(() => activities.id, { onDelete: 'cascade' }),
+  note: text('note').notNull(), status: roomRequestStatus('status').notNull().default('PENDING'),
+  date: date('date'), endDate: date('end_date'), startTime: text('start_time'), endTime: text('end_time'), room: text('room'), message: text('message'),
+  createdAt: timestamp('created_at', {withTimezone:true}).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', {withTimezone:true}).notNull().defaultNow(),
+});

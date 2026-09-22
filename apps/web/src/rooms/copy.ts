@@ -1,0 +1,16 @@
+export const roomCopy={
+ de:{title:'Raum bei der Schule',queue:'Raumanfragen',back:'Ops',none:'Noch kein Raum angefragt.',PENDING:'Wartet auf Ops',ALTERNATIVE:'Alternative · noch nicht bestätigt',CONFIRMED:'Raum bestätigt',
+ note:'Wünsche zum Raum',hint:'Gewünschter Termin, Gruppengröße und was ihr vorhabt. Nur Owner und Ops sehen diese Nachricht.',request:'Raum anfragen',
+ alternative:'Stimmt die Alternative über Discord ab. Erst eine ausdrückliche Bestätigung durch Ops sichert den Raum.',independent:'Die Raumzusage gilt für die unten genannten Bedingungen. Sie öffnet keine Event-Anmeldung und ändert nicht automatisch den Event-Plan.',
+ date:'Datum',endDate:'Enddatum (optional)',start:'Beginn',end:'Ende',room:'Raum',message:'Antwort an den Owner',timezone:'Ortszeit Köln · Europe/Berlin',
+ offer:'Alternative anbieten',confirm:'Endgültig bestätigen',agreed:'Die Bedingungen sind mit Owner und Schule vereinbart.',final:'Eine Bestätigung ist endgültig und kann hier nicht geändert werden.',
+ loading:'Raumanfrage wird geladen …',saving:'Wird gespeichert …',error:'Die Änderung konnte nicht bestätigt werden. Bitte erneut versuchen.',invalid:'Prüfe Datum, Zeitfolge und Raum. Das Ende muss nach dem Beginn liegen.',conflict:'Die Anfrage wurde bereits erstellt oder endgültig bestätigt. Lade sie erneut.',denied:'Dafür fehlen dir die erforderlichen Rechte. Melde dich gegebenenfalls erneut an.',retry:'Neu laden',login:'Anmelden',empty:'Keine Raumanfragen.',noAccess:'Dieser Bereich ist nur für Ops zugänglich.',
+ },
+ en:{title:'School room',queue:'Room requests',back:'Ops',none:'No room requested yet.',PENDING:'Waiting for Ops',ALTERNATIVE:'Alternative · not confirmed',CONFIRMED:'Room confirmed',
+ note:'Room wishes',hint:'Preferred dates, group size and what you plan to do. Only the owner and Ops see this message.',request:'Request room',
+ alternative:'Agree on the alternative through Discord. Only explicit confirmation by Ops secures the room.',independent:'The room is confirmed for the conditions below. This does not open event registration or automatically change the event plan.',
+ date:'Date',endDate:'End date (optional)',start:'Start',end:'End',room:'Room',message:'Reply to the owner',timezone:'Cologne local time · Europe/Berlin',
+ offer:'Offer alternative',confirm:'Confirm finally',agreed:'The conditions are agreed with the owner and school.',final:'Confirmation is final and cannot be changed here.',
+ loading:'Loading room request …',saving:'Saving …',error:'Could not confirm the change. Please try again.',invalid:'Check the date, time order and room. The end must follow the start.',conflict:'The request already exists or is finally confirmed. Reload it.',denied:'You do not have permission. Sign in again if needed.',retry:'Reload',login:'Sign in',empty:'No room requests.',noAccess:'This area is only available to Ops.',
+ },
+};

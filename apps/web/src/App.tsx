@@ -1,3 +1,4 @@
+import { RoomQueue } from './rooms/pages';
 import { EventsPage, EventPage, EventEditor } from './events/pages';
 import { ProjectsPage, ProjectPage, ProjectEditor } from './projects/pages';
 import { IdeasPage, IdeaPage, IdeaEditor } from './ideas/pages';
@@ -87,6 +88,7 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/ops/rooms" element={<RoomQueue language={language} />} />
         <Route path="/events" element={<EventsPage language={language} />} />
         <Route path="/events/new" element={<EventEditor language={language} />} />
         <Route path="/events/:id" element={<EventPage language={language} />} />
