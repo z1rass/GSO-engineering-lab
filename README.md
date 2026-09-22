@@ -1,6 +1,6 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, and Projects with ownership. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, and Events in preparation. German and English interface copy; PostgreSQL-backed data.
 
 The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Events, Interested, team membership and other Ops workflows belong to later tickets.
 
@@ -75,6 +75,16 @@ Public fields: title, goal, description, tech stack, repository/documentation UR
 `activities` stores shared Activity data and a required single owner; `project_details` stores Project-specific fields. Creation and content updates are transactional. Links accept only HTTP(S), without embedded credentials. Text limits: title 120, goal 1,000, description/materials/internal instructions 5,000 each; up to 30 tech-stack entries of 50 characters. The JSON request ceiling is 128 KiB to accommodate multilingual content across these fields.
 
 API: `GET /api/projects`, `GET /api/projects/:id`, `POST /api/projects`, `PATCH /api/projects/:id`, `POST /api/projects/:id/start`. POST can include optional `ideaId`; PATCH replaces the editable content fields and cannot change the owner, source Idea or status. `/start` accepts `{}` and is idempotent for an already ACTIVE Project. Lists use public fields even for Members; open a Project to see its internal information.
+
+## Events
+
+`/events` lists Events; `/events/new` creates one, `/events/:id` shows it and `/events/:id/edit` edits it. Members can create independent Events or start from an Idea; multiple Events may share the same Idea. The creator immediately owns the Event in PLANNING, without Ops approval. Only the owner and Ops can edit.
+
+Planned date, end date, start/end times and general location are optional. Dates are ISO calendar dates and times are `HH:mm` wall times in **Europe/Berlin**, not browser-local or UTC timestamps. An omitted end date means the same day when comparing known times. A supplied end date requires a start date and cannot precede it; on the same day the end time must follow the start. Multi-day Events may end at an earlier clock time on the later day. Unknown fields stay explicit in DE/EN, and all plans are labelled unconfirmed. Room requests and Going are separate later tickets; entering a room does not confirm a reservation.
+
+Public fields include category, description, tentative schedule/general location, materials and repository link. Exact room, access instructions, owner identity and the manually entered Discord link are returned only to current Members on the detail endpoint. Lists always use public fields. No attendee identities are stored in this slice.
+
+API: `GET /api/events`, `GET /api/events/:id`, `POST /api/events`, `PATCH /api/events/:id`. POST accepts optional `ideaId`; PATCH replaces editable content and cannot change owner, source Idea or status. `event_details` holds Event-specific fields alongside the common `activities` table. Writes are transactional; links follow the same HTTP(S) rules as Projects.
 
 ## Environment variables
 

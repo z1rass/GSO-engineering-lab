@@ -38,6 +38,7 @@ export function IdeaPage({ language }: { language: Language }) {
   return <section className="ideas-page idea-detail"><Link className="text-link" to="/ideas">← {t.back}</Link>
     {!idea ? <LoadingOrError language={language} {...resource} /> : <article><IdeaDate idea={idea} language={language} /><h1>{idea.title}</h1><p className="idea-description">{idea.description}</p>
       <aside className="ideas-note"><p>{t.note}</p><p>{t.editNote}</p></aside>
+      <Link className="text-link" to={`/events/new?idea=${idea.id}`}>{language === 'de' ? 'Event daraus erstellen' : 'Create an event from this'} ↗</Link>
       <Link className="text-link" to={`/projects/new?idea=${idea.id}`}>{language === 'de' ? 'Projekt daraus starten' : 'Start a project from this'} ↗</Link>
       {viewer.data?.user.role === 'OPS' && <Link className="text-link" to={`/ideas/${idea.id}/edit`}>{t.edit} ↗</Link>}
     </article>}

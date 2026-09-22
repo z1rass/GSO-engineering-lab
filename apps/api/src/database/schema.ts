@@ -82,3 +82,11 @@ export const projectDetails = pgTable('project_details', {
   goal: text('goal').notNull(), techStack: text('tech_stack').array().notNull().default(sql`'{}'::text[]`),
   repositoryUrl: text('repository_url'), documentationUrl: text('documentation_url'),
 });
+
+export const eventCategory = pgEnum('event_category', ['TALK', 'WORKSHOP', 'BUILD_NIGHT', 'STUDY_SESSION', 'HACKATHON', 'SOCIAL', 'OTHER']);
+export const eventDetails = pgTable('event_details', {
+  activityId: integer('activity_id').primaryKey().references(() => activities.id, { onDelete: 'cascade' }),
+  category: eventCategory('category').notNull(),
+  plannedDate: date('planned_date'), endDate: date('end_date'), startTime: text('start_time'), endTime: text('end_time'),
+  generalLocation: text('general_location').notNull().default(''), exactRoom: text('exact_room').notNull().default(''), repositoryUrl: text('repository_url'),
+});

@@ -43,6 +43,13 @@
       "when": 1790059784725,
       "tag": "0005_common_roulette",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790060681248,
+      "tag": "0006_quiet_tusk",
+      "breakpoints": true
     }
   ]
 }

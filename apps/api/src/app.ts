@@ -1,3 +1,4 @@
+import { mountEvents } from './modules/events/index.js';
 import { mountProjects } from './modules/projects/index.js';
 import { mountIdeas } from './modules/ideas/index.js';
 import { mountOps } from './modules/ops/index.js';
@@ -16,6 +17,7 @@ export function createApp(pool: Pool) {
   mountOps(app, pool, requireMember);
   mountIdeas(app, pool, requireMember);
   mountProjects(app, pool, requireMember, getMember);
+  mountEvents(app, pool, requireMember, getMember);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');

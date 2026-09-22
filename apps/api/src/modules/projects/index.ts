@@ -2,7 +2,7 @@ import type { Express, Request, RequestHandler } from 'express';
 import type { Pool } from 'pg';
 import { z } from 'zod';
 
-const webUrl = z.url().max(2000).refine(value => { const url = new URL(value); return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password; });
+import { webUrl } from '../../shared/validation/web-url.js';
 const content = z.object({ title: z.string().trim().min(1).max(120), goal: z.string().trim().min(1).max(1000), description: z.string().trim().min(1).max(5000),
   techStack: z.array(z.string().trim().min(1).max(50)).max(30).default([]),
   repositoryUrl: webUrl.nullable().default(null), documentationUrl: webUrl.nullable().default(null),
