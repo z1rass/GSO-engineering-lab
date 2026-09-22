@@ -22,7 +22,7 @@ const copy = {
 const dashboardSchema = z.object({
   members: z.array(z.object({ id: z.string(), name: z.string(), role: z.enum(['MEMBER', 'OPS']), education: z.string().nullable(), year: z.number().nullable() })),
   changes: z.array(z.object({ id: z.number(), targetName: z.string().nullable(), actorName: z.string().nullable(),
-    source: z.enum(['BOOTSTRAP', 'APPOINTMENT']), operator: z.string().nullable(), confirmedBy: z.string().nullable(), createdAt: z.string(),
+    source: z.enum(['BOOTSTRAP', 'APPOINTMENT', 'RECOVERY']), operator: z.string().nullable(), confirmedBy: z.string().nullable(), handoverChecklist: z.string().nullable(), createdAt: z.string(),
   })),
 });
 type Dashboard = z.infer<typeof dashboardSchema>;
@@ -74,7 +74,7 @@ export function OpsPage({ language }: { language: Language }) {
         </form><div className="ops-profile-list"><h2>{t.profiles}</h2>{data.members.filter(member => member.role === 'MEMBER').map(member => <p key={member.id}><span>{member.name}</span><Link className="text-link" to={`/ops/users/${member.id}/profile-deletion`}>{language === 'de' ? 'Profil entfernen' : 'Remove profile'}</Link></p>)}</div></div>
         <div><h2>{t.history}</h2><p className="ops-note">{t.latest}</p><ol className="ops-history" aria-label={t.history}>{data.changes.map(change => <li key={change.id}>
           <strong>{change.targetName ?? t.deleted} → Ops</strong>
-          <p>{change.source === 'BOOTSTRAP' ? `${t.bootstrap} · ${t.admin}: ${change.operator} · ${t.sponsor}: ${change.confirmedBy}` : `${t.normal}: ${change.actorName ?? t.deleted}`}</p>
+          <p>{change.source === 'BOOTSTRAP' ? `${t.bootstrap} · ${t.admin}: ${change.operator} · ${t.sponsor}: ${change.confirmedBy}` : change.source === 'RECOVERY' ? `${language === 'de' ? 'Recovery' : 'Recovery'} · ${t.admin}: ${change.operator} · ${t.sponsor}: ${change.confirmedBy} · ${change.handoverChecklist ?? ''}` : `${t.normal}: ${change.actorName ?? t.deleted}`}</p>
           <time dateTime={change.createdAt}>{new Intl.DateTimeFormat(language === 'de' ? 'de-DE' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(change.createdAt))}</time>
         </li>)}</ol>{!data.changes.length && <p>{t.noChanges}</p>}</div>
       </div>}

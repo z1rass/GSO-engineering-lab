@@ -78,7 +78,7 @@ Rate limiting is stored in PostgreSQL: 5 login-link requests per minute per dire
 
 After a Member verifies their email, a server admin can appoint the first Ops using the documented [bootstrap procedure](docs/operations/ops-appointments.md). Bootstrap requires external sponsor confirmation and refuses to run if any Ops already exist. The role change and its attribution are persisted atomically.
 
-Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. Recovery and role removal are outside this slice.
+Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. If all Ops lose access, a server admin uses the documented `ops:recover` path after school sponsor confirmation; it is not available through the web API.
 
 The product areas below follow the same model: public discovery, deliberate participation, and explicit responsibility.
 

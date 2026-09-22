@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/seed.ts",
-    "ops:bootstrap": "tsx src/modules/ops/bootstrap.ts"
+    "ops:bootstrap": "tsx src/modules/ops/bootstrap.ts",
+    "ops:recover": "tsx src/modules/ops/recover.ts"
   },
   "dependencies": {
     "better-auth": "^1.7.5",

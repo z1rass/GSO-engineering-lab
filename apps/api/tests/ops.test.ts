@@ -1,4 +1,4 @@
-import { requestTestLink, redeemTestLink } from './helpers/magic-link.js';
+import { requestExistingTestLink, requestTestLink, redeemTestLink } from './helpers/magic-link.js';
 import { once } from 'node:events';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -32,6 +32,12 @@ async function member(name: string) {
 async function bootstrap(email: string, extra = ['--confirmed-by', 'School sponsor', '--operator', 'Server admin']) {
   try {
     const result = await promisify(execFile)(process.execPath, ['--import', 'tsx', 'src/modules/ops/bootstrap.ts', '--email', email, ...extra], { env: { ...process.env, DATABASE_URL: databaseUrl } });
+    return { ok: true, output: result.stdout };
+  } catch (error) { return { ok: false, output: String(error) }; }
+}
+async function recover(emails: string[], extra = ['--confirmed-by', 'School sponsor', '--operator', 'Server admin', '--handover-checklist', 'Shared ownership and organisational account handover recorded']) {
+  try {
+    const result = await promisify(execFile)(process.execPath, ['--import', 'tsx', 'src/modules/ops/recover.ts', '--emails', emails.join(','), ...extra], { env: { ...process.env, DATABASE_URL: databaseUrl } });
     return { ok: true, output: result.stdout };
   } catch (error) { return { ok: false, output: String(error) }; }
 }
@@ -97,4 +103,38 @@ test('Concurrent bootstrap commands yield one initial Ops and one audit record',
   const dashboard = await fetch(`${base}/api/ops`, { headers: { cookie: winner.cookie } }).then(r => r.json());
   expect(dashboard.changes).toHaveLength(1);
   expect(dashboard.changes[0]).toMatchObject({ targetId: winner.id, source: 'BOOTSTRAP' });
+});
+
+test('Server admin recovery restores multiple Ops after sponsor confirmation and records a distinct handover audit', async () => {
+  const first = await member('Recovered first'); const second = await member('Recovered second');
+  const restored = await recover([first.email, second.email]);
+  expect(restored.ok).toBe(true);
+  for (const candidate of [first, second]) {
+    const profile = await fetch(`${base}/api/me`, { headers: { cookie: candidate.cookie } }).then(r => r.json());
+    expect(profile.user.role).toBe('OPS');
+    expect((await fetch(`${base}/api/ops`, { headers: { cookie: candidate.cookie } })).status).toBe(200);
+  }
+  const freshLink = await requestExistingTestLink(base, origin, first.email, 'Recovered first');
+  const fresh = await redeemTestLink(base, freshLink.url);
+  expect((await fetch(`${base}/api/ops`, { headers: { cookie: fresh.cookie } })).status).toBe(200);
+  const dashboard = await fetch(`${base}/api/ops`, { headers: { cookie: first.cookie } }).then(r => r.json());
+  expect(dashboard.changes).toHaveLength(2);
+  expect(dashboard.changes).toEqual(expect.arrayContaining([
+    expect.objectContaining({ targetId: first.id, source: 'RECOVERY', confirmedBy: 'School sponsor' }),
+    expect.objectContaining({ targetId: second.id, source: 'RECOVERY', confirmedBy: 'School sponsor' }),
+  ]));
+  const third = await member('Recovery should reject');
+  expect((await recover([third.email])).ok).toBe(false);
+});
+
+test('Recovery is not available to ordinary Members or without the documented handover inputs', async () => {
+  const candidate = await member('Recovery candidate');
+  await pool.query("UPDATE users SET blocked=true, block_reason='Resolve first' WHERE id=$1", [candidate.id]);
+  expect((await fetch(`${base}/api/ops`, { headers: { cookie: candidate.cookie } })).status).toBe(403);
+  expect((await recover([candidate.email], ['--confirmed-by', 'Sponsor', '--operator', 'Admin'])).ok).toBe(false);
+  const blocked = await recover([candidate.email]);
+  expect(blocked).toMatchObject({ ok: false }); expect(blocked.output).toContain('Every recovery target');
+  expect((await pool.query("SELECT role FROM users WHERE id=$1", [candidate.id])).rows[0].role).toBe('MEMBER');
+  expect((await pool.query("SELECT count(*)::int AS count FROM role_changes WHERE target_id=$1", [candidate.id])).rows[0].count).toBe(0);
+  expect((await recover(['missing@gso.schule.koeln'])).ok).toBe(false);
 });
