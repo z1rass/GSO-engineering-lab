@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, and Interested for Ideas/Projects/Events. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, and Project team membership. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Events, Interested, team membership and other Ops workflows belong to later tickets.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Room requests, Event Going, Tasks and remaining Ops workflows belong to later tickets.
 
 ## Architecture
 
@@ -66,7 +66,7 @@ API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/idea
 
 ## Projects
 
-`/projects` lists Projects; `/projects/new` creates one, `/projects/:id` shows it and `/projects/:id/edit` edits its content. A Member becomes the single Activity Owner immediately; no Ops approval is required. New Projects start in PLANNING; owner or Ops can move them to ACTIVE with **Start work**. Joining, completion and ownership transfer belong to later tickets.
+`/projects` lists Projects; `/projects/new` creates one, `/projects/:id` shows it and `/projects/:id/edit` edits its content. A Member becomes the single Activity Owner immediately; no Ops approval is required. New Projects start in PLANNING; owner or Ops can move them to ACTIVE with **Start work**. Completion and ownership transfer belong to later tickets.
 
 A Project can be independent or based on an Idea. The Idea page links to the creation form with that Idea selected. Multiple Projects may reference the same Idea without changing its author or assigning them responsibility.
 
@@ -92,7 +92,15 @@ Idea, Project and Event detail pages show the persisted count and a Member-only 
 
 Each target supports `GET`, `POST` and `DELETE` on `/api/ideas/:id/interested`, `/api/projects/:id/interested` or `/api/events/:id/interested`. GET returns `{ count, interested }`; `interested` is the current Member's boolean or `null` for a Visitor/Alumni. Writes accept `{}`, use the authenticated Member only and enforce the usual Origin check. DELETE also accepts no body. Repeated writes are idempotent, including concurrent POSTs. Missing targets and wrong Activity types return 404.
 
-`idea_interests` and `activity_interests` store only foreign keys to the target and User, with composite primary keys preventing duplicates. Neither endpoint writes participation or ownership. Membership, Going and Tasks are not implemented yet; their future tests should keep this invariant when those relations arrive. The UI reads the count after a successful write and preserves the displayed state with a retryable message if saving fails.
+`idea_interests` and `activity_interests` store only foreign keys to the target and User, with composite primary keys preventing duplicates. Neither endpoint writes participation or ownership. Membership tests now verify this independence; future Going and Task tests should preserve it as those relations arrive. The UI reads the count after a successful write and preserves the displayed state with a retryable message if saving fails.
+
+## Project team membership
+
+The Project detail page has a **Join project / Leave team** control, a count, and a team list visible only to current Members. Joining works immediately in PLANNING and ACTIVE, with no application or approval. Completed/cancelled Projects do not accept joins. Ownership stays a separate responsibility: creating a Project does not implicitly enroll its owner in the team count; an owner may explicitly join, but cannot Leave without first transferring responsibility. Transfer is a later ticket.
+
+`GET /api/projects/:id/membership` returns only `{ count }` publicly. For a Member it also returns `members` (id/name only), `joined`, `isOwner`, `canJoin`, and their own `history` of `{ joinedAt, leftAt }` periods. No email or another person's historical participation is returned. `POST` joins; `DELETE` leaves; both accept `{}` (or no body), require Member/Origin, and act only on the authenticated user. Repeated writes do not duplicate participation or alter an already-ended period. Owner Leave returns 409, including for Ops who own that Project; there is no override here.
+
+`project_memberships` records participation periods. A partial unique index allows one open period per User/Project. Leave sets `left_at`; rejoining creates a new period. Writes lock the Project row in a transaction so concurrent actions cannot bypass ownership checks. Interested is unchanged by Join/Leave, joining does not grant editor rights, and leaving never releases Activity or Task ownership. Task ownership is not implemented yet.
 
 ## Environment variables
 

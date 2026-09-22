@@ -1,3 +1,4 @@
+import { mountMembership } from './modules/membership/index.js';
 import { mountInterested } from './modules/interested/index.js';
 import { mountEvents } from './modules/events/index.js';
 import { mountProjects } from './modules/projects/index.js';
@@ -20,6 +21,7 @@ export function createApp(pool: Pool) {
   mountProjects(app, pool, requireMember, getMember);
   mountEvents(app, pool, requireMember, getMember);
   mountInterested(app, pool, requireMember, getMember);
+  mountMembership(app, pool, requireMember, getMember);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');

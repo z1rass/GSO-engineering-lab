@@ -99,3 +99,11 @@ export const activityInterests = pgTable('activity_interests', {
   activityId: integer('activity_id').notNull().references(() => activities.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
 }, table => [primaryKey({ columns: [table.activityId, table.userId] })]);
+
+export const projectMemberships = pgTable('project_memberships', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  projectId: integer('project_id').notNull().references(() => projectDetails.activityId, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+  leftAt: timestamp('left_at', { withTimezone: true }),
+}, table => [uniqueIndex('one_current_project_membership').on(table.projectId, table.userId).where(sql`${table.leftAt} IS NULL`)]);

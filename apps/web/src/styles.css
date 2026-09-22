@@ -345,3 +345,7 @@ button:disabled { opacity: .6; cursor: wait; }
 .interested-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .interested-button:disabled { opacity: .6; cursor: wait; }
 .interested-control .field-hint { margin: 14px 0 0; }
+
+.project-team { border-top: 1px solid var(--line); padding-top: 24px; }
+.team-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; margin: 24px 0; }
+.team-list li { padding: 10px 16px; background: var(--surface); border-radius: 8px; overflow-wrap: anywhere; max-width: 100%; }
