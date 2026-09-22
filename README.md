@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, and public Ideas. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, and Projects with ownership. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Events, Projects, Interested and other Ops workflows belong to later tickets.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Events, Interested, team membership and other Ops workflows belong to later tickets.
 
 ## Architecture
 
@@ -64,6 +64,18 @@ Visitors receive only the idea ID, title, description and timestamps. Authorship
 
 API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/ideas/:id`. Creation and editing accept only `title` and `description`. The list is intentionally simple for the small MVP community; pagination, Interested and moderation are separate work.
 
+## Projects
+
+`/projects` lists Projects; `/projects/new` creates one, `/projects/:id` shows it and `/projects/:id/edit` edits its content. A Member becomes the single Activity Owner immediately; no Ops approval is required. New Projects start in PLANNING; owner or Ops can move them to ACTIVE with **Start work**. Joining, completion and ownership transfer belong to later tickets.
+
+A Project can be independent or based on an Idea. The Idea page links to the creation form with that Idea selected. Multiple Projects may reference the same Idea without changing its author or assigning them responsibility.
+
+Public fields: title, goal, description, tech stack, repository/documentation URLs, materials, status, source Idea and timestamps. Only currently authenticated Members receive the owner's identity, internal instructions and manually entered Discord URL. No email is returned. Public and authenticated responses use `Cache-Control: no-store`. Public text/links should not contain secrets; the form labels the separate Members-only section.
+
+`activities` stores shared Activity data and a required single owner; `project_details` stores Project-specific fields. Creation and content updates are transactional. Links accept only HTTP(S), without embedded credentials. Text limits: title 120, goal 1,000, description/materials/internal instructions 5,000 each; up to 30 tech-stack entries of 50 characters. The JSON request ceiling is 128 KiB to accommodate multilingual content across these fields.
+
+API: `GET /api/projects`, `GET /api/projects/:id`, `POST /api/projects`, `PATCH /api/projects/:id`, `POST /api/projects/:id/start`. POST can include optional `ideaId`; PATCH replaces the editable content fields and cannot change the owner, source Idea or status. `/start` accepts `{}` and is idempotent for an already ACTIVE Project. Lists use public fields even for Members; open a Project to see its internal information.
+
 ## Environment variables
 
 All local defaults work without a configuration file. `.env.example` documents them; host commands read exported environment variables, not an automatically loaded `.env` file.
@@ -93,7 +105,7 @@ The database enforces a single active Season, unique Season numbers and ordered 
 
 ## Tests and checks
 
-The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth, profile, Ideas and Ops fixtures (including resetting test roles and clearing the role journal). Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
+The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth, profile, Ideas, Activities and Ops fixtures (including resetting test roles and clearing the role journal). Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
 
 ```sh
 docker compose --profile test up -d --wait test-db mailpit

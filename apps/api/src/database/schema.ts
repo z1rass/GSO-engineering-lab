@@ -65,3 +65,20 @@ export const ideas = pgTable('ideas', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const activityType = pgEnum('activity_type', ['PROJECT', 'EVENT']);
+export const activityStatus = pgEnum('activity_status', ['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED']);
+export const activities = pgTable('activities', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(), type: activityType('type').notNull(),
+  title: text('title').notNull(), description: text('description').notNull(),
+  ownerId: text('owner_id').notNull().references(() => user.id),
+  ideaId: integer('idea_id').references(() => ideas.id, { onDelete: 'set null' }),
+  status: activityStatus('status').notNull().default('PLANNING'),
+  materials: text('materials').notNull().default(''), privateInstructions: text('private_instructions').notNull().default(''), discordUrl: text('discord_url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(), updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+export const projectDetails = pgTable('project_details', {
+  activityId: integer('activity_id').primaryKey().references(() => activities.id, { onDelete: 'cascade' }),
+  goal: text('goal').notNull(), techStack: text('tech_stack').array().notNull().default(sql`'{}'::text[]`),
+  repositoryUrl: text('repository_url'), documentationUrl: text('documentation_url'),
+});

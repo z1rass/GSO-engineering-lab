@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useResource } from '../shared/use-resource';
+import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
 import type { Language } from '../i18n';
@@ -10,21 +11,6 @@ const detailSchema = z.object({ idea: ideaSchema });
 const viewerSchema = z.object({ user: z.object({ role: z.enum(['MEMBER', 'OPS']) }) });
 type Idea = z.infer<typeof ideaSchema>;
 
-function useResource<T>(path: string | null, schema: z.ZodType<T>) {
-  const [result, setResult] = useState<{ data: T | null; status: number; loading: boolean }>({ data: null, status: 0, loading: true });
-  const [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    if (!path) { setResult({ data: null, status: 200, loading: false }); return; }
-    const controller = new AbortController();
-    setResult({ data: null, status: 0, loading: true });
-    void fetch(path, { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]) }).then(async response => {
-      const data = response.ok ? schema.parse(await response.json()) : null;
-      if (!controller.signal.aborted) setResult({ data, status: response.status, loading: false });
-    }).catch(() => { if (!controller.signal.aborted) setResult({ data: null, status: 503, loading: false }); });
-    return () => controller.abort();
-  }, [path, schema, attempt]);
-  return { ...result, retry: () => setAttempt(n => n + 1) };
-}
 function LoadingOrError({ language, loading, status, retry }: { language: Language; loading: boolean; status: number; retry: () => void }) {
   const t = ideasCopy[language];
   return loading ? <p role="status">{t.loading}</p> : status === 404 ? <h1>{t.missing}</h1>
@@ -52,6 +38,7 @@ export function IdeaPage({ language }: { language: Language }) {
   return <section className="ideas-page idea-detail"><Link className="text-link" to="/ideas">← {t.back}</Link>
     {!idea ? <LoadingOrError language={language} {...resource} /> : <article><IdeaDate idea={idea} language={language} /><h1>{idea.title}</h1><p className="idea-description">{idea.description}</p>
       <aside className="ideas-note"><p>{t.note}</p><p>{t.editNote}</p></aside>
+      <Link className="text-link" to={`/projects/new?idea=${idea.id}`}>{language === 'de' ? 'Projekt daraus starten' : 'Start a project from this'} ↗</Link>
       {viewer.data?.user.role === 'OPS' && <Link className="text-link" to={`/ideas/${idea.id}/edit`}>{t.edit} ↗</Link>}
     </article>}
   </section>;

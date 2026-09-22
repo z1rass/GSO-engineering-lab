@@ -309,3 +309,17 @@ button:disabled { opacity: .6; cursor: wait; }
 .idea-form textarea { width: 100%; min-width: 0; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 14px; font: inherit; font-size: 16px; line-height: 1.7; color: var(--ink); background: var(--paper); }
 .idea-form textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (max-width: 760px) { .ideas-heading { flex-direction: column; align-items: start; gap: 24px; } .ideas-page { padding-top: 32px; } .site-header nav { flex-wrap: wrap; } }
+
+.project-empty { margin-top: 40px; }
+.project-stack { color: var(--muted); font: 12px/1.8 ui-monospace, monospace; margin-top: 16px; overflow-wrap: anywhere; }
+.project-goal { font-size: 24px; line-height: 1.5; margin-bottom: 24px; overflow-wrap: anywhere; }
+.project-owner { font-size: 14px; margin: 24px 0; overflow-wrap: anywhere; }
+.project-detail > section { margin: 32px 0; }
+.project-detail h2 { font-size: 24px; margin: 12px 0 20px; }
+.project-links, .project-actions { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 24px; }
+.project-private { border-top: 1px solid var(--line); padding-top: 24px; }
+.project-form-section { border-top: 1px solid var(--line); padding-top: 8px; }
+.project-form-section summary { cursor: pointer; padding: 14px 0; font-weight: 500; }
+.project-form-section summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.project-form-section > div { display: flex; flex-direction: column; gap: 20px; padding: 16px 0; }
+@media (min-width: 761px) and (max-width: 1050px) { .site-header .about-link { display: none; } .site-header nav { gap: 12px; } }

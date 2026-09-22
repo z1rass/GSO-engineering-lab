@@ -1,3 +1,4 @@
+import { mountProjects } from './modules/projects/index.js';
 import { mountIdeas } from './modules/ideas/index.js';
 import { mountOps } from './modules/ops/index.js';
 import { mountAuth } from './modules/auth/index.js';
@@ -11,9 +12,10 @@ export function createApp(pool: Pool) {
   const app = express();
   const db = drizzle(pool);
   app.disable('x-powered-by');
-  const { requireMember } = mountAuth(app, pool);
+  const { requireMember, getMember } = mountAuth(app, pool);
   mountOps(app, pool, requireMember);
   mountIdeas(app, pool, requireMember);
+  mountProjects(app, pool, requireMember, getMember);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');

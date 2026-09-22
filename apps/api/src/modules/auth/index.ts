@@ -6,7 +6,7 @@ import { magicLink } from 'better-auth/plugins';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Express, RequestHandler } from 'express';
+import type { Express, Request, RequestHandler } from 'express';
 import express from 'express';
 import type { Pool } from 'pg';
 import nodemailer from 'nodemailer';
@@ -63,21 +63,23 @@ export function mountAuth(app: Express, pool: Pool) {
     request.headers['x-gso-client-ip'] = request.socket.remoteAddress ?? 'unknown';
     next();
   }, toNodeHandler(auth));
-  app.use(express.json({ limit: '16kb' }));
+  app.use(express.json({ limit: '128kb' }));
   const profileInput = z.object({ name: z.string().trim().min(1).max(100),
     education: z.string().trim().max(100).nullable().optional(), year: z.number().int().min(1).max(6).nullable().optional(),
     interests: z.array(z.string().trim().min(1).max(50)).max(20).optional(),
   }).strict();
+  async function getMember(request: Request) {
+    const current = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
+    return current && current.user.emailVerified && current.user.affiliation === 'MEMBER' ? current.user : null;
+  }
   const requireMember: RequestHandler = async (request, response, next) => {
     response.set('Cache-Control', 'no-store');
     if (request.method !== 'GET' && request.get('origin') !== new URL(baseURL).origin) {
       response.status(403).json({ error: 'INVALID_ORIGIN' }); return;
     }
-    const current = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
-    if (!current || !current.user.emailVerified || current.user.affiliation !== 'MEMBER') {
-      response.status(401).json({ error: 'UNAUTHENTICATED' }); return;
-    }
-    response.locals.userId = current.user.id;
+    const member = await getMember(request);
+    if (!member) { response.status(401).json({ error: 'UNAUTHENTICATED' }); return; }
+    response.locals.userId = member.id;
     next();
   };
   app.route('/api/me').all(requireMember).get(async (_request, response) => {
@@ -91,5 +93,5 @@ export function mountAuth(app: Express, pool: Pool) {
     await db.update(schema.user).set({ ...parsed.data, updatedAt: new Date() }).where(eq(schema.user.id, response.locals.userId));
     response.json({ saved: true });
   });
-  return { requireMember };
+  return { requireMember, getMember };
 }
