@@ -7,6 +7,7 @@ import { authCopy } from './copy';
 const profileResponse = z.object({ user: z.object({
   id: z.string(), name: z.string(), email: z.email(), affiliation: z.literal('MEMBER'), role: z.enum(['MEMBER', 'OPS']),
   education: z.string().nullable(), year: z.number().nullable(), interests: z.array(z.string()).nullable(),
+  blocked: z.boolean(), blockReason: z.string(),
 }) });
 type Profile = z.infer<typeof profileResponse>['user'];
 
@@ -86,6 +87,7 @@ export function ProfilePage({ language }: { language: Language }) {
   if (state === 'anonymous') return <Navigate to="/login" replace />;
   if (state === 'loading') return <section className="account-page"><p role="status">{t.loading}</p></section>;
   if (state === 'error' || !profile) return <section className="account-page"><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></section>;
+  if (profile.blocked) return <section className="account-page"><div><h1>{t.profileTitle}</h1><p role="alert">{language === 'de' ? 'Änderungen für deinen Account sind gesperrt.' : 'Changes are blocked for your account.'} {profile.blockReason}</p><p>{language === 'de' ? 'Zur Klärung schreibe dem Ops-Team im Discord. Deine Aufgaben und deine Verantwortung bleiben bestehen.' : 'Contact the Ops team in Discord to resolve this. Your tasks and responsibilities remain assigned.'}</p><Link className="text-link" to="/my-activity">{language === 'de' ? 'Meine Aktivitäten' : 'My Activity'}</Link>{feedback && <p role="alert">{t[feedback]}</p>}<button className="text-link" disabled={busy} onClick={() => void logout()}>{t.logout}</button></div></section>;
   return <section className="account-page"><div className="account-heading"><p className="eyebrow">GSO engineering lab</p><h1>{t.profileTitle}</h1><p>{t.profileIntro}</p></div>
     <div><Link className="text-link ops-profile-link" to="/my-activity">{language === 'de' ? 'Meine Aktivitäten' : 'My Activity'}</Link>{profile.role === 'OPS' && <Link className="text-link ops-profile-link" to="/ops">{language === 'de' ? 'Ops verwalten' : 'Manage Ops'} ↗</Link>}
     <form className="account-form" onSubmit={save} aria-busy={busy} onChange={() => setFeedback(null)}>

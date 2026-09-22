@@ -17,7 +17,7 @@ const content = z.object({ schoolRoomRequired: z.boolean().default(false), title
   return true;
 }, { message: 'End must follow start; an end date requires a start date' });
 const idSchema = z.coerce.number().int().positive().max(2147483647);
-const publicFields = `a.id, a.title, a.description, a.status, a.idea_id AS "ideaId", a.materials,
+const publicFields = `a.id, a.title, a.description, a.status, (SELECT i.id FROM ideas i WHERE i.id=a.idea_id AND NOT i.hidden) AS "ideaId", a.materials,
   a.created_at AS "createdAt", a.updated_at AS "updatedAt", p.category,
   p.planned_date::text AS "plannedDate", p.end_date::text AS "endDate", p.start_time AS "startTime", p.end_time AS "endTime",
   p.general_location AS "generalLocation", p.repository_url AS "repositoryUrl"`;
@@ -25,7 +25,7 @@ const eventFrom = "FROM activities a JOIN event_details p ON p.activity_id=a.id 
 export function mountEvents(app: Express, pool: Pool, requireMember: RequestHandler, getMember: (request: Request) => Promise<{ id: string } | null>) {
   app.use('/api/events', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
   app.get('/api/events', async (_request, response) => {
-    response.json({ events: (await pool.query(`SELECT ${publicFields} ${eventFrom} ORDER BY a.id DESC`)).rows });
+    response.json({ events: (await pool.query(`SELECT ${publicFields} ${eventFrom} AND NOT a.hidden ORDER BY a.id DESC`)).rows });
   });
   app.get('/api/events/:id', async (request, response) => {
     const id = idSchema.safeParse(request.params.id);
@@ -46,7 +46,7 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     try {
       await client.query('BEGIN');
       if (input.ideaId !== null) {
-        const idea = await client.query('SELECT id FROM ideas WHERE id=$1 FOR KEY SHARE', [input.ideaId]);
+        const idea = await client.query('SELECT id FROM ideas WHERE id=$1 AND NOT hidden FOR SHARE', [input.ideaId]);
         if (!idea.rowCount) { await client.query('ROLLBACK'); response.status(400).json({ error: 'INVALID_IDEA' }); return; }
       }
       const activity = await client.query<{ id: number }>(`INSERT INTO activities(type,title,description,owner_id,materials,private_instructions,discord_url,idea_id)

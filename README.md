@@ -11,7 +11,7 @@ The interface is German-first with English available. Community-authored content
 
 ## Project status
 
-The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, the personal My Activity overview, and private Club Network contacts. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, the personal My Activity overview, private Club Network contacts, and moderation. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
 
 Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
 
@@ -88,7 +88,7 @@ The product areas below follow the same model: public discovery, deliberate part
 
 Visitors receive only the idea ID, title, description and timestamps. Authorship is stored privately for future moderation and is excluded from all public responses. Do not put private contact details in the published text. Only Ops can edit through `/ideas/:id/edit`; even the author has no editing permission unless they are Ops. Server permissions and CSRF checks apply independently of the UI.
 
-API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/ideas/:id`. Creation and editing accept only `title` and `description`. The list is intentionally simple for the small MVP community; pagination and moderation are separate work.
+API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/ideas/:id`. Creation and editing accept only `title` and `description`. The list is intentionally simple for the small MVP community; pagination remains deferred. Ops manage visibility through the moderation screen described below.
 
 ## Projects
 
@@ -242,3 +242,11 @@ Members open `/my-activity` through **Mein Lab / My Lab** or their profile. Curr
 Ops open `/network` from the Ops dashboard to create, read, edit and delete contacts. A record contains a required name and optional company, professional role, topics, notes, contact method and source of the connection. Contact methods are plain text, suitable for an email or professional profile. The server records who added the contact and when; editing preserves that attribution. The UI confirms permanent deletion before removing a record.
 
 `GET/POST /api/ops/network` and `GET/PATCH/DELETE /api/ops/network/:id` require a current verified Member with the Ops role. Writes use the existing Origin protection; every response is `no-store`. POST/PATCH validate the full editable record and reject client-supplied provenance. The separate `contacts` table is never included in public Activity, Idea or Season responses. Visitors and ordinary Members cannot retrieve records, including by direct ID; they are directed to ask Ops for help through Discord. No email sending or request system is added.
+
+## Moderation
+
+Ops use `/ops/moderation` to hide or restore Ideas/Activities and block or unblock a User's changes. Each action requires a reason and stores the state change together with an audit entry. `GET /api/ops/moderation` shows targets and the latest 100 actions; POST to `/ideas/:id` or `/activities/:id` below that endpoint accepts `{hidden, reason}`, and `/users/:id` accepts `{blocked, reason}`. Ops cannot block themselves.
+
+Hidden content is excluded from ordinary lists, recent Activities, Seasons and My Activity. Direct content routes and child resources return 404 to Visitors and ordinary Members, including owners. Ops retain direct access for review. A hidden source Idea is not linked or available for new Activity creation. Hiding never deletes tasks, participation, ownership or materials; restoring makes the retained data accessible again.
+
+User blocking is checked against the database on each authenticated mutation, including existing sessions and Ops writes. Blocked Users can still read, sign in and sign out; their profile shows the reason and directs them to Ops through Discord. Responsibilities remain assigned until resolved. Moderation does not send messages or add a complaints system. Migration `0016` adds visibility/block state and the audit table.

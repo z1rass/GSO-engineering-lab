@@ -25,6 +25,7 @@ export const user = pgTable('users', {
   createdAt: timestamp('created_at').notNull().defaultNow(), updatedAt: timestamp('updated_at').notNull().defaultNow(),
   role: globalRole('role').notNull().default('MEMBER'),
   affiliation: text('affiliation').notNull().default('MEMBER'),
+  blocked: boolean('blocked').notNull().default(false), blockReason: text('block_reason').notNull().default(''),
   education: text('education'), year: integer('year'), interests: text('interests').array(),
 });
 export const session = pgTable('sessions', {
@@ -60,6 +61,7 @@ export const roleChanges = pgTable('role_changes', {
 
 export const ideas = pgTable('ideas', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  hidden: boolean('hidden').notNull().default(false),
   title: text('title').notNull(), description: text('description').notNull(),
   createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -67,6 +69,13 @@ export const ideas = pgTable('ideas', {
 });
 
 export const activityType = pgEnum('activity_type', ['PROJECT', 'EVENT']);
+export const moderationActions = pgTable('moderation_actions', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  targetType: text('target_type').notNull(), targetId: text('target_id').notNull(),
+  action: text('action').notNull(), reason: text('reason').notNull(),
+  actorId: text('actor_id').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
 export const contacts = pgTable('contacts', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   name: text('name').notNull(), company: text('company').notNull().default(''),
@@ -83,6 +92,7 @@ export const activityStatus = pgEnum('activity_status', ['PLANNING', 'ACTIVE', '
 export const activities = pgTable('activities', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(), type: activityType('type').notNull(),
   title: text('title').notNull(), description: text('description').notNull(),
+  hidden: boolean('hidden').notNull().default(false),
   ownerId: text('owner_id').notNull().references(() => user.id),
   ideaId: integer('idea_id').references(() => ideas.id, { onDelete: 'set null' }),
   status: activityStatus('status').notNull().default('PLANNING'),

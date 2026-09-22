@@ -38,7 +38,7 @@ The Lab is a community infrastructure, not a teacher-led sequence of lessons. It
 
 ### Implemented foundation
 
-The current code provides a public homepage and Season pages backed by PostgreSQL, German/English interface switching, responsive layouts and loading, empty and retry states. Local Compose supplies migrations and demonstration data. The shipped MVP slices include magic-link authentication/profile, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with Past Activity views, Ops Season management, Project continuation across Seasons, a private My Activity overview and Ops-only Club Network contacts. Remaining Ops workflows and production operations stay planned.
+The current code provides a public homepage and Season pages backed by PostgreSQL, German/English interface switching, responsive layouts and loading, empty and retry states. Local Compose supplies migrations and demonstration data. The shipped MVP slices include magic-link authentication/profile, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with Past Activity views, Ops Season management, Project continuation across Seasons, a private My Activity overview, Ops-only Club Network contacts and moderation with retained history. Remaining Ops workflows and production operations stay planned.
 
 ### Confirmed MVP behavior
 

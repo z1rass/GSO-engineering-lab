@@ -1,6 +1,7 @@
 import { mountSeasons } from './modules/seasons/index.js';
 import { mountMyActivity } from './modules/my-activity/index.js';
 import { mountNetwork } from './modules/network/index.js';
+import { mountContentVisibility, mountModeration } from './modules/moderation/index.js';
 import { mountLifecycle } from './modules/lifecycle/index.js';
 import { mountOwnership } from './modules/ownership/index.js';
 import { mountTasks } from './modules/tasks/index.js';
@@ -24,7 +25,9 @@ export function createApp(pool: Pool) {
   const db = drizzle(pool);
   app.disable('x-powered-by');
   const { requireMember, getMember } = mountAuth(app, pool);
+  mountContentVisibility(app, pool, getMember);
   mountOps(app, pool, requireMember);
+  mountModeration(app, pool);
   mountNetwork(app, pool);
   mountIdeas(app, pool, requireMember);
   mountProjects(app, pool, requireMember, getMember);

@@ -79,12 +79,16 @@ export function mountAuth(app: Express, pool: Pool) {
     }
     const member = await getMember(request);
     if (!member) { response.status(401).json({ error: 'UNAUTHENTICATED' }); return; }
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      const current = await pool.query('SELECT blocked,block_reason FROM users WHERE id=$1', [member.id]);
+      if (current.rows[0]?.blocked) { response.status(403).json({ error: 'USER_BLOCKED', reason: current.rows[0].block_reason }); return; }
+    }
     response.locals.userId = member.id;
     next();
   };
   app.route('/api/me').all(requireMember).get(async (_request, response) => {
     const [profile] = await db.select({ id: schema.user.id, name: schema.user.name, email: schema.user.email,
-      role: schema.user.role, affiliation: schema.user.affiliation, education: schema.user.education, year: schema.user.year, interests: schema.user.interests })
+      role: schema.user.role, affiliation: schema.user.affiliation, blocked: schema.user.blocked, blockReason: schema.user.blockReason, education: schema.user.education, year: schema.user.year, interests: schema.user.interests })
       .from(schema.user).where(eq(schema.user.id, response.locals.userId));
     response.json({ user: profile });
   }).patch(async (request, response) => {

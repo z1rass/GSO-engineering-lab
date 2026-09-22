@@ -9,14 +9,14 @@ const content = z.object({ title: z.string().trim().min(1).max(120), goal: z.str
   materials: z.string().max(5000).default(''), privateInstructions: z.string().max(5000).default(''), discordUrl: webUrl.nullable().default(null),
 }).strict();
 const idSchema = z.coerce.number().int().positive().max(2147483647);
-const publicFields = `a.id, a.title, a.description, a.status, a.idea_id AS "ideaId", a.materials,
+const publicFields = `a.id, a.title, a.description, a.status, (SELECT i.id FROM ideas i WHERE i.id=a.idea_id AND NOT i.hidden) AS "ideaId", a.materials,
   a.created_at AS "createdAt", a.updated_at AS "updatedAt", p.goal, p.tech_stack AS "techStack",
   p.repository_url AS "repositoryUrl", p.documentation_url AS "documentationUrl"`;
 const projectFrom = "FROM activities a JOIN project_details p ON p.activity_id=a.id WHERE a.type='PROJECT'";
 export function mountProjects(app: Express, pool: Pool, requireMember: RequestHandler, getMember: (request: Request) => Promise<{ id: string } | null>) {
   app.use('/api/projects', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
   app.get('/api/projects', async (_request, response) => {
-    response.json({ projects: (await pool.query(`SELECT ${publicFields} ${projectFrom} ORDER BY a.id DESC`)).rows });
+    response.json({ projects: (await pool.query(`SELECT ${publicFields} ${projectFrom} AND NOT a.hidden ORDER BY a.id DESC`)).rows });
   });
   app.get('/api/projects/:id', async (request, response) => {
     const id = idSchema.safeParse(request.params.id);
@@ -37,7 +37,7 @@ export function mountProjects(app: Express, pool: Pool, requireMember: RequestHa
     try {
       await client.query('BEGIN');
       if (input.ideaId !== null) {
-        const idea = await client.query('SELECT id FROM ideas WHERE id=$1 FOR KEY SHARE', [input.ideaId]);
+        const idea = await client.query('SELECT id FROM ideas WHERE id=$1 AND NOT hidden FOR SHARE', [input.ideaId]);
         if (!idea.rowCount) { await client.query('ROLLBACK'); response.status(400).json({ error: 'INVALID_IDEA' }); return; }
       }
       const activity = await client.query<{ id: number }>(`INSERT INTO activities(type,title,description,owner_id,materials,private_instructions,discord_url,idea_id)

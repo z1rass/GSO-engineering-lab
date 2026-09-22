@@ -6,13 +6,13 @@ const content=z.object({number:z.number().int().min(0).max(2147483647),title:z.s
 const fields='id,number,title,description,starts_on::text AS "startsOn",ends_on::text AS "endsOn",status';
 const activityFields='a.id,a.type,a.title,a.description,a.status';
 export function mountSeasons(app:Express,pool:Pool,requireMember:RequestHandler,getMember:(request:Request)=>Promise<{id:string}|null>){
- app.get('/api/activities/recent',async(_request,response)=>{response.set('Cache-Control','no-store');response.json({activities:(await pool.query(`SELECT ${activityFields} FROM activities a WHERE status IN ('PLANNING','ACTIVE') ORDER BY created_at DESC,id DESC LIMIT 6`)).rows});});
+ app.get('/api/activities/recent',async(_request,response)=>{response.set('Cache-Control','no-store');response.json({activities:(await pool.query(`SELECT ${activityFields} FROM activities a WHERE NOT a.hidden AND status IN ('PLANNING','ACTIVE') ORDER BY created_at DESC,id DESC LIMIT 6`)).rows});});
  app.get('/api/seasons',async(_request,response)=>{response.set('Cache-Control','no-store');response.json({seasons:(await pool.query(`SELECT ${fields} FROM seasons WHERE status<>'DRAFT' ORDER BY number DESC`)).rows});});
  app.get('/api/seasons/:id',async(request,response)=>{
   response.set('Cache-Control','no-store');const id=idSchema.safeParse(request.params.id);if(!id.success){response.status(404).json({error:'NOT_FOUND'});return;}
   const season=(await pool.query(`SELECT ${fields} FROM seasons WHERE id=$1 AND status<>'DRAFT'`,[id.data])).rows[0];
   if(!season){response.status(404).json({error:'NOT_FOUND'});return;}
-  const activities=(await pool.query(`SELECT ${activityFields} FROM activities a JOIN activity_seasons j ON j.activity_id=a.id WHERE j.season_id=$1 ORDER BY a.type,a.created_at DESC,a.id DESC`,[id.data])).rows;
+  const activities=(await pool.query(`SELECT ${activityFields} FROM activities a JOIN activity_seasons j ON j.activity_id=a.id WHERE j.season_id=$1 AND NOT a.hidden ORDER BY a.type,a.created_at DESC,a.id DESC`,[id.data])).rows;
   response.json({season,activities});
  });
  // Existing /api/ops middleware checks current Member and Ops role.

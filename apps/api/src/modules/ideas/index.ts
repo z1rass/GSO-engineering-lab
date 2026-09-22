@@ -13,7 +13,7 @@ export function mountIdeas(app: Express, pool: Pool, requireMember: RequestHandl
   const db = drizzle(pool);
   app.use('/api/ideas', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
   app.get('/api/ideas', async (_request, response) => {
-    response.json({ ideas: await db.select(publicIdea).from(ideas).orderBy(desc(ideas.id)) });
+    response.json({ ideas: await db.select(publicIdea).from(ideas).where(eq(ideas.hidden, false)).orderBy(desc(ideas.id)) });
   });
   app.get('/api/ideas/:id', async (request, response) => {
     const id = ideaId.safeParse(request.params.id);
