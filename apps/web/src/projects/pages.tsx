@@ -1,3 +1,4 @@
+import { TaskPanel } from '../tasks/panel';
 import { RoomPanel } from '../rooms/pages';
 import { ProjectTeam } from './team';
 import { InterestedControl } from '../interested/control';
@@ -56,6 +57,7 @@ export function ProjectPage({ language }: { language: Language }) {
       {project.owner ? (project.privateInstructions || project.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{project.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{project.privateInstructions}</p></>}{project.discordUrl && <a className="text-link" href={project.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>
         : <p className="ideas-note">{t.privateLogin} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>}
       <ProjectTeam key={`team-${project.id}`} id={project.id} language={language} />
+      <TaskPanel key={`tasks-${project.id}`} id={project.id} language={language} />
       <RoomPanel key={`room-${project.id}`} id={project.id} language={language} />
       {project.canEdit && <div className="account-actions project-actions"><Link className="text-link" to={`/projects/${project.id}/edit`}>{t.edit}</Link>{project.status === 'PLANNING' && <button className="button-primary" disabled={busy} onClick={() => void start()}>{busy ? t.starting : t.start}</button>}</div>}
       {error && <p className="form-error" role="alert">{t.error}</p>}

@@ -357,3 +357,9 @@ button:disabled { opacity: .6; cursor: wait; }
 .room-slot small { color: var(--muted); }
 .account-form .room-agreement { display: flex; flex-direction: row; align-items: center; gap: 12px; min-height: 44px; line-height: 1.5; }
 .account-form .room-agreement input { width: 20px; min-height: 20px; flex-shrink: 0; }
+
+.task-panel { border-top: 1px solid var(--line); padding-top: 24px; }
+.task-card { border-top: 1px solid var(--line); padding-top: 24px; margin: 24px 0; }
+.task-card h3 { font-size: 22px; margin: 12px 0; overflow-wrap: anywhere; }
+.task-card .idea-description { font-size: 16px; }
+.task-panel .account-form { margin: 16px 0 24px; }

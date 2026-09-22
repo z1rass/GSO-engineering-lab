@@ -123,3 +123,14 @@ export const eventGoing = pgTable('event_going', {
   eventId: integer('event_id').notNull().references(() => eventDetails.activityId, {onDelete:'cascade'}),
   userId: text('user_id').notNull().references(() => user.id, {onDelete:'cascade'}),
 }, table => [primaryKey({columns:[table.eventId,table.userId]})]);
+
+export const taskStatus = pgEnum('task_status',['OPEN','IN_PROGRESS','DONE','CANCELLED']);
+export const tasks = pgTable('tasks', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  activityId: integer('activity_id').notNull().references(() => activities.id,{onDelete:'cascade'}),
+  title: text('title').notNull(), description: text('description').notNull().default(''), dueDate: date('due_date'),
+  status: taskStatus('status').notNull().default('OPEN'),
+  ownerId: text('owner_id').references(() => user.id),
+  createdAt: timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at',{withTimezone:true}).notNull().defaultNow(),
+});
