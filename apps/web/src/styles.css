@@ -335,3 +335,13 @@ button:disabled { opacity: .6; cursor: wait; }
 .event-form-grid label { min-width: 0; }
 @media (max-width: 600px) { .event-plan dl, .event-form-grid { grid-template-columns: 1fr; } }
 @media (min-width: 761px) and (max-width: 1150px) { .site-header { flex-wrap: wrap; } .site-header nav { order: 3; width: 100%; justify-content: space-between; flex-wrap: wrap; } .site-header .about-link { display: none; } }
+
+.interested-control { margin: 32px 0; padding: 24px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.interested-row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+.interested-count { margin: 0; color: var(--muted); font-size: 14px; }
+.interested-button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+.interested-button:hover { background: var(--surface); }
+.interested-button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--surface); }
+.interested-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.interested-button:disabled { opacity: .6; cursor: wait; }
+.interested-control .field-hint { margin: 14px 0 0; }

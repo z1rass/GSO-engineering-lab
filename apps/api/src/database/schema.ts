@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { bigint, boolean, timestamp, check, date, integer, pgEnum, pgTable, text, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, boolean, timestamp, check, date, integer, pgEnum, pgTable, primaryKey, text, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const seasonStatus = pgEnum('season_status', ['DRAFT', 'UPCOMING', 'ACTIVE', 'FINISHED', 'ARCHIVED']);
 
@@ -90,3 +90,12 @@ export const eventDetails = pgTable('event_details', {
   plannedDate: date('planned_date'), endDate: date('end_date'), startTime: text('start_time'), endTime: text('end_time'),
   generalLocation: text('general_location').notNull().default(''), exactRoom: text('exact_room').notNull().default(''), repositoryUrl: text('repository_url'),
 });
+
+export const ideaInterests = pgTable('idea_interests', {
+  ideaId: integer('idea_id').notNull().references(() => ideas.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+}, table => [primaryKey({ columns: [table.ideaId, table.userId] })]);
+export const activityInterests = pgTable('activity_interests', {
+  activityId: integer('activity_id').notNull().references(() => activities.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+}, table => [primaryKey({ columns: [table.activityId, table.userId] })]);

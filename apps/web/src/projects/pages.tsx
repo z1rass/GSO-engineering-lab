@@ -1,3 +1,4 @@
+import { InterestedControl } from '../interested/control';
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -46,6 +47,7 @@ export function ProjectPage({ language }: { language: Language }) {
     {!project ? <LoadState language={language} {...resource} /> : <article className="project-detail"><span className="status">{t[project.status]}</span><h1>{project.title}</h1><p className="project-goal">{project.goal}</p>
       {project.owner && <p className="project-owner">{t.owner}: <strong>{project.owner.name}</strong></p>}
       <p className="idea-description">{project.description}</p>
+      <InterestedControl key={project.id} target={`/projects/${project.id}`} language={language} />
       {!!project.techStack.length && <p className="project-stack">{project.techStack.join(' / ')}</p>}
       <div className="project-links">{project.repositoryUrl && <a className="text-link" href={project.repositoryUrl} target="_blank" rel="noopener noreferrer">{t.repositoryUrl} ↗</a>}{project.documentationUrl && <a className="text-link" href={project.documentationUrl} target="_blank" rel="noopener noreferrer">{t.documentationUrl} ↗</a>}{project.ideaId && <Link className="text-link" to={`/ideas/${project.ideaId}`}>{t.source} ↗</Link>}</div>
       {project.materials && <section><h2>{t.materials}</h2><p className="idea-description">{project.materials}</p></section>}

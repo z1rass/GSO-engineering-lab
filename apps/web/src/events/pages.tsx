@@ -1,3 +1,4 @@
+import { InterestedControl } from '../interested/control';
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -45,6 +46,7 @@ export function EventPage({ language }: { language: Language }) {
       </dl><p className="field-hint">{t.preparingHint}</p></section>
       {event.owner && <p className="project-owner">{t.owner}: <strong>{event.owner.name}</strong></p>}
       <p className="idea-description">{event.description}</p>
+      <InterestedControl key={event.id} target={`/events/${event.id}`} language={language} />
       <div className="project-links">{event.repositoryUrl && <a className="text-link" href={event.repositoryUrl} target="_blank" rel="noopener noreferrer">{t.repositoryUrl} ↗</a>}{event.ideaId && <Link className="text-link" to={`/ideas/${event.ideaId}`}>{t.source} ↗</Link>}</div>
       {event.materials && <section><h2>{t.materials}</h2><p className="idea-description">{event.materials}</p></section>}
       {event.owner ? (event.exactRoom || event.privateInstructions || event.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{event.exactRoom && <p>{t.exactRoom}: {event.exactRoom} · {t.tentative}</p>}{event.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{event.privateInstructions}</p></>}{event.discordUrl && <a className="text-link" href={event.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>

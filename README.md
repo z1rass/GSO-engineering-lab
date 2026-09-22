@@ -1,6 +1,6 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, and Events in preparation. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, and Interested for Ideas/Projects/Events. German and English interface copy; PostgreSQL-backed data.
 
 The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Events, Interested, team membership and other Ops workflows belong to later tickets.
 
@@ -62,7 +62,7 @@ Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verifi
 
 Visitors receive only the idea ID, title, description and timestamps. Authorship is stored privately for future moderation and is excluded from all public responses. Do not put private contact details in the published text. Only Ops can edit through `/ideas/:id/edit`; even the author has no editing permission unless they are Ops. Server permissions and CSRF checks apply independently of the UI.
 
-API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/ideas/:id`. Creation and editing accept only `title` and `description`. The list is intentionally simple for the small MVP community; pagination, Interested and moderation are separate work.
+API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/ideas/:id`. Creation and editing accept only `title` and `description`. The list is intentionally simple for the small MVP community; pagination and moderation are separate work.
 
 ## Projects
 
@@ -85,6 +85,14 @@ Planned date, end date, start/end times and general location are optional. Dates
 Public fields include category, description, tentative schedule/general location, materials and repository link. Exact room, access instructions, owner identity and the manually entered Discord link are returned only to current Members on the detail endpoint. Lists always use public fields. No attendee identities are stored in this slice.
 
 API: `GET /api/events`, `GET /api/events/:id`, `POST /api/events`, `PATCH /api/events/:id`. POST accepts optional `ideaId`; PATCH replaces editable content and cannot change owner, source Idea or status. `event_details` holds Event-specific fields alongside the common `activities` table. Writes are transactional; links follow the same HTTP(S) rules as Projects.
+
+## Interested
+
+Idea, Project and Event detail pages show the persisted count and a Member-only **Interested** toggle. This only signals interest: it does not register Going, join a Project, or assign an Activity/Task owner. A Visitor sees the count and a sign-in link; no interested-person identities are exposed. UI copy is DE/EN.
+
+Each target supports `GET`, `POST` and `DELETE` on `/api/ideas/:id/interested`, `/api/projects/:id/interested` or `/api/events/:id/interested`. GET returns `{ count, interested }`; `interested` is the current Member's boolean or `null` for a Visitor/Alumni. Writes accept `{}`, use the authenticated Member only and enforce the usual Origin check. DELETE also accepts no body. Repeated writes are idempotent, including concurrent POSTs. Missing targets and wrong Activity types return 404.
+
+`idea_interests` and `activity_interests` store only foreign keys to the target and User, with composite primary keys preventing duplicates. Neither endpoint writes participation or ownership. Membership, Going and Tasks are not implemented yet; their future tests should keep this invariant when those relations arrive. The UI reads the count after a successful write and preserves the displayed state with a retryable message if saving fails.
 
 ## Environment variables
 
