@@ -11,7 +11,7 @@ The interface is German-first with English available. Community-authored content
 
 ## Project status
 
-The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, and the personal My Activity overview. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, the personal My Activity overview, and private Club Network contacts. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
 
 Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
 
@@ -236,3 +236,9 @@ An Activity can remain independent. Its owner can choose an UPCOMING/ACTIVE Seas
 Members open `/my-activity` through **Mein Lab / My Lab** or their profile. Current owned Tasks appear first, followed by Projects they own or have joined and Events they own or are Going to. Responsibility and participation have separate labels. Interested Ideas and Activities stay in their own section and never imply membership or registration. Completed/cancelled Activities and Tasks remain available under past work.
 
 `GET /api/me/activity` is private to the authenticated Member, including Ops viewing their own work. The endpoint accepts no query parameters or target User ID, sends `Cache-Control: no-store`, and reads all sections in one database snapshot. Returning to the page reloads saved state after task release, team departure, ownership acceptance or Event rescheduling. No additional storage or migration is required.
+
+## Private Club Network
+
+Ops open `/network` from the Ops dashboard to create, read, edit and delete contacts. A record contains a required name and optional company, professional role, topics, notes, contact method and source of the connection. Contact methods are plain text, suitable for an email or professional profile. The server records who added the contact and when; editing preserves that attribution. The UI confirms permanent deletion before removing a record.
+
+`GET/POST /api/ops/network` and `GET/PATCH/DELETE /api/ops/network/:id` require a current verified Member with the Ops role. Writes use the existing Origin protection; every response is `no-store`. POST/PATCH validate the full editable record and reject client-supplied provenance. The separate `contacts` table is never included in public Activity, Idea or Season responses. Visitors and ordinary Members cannot retrieve records, including by direct ID; they are directed to ask Ops for help through Discord. No email sending or request system is added.

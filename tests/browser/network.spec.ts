@@ -1,0 +1,56 @@
+import { test, expect, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+const databaseUrl = process.env.TEST_DATABASE_URL ?? 'postgres://lab:lab_local@127.0.0.1:55433/lab_test';
+if (!new URL(databaseUrl).pathname.endsWith('_test')) throw new Error('Dedicated test database required');
+const pool = new Pool({ connectionString: databaseUrl });
+test.beforeAll(async () => { await migrate(drizzle(pool), { migrationsFolder: './database/migrations' }); });
+test.beforeEach(async () => { await pool.query('DELETE FROM contacts'); await pool.query('DELETE FROM rate_limits'); });
+test.afterAll(async () => { await pool.end(); });
+async function login(page: Page, ops = false) {
+  const email = `network-${randomUUID()}@gso.schule.koeln`;
+  await page.goto('/login'); await page.getByLabel('Name', { exact: true }).fill('Network Ops'); await page.getByLabel('Schul-E-Mail').fill(email);
+  await page.getByRole('button', { name: 'Login-Link senden' }).click(); await expect(page.getByRole('status')).toContainText('Postfach');
+  const box = await page.request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
+  const mail = await page.request.get(`http://127.0.0.1:8025/api/v1/message/${box.messages[0].ID}`).then(r => r.json());
+  await page.goto(mail.Text.match(/https?:\/\/\S+/)[0]);
+  if (ops) await pool.query("UPDATE users SET role='OPS' WHERE email=$1", [email]);
+}
+test('Ops create, edit and confirm deletion of a private contact in DE/EN on mobile', async ({ page }) => {
+  await login(page, true); await page.goto('/ops'); await page.getByRole('link', { name: 'Club Network', exact: true }).click();
+  await page.getByText('Kontakt hinzufügen', { exact: true }).click();
+  const form = page.getByRole('form', { name: 'Kontakt hinzufügen' });
+  await form.getByLabel('Name', { exact: true }).fill('Test Engineer');
+  await form.getByLabel('Unternehmen', { exact: true }).fill('Example company');
+  await form.getByLabel('Berufliche Rolle', { exact: true }).fill('Backend engineer');
+  await form.getByLabel('Themen', { exact: true }).fill('Java, Cloud');
+  await form.getByLabel('Kontaktweg', { exact: true }).fill('speaker@example.test');
+  await form.getByLabel('Notizen', { exact: true }).fill('Spricht gern über Systeme');
+  await form.getByLabel('Herkunft des Kontakts', { exact: true }).fill('Meetup');
+  await form.getByRole('button', { name: 'Kontakt speichern' }).click();
+  await expect(page.getByRole('heading', { name: 'Test Engineer' })).toBeVisible(); await page.reload();
+  await expect(page.getByText('speaker@example.test', { exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 }); await page.getByRole('button', { name: 'English' }).click();
+  await page.getByRole('button', { name: 'Edit contact', exact: true }).click();
+  const edit = page.getByRole('form', { name: 'Edit contact' });
+  await edit.getByLabel('Notes', { exact: true }).fill('Available next Season'); await edit.getByRole('button', { name: 'Save contact' }).click();
+  await expect(page.getByText('Available next Season', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Delete contact', exact: true }).click();
+  await page.getByRole('button', { name: 'Keep contact', exact: true }).click();
+  await expect(page.getByText('speaker@example.test', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Delete contact', exact: true }).click(); await page.getByRole('button', { name: 'Permanently delete', exact: true }).click();
+  await expect(page.getByText('No contacts yet.', { exact: true })).toBeVisible(); await page.reload();
+  await expect(page.getByText('speaker@example.test', { exact: true })).toHaveCount(0);
+});
+test('Visitor and Member see no contacts and receive the manual Discord guidance', async ({ page }) => {
+  await pool.query("INSERT INTO contacts(name,contact_method) VALUES('Private speaker','private@example.test')");
+  await page.goto('/network'); await expect(page.getByText('Dieser Bereich ist nur für Ops zugänglich.', { exact: true })).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('private@example.test');
+  await login(page); await page.goto('/network');
+  await expect(page.getByText('Für Hilfe mit Speakern oder Kontakten schreibe dem Ops-Team im Discord.', { exact: true })).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('Private speaker');
+  await expect(page.getByRole('form')).toHaveCount(0);
+});

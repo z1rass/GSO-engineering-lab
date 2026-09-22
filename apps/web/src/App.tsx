@@ -1,5 +1,6 @@
 import {OpsSeasonsPage,SeasonsPage,SeasonPage,SeasonContents,RecentActivities} from './seasons/pages';
 import { MyActivityPage } from './my-activity/page';
+import { NetworkPage } from './network/page';
 import { RoomQueue } from './rooms/pages';
 import { EventsPage, EventPage, EventEditor } from './events/pages';
 import { ProjectsPage, ProjectPage, ProjectEditor } from './projects/pages';
@@ -91,6 +92,7 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/network" element={<NetworkPage language={language} />} />
         <Route path="/my-activity" element={<MyActivityPage language={language} />} />
         <Route path="/ops/seasons" element={<OpsSeasonsPage language={language}/>} />
         <Route path="/seasons" element={<SeasonsPage language={language}/>} />

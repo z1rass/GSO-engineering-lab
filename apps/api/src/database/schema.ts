@@ -67,6 +67,18 @@ export const ideas = pgTable('ideas', {
 });
 
 export const activityType = pgEnum('activity_type', ['PROJECT', 'EVENT']);
+export const contacts = pgTable('contacts', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  name: text('name').notNull(), company: text('company').notNull().default(''),
+  professionalRole: text('professional_role').notNull().default(''),
+  topics: text('topics').array().notNull().default(sql`'{}'::text[]`),
+  notes: text('notes').notNull().default(''), contactMethod: text('contact_method').notNull().default(''),
+  source: text('source').notNull().default(''),
+  addedBy: text('added_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const activityStatus = pgEnum('activity_status', ['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED']);
 export const activities = pgTable('activities', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(), type: activityType('type').notNull(),

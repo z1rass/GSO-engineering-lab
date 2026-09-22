@@ -59,7 +59,7 @@ export function OpsPage({ language }: { language: Language }) {
   const candidates = data?.members.filter(member => member.role === 'MEMBER') ?? [];
   return <section className="ops-page"><Link className="text-link" to="/profile">← {t.back}</Link>
     <div className="account-heading"><p className="eyebrow">GSO engineering lab / Ops</p><h1>{t.title}</h1><p>{t.intro}</p></div>
-    {state === 'ready' && <div className="account-actions"><Link className="text-link" to="/ops/rooms">{language === 'de' ? 'Raumanfragen' : 'Room requests'}</Link><Link className="text-link" to="/ops/seasons">{language==='de'?'Seasons verwalten':'Manage seasons'}</Link></div>}
+    {state === 'ready' && <div className="account-actions"><Link className="text-link" to="/ops/rooms">{language === 'de' ? 'Raumanfragen' : 'Room requests'}</Link><Link className="text-link" to="/ops/seasons">{language==='de'?'Seasons verwalten':'Manage seasons'}</Link><Link className="text-link" to="/network">Club Network</Link></div>}
     {state === 'loading' ? <p role="status">{t.loading}</p>
       : state === 'denied' ? <p role="alert">{t.denied}</p>
       : state === 'error' ? <div><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></div>

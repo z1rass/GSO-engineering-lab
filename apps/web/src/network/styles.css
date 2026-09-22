@@ -1,0 +1,20 @@
+.network-page { max-width: 860px; margin: 40px auto 64px; }
+.network-page h1 { font-size: 2.5rem; letter-spacing: -.035em; line-height: 1.2; margin: 16px 0; }
+.network-intro { color: var(--muted); line-height: 1.7; max-width: 65ch; margin-bottom: 24px; }
+.network-contact { border-top: 1px solid var(--line); padding: 28px 0; overflow-wrap: anywhere; }
+.network-contact h2 { font-size: 1.5rem; font-weight: 500; letter-spacing: -.025em; line-height: 1.3; }
+.network-company { color: var(--muted); margin-top: 8px; line-height: 1.6; }
+.network-details { margin: 24px 0; }
+.network-details > div { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+.network-details dt { color: var(--muted); font-size: .875rem; line-height: 1.7; }
+.network-details dd { margin: 0; white-space: pre-wrap; line-height: 1.7; }
+.network-confirm { margin-top: 16px; }
+.network-confirm p { line-height: 1.65; margin-bottom: 8px; }
+.network-empty { padding-block: 24px; color: var(--muted); }
+.network-page summary { min-height: 44px; }
+.network-page summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 5px; }
+@media(max-width:760px) {
+  .network-page { margin-block: 24px 48px; }
+  .network-page h1 { font-size: 2rem; }
+  .network-details > div { grid-template-columns: 1fr; gap: 4px; }
+}

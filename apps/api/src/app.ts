@@ -1,5 +1,6 @@
 import { mountSeasons } from './modules/seasons/index.js';
 import { mountMyActivity } from './modules/my-activity/index.js';
+import { mountNetwork } from './modules/network/index.js';
 import { mountLifecycle } from './modules/lifecycle/index.js';
 import { mountOwnership } from './modules/ownership/index.js';
 import { mountTasks } from './modules/tasks/index.js';
@@ -24,6 +25,7 @@ export function createApp(pool: Pool) {
   app.disable('x-powered-by');
   const { requireMember, getMember } = mountAuth(app, pool);
   mountOps(app, pool, requireMember);
+  mountNetwork(app, pool);
   mountIdeas(app, pool, requireMember);
   mountProjects(app, pool, requireMember, getMember);
   mountEvents(app, pool, requireMember, getMember);
