@@ -1,3 +1,4 @@
+import {OpsSeasonsPage,SeasonsPage,SeasonPage,SeasonContents,RecentActivities} from './seasons/pages';
 import { RoomQueue } from './rooms/pages';
 import { EventsPage, EventPage, EventEditor } from './events/pages';
 import { ProjectsPage, ProjectPage, ProjectEditor } from './projects/pages';
@@ -37,7 +38,7 @@ function SeasonCard({ season, language }: { season: Season; language: Language }
     <div className="season-top"><span className="eyebrow">{t.current}</span><span className="status"><i aria-hidden="true" />{t.active}</span></div>
     <div className="season-body"><p className="season-word">Season {season.number}</p><h2 id="season-title">{season.title}</h2><Blueprint /><p className="season-description">{season.description}</p></div>
     <div className="season-dates"><span className="eyebrow">{t.dates}</span><p><time dateTime={season.startsOn}>{format(season.startsOn)}</time><span aria-hidden="true"> — </span><time dateTime={season.endsOn}>{format(season.endsOn)}</time></p></div>
-    <div className="season-foot"><span>{t.community}</span></div>
+    <div className="season-foot"><Link className="text-link" to={`/seasons/${season.id}`}>{language==='de'?'Season entdecken':'Explore season'} ↗</Link></div>
   </article>;
 }
 
@@ -47,12 +48,13 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [recentLoading, setRecentLoading] = useState(true);
   const t = copy[language];
   const location = useLocation();
 
   useEffect(() => {
-    if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
-  }, [location]);
+    if (location.hash && !loading && !recentLoading) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+  }, [location, loading, recentLoading]);
   useEffect(() => { document.documentElement.lang = language; localStorage.setItem('lab-language', language); }, [language]);
   useEffect(() => {
     const controller = new AbortController();
@@ -67,7 +69,7 @@ export function App() {
       .catch(() => { if (!controller.signal.aborted) setError(true); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [attempt]);
+  }, [attempt,location.pathname]);
 
   const currentSeason = <section id="season" className="season-region" aria-busy={loading}>
     {loading ? <div className="season-message" role="status">{t.loading}</div>
@@ -88,6 +90,9 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/ops/seasons" element={<OpsSeasonsPage language={language}/>} />
+        <Route path="/seasons" element={<SeasonsPage language={language}/>} />
+        <Route path="/seasons/:id" element={<SeasonPage language={language}/>} />
         <Route path="/ops/rooms" element={<RoomQueue language={language} />} />
         <Route path="/events" element={<EventsPage language={language} />} />
         <Route path="/events/new" element={<EventEditor language={language} />} />
@@ -113,11 +118,12 @@ export function App() {
 
             </section>{currentSeason}
           </div>
+          <RecentActivities language={language} onLoadingChange={setRecentLoading}/>
           <section id="about" className="about-section"><div className="about-heading"><p className="eyebrow">{t.model}</p><h2>{t.discoverTitle}</h2><p>{t.discoverIntro}</p></div>
             <div className="steps">{t.steps.map(([title, body], index) => <article key={index}><span className="step-number">0{index + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div>
           </section>
         </>} />
-        <Route path="/season" element={<div className="season-page"><Link className="text-link" to="/">← {t.back}</Link><h1>{t.periodNote}</h1>{currentSeason}</div>} />
+        <Route path="/season" element={<div className="season-page"><Link className="text-link" to="/">← {t.back}</Link><h1>{t.periodNote}</h1><Link className="text-link" to="/seasons">{language==='de'?'Alle Seasons':'All seasons'} ↗</Link>{currentSeason}{season&&!loading&&!error&&<SeasonContents id={season.id} language={language}/>}</div>} />
         <Route path="*" element={<section className="season-page"><h1>{t.notFound}</h1><Link to="/">{t.back}</Link></section>} />
       </Routes>
     </main>

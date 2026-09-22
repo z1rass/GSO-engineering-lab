@@ -1,3 +1,4 @@
+import { ActivitySeasons } from '../seasons/panel';
 import { LifecyclePanel } from '../lifecycle/panel';
 import { OwnershipPanel } from '../ownership/panel';
 import { TaskPanel } from '../tasks/panel';
@@ -57,6 +58,7 @@ export function ProjectPage({ language }: { language: Language }) {
   return <section className="ideas-page idea-detail"><Link className="text-link" to={closed?'/projects?view=past':'/projects'}>← {t.back}</Link>
     {!project ? <LoadState language={language} {...resource} /> : <article className="project-detail"><span className="status">{t[project.status]}</span><h1>{project.title}</h1><p className="project-goal">{project.goal}</p>
       {project.owner && <p className="project-owner">{t.owner}: <strong>{project.owner.name}</strong></p>}
+      <ActivitySeasons key={`seasons-${project.id}`} id={project.id} language={language} project/>
       <p className="idea-description">{project.description}</p>
       {!closed&&<InterestedControl key={project.id} target={`/projects/${project.id}`} language={language} />}
       {!!project.techStack.length && <p className="project-stack">{project.techStack.join(' / ')}</p>}

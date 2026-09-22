@@ -83,6 +83,11 @@ export const projectDetails = pgTable('project_details', {
   repositoryUrl: text('repository_url'), documentationUrl: text('documentation_url'),
 });
 
+export const activitySeasons = pgTable('activity_seasons', {
+  activityId: integer('activity_id').notNull().references(()=>activities.id,{onDelete:'cascade'}),
+  seasonId: integer('season_id').notNull().references(()=>seasons.id,{onDelete:'cascade'}),
+}, table=>[primaryKey({columns:[table.activityId,table.seasonId]})]);
+
 export const eventCategory = pgEnum('event_category', ['TALK', 'WORKSHOP', 'BUILD_NIGHT', 'STUDY_SESSION', 'HACKATHON', 'SOCIAL', 'OTHER']);
 export const eventDetails = pgTable('event_details', {
   activityId: integer('activity_id').primaryKey().references(() => activities.id, { onDelete: 'cascade' }),

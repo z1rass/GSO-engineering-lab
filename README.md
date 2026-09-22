@@ -11,7 +11,7 @@ The interface is German-first with English available. Community-authored content
 
 ## Project status
 
-The repository contains a working MVP foundation for Season 0: public Season, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, and completion/cancellation with past Activity pages. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, and completion/cancellation with past Activity pages. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
 
 Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
 
@@ -171,7 +171,7 @@ Compose supplies container-specific addresses. Keep deployment credentials outsi
 
 Edit the Drizzle schema, then run `npm run db:generate`. Review the generated SQL and commit the migration with its metadata. Apply migrations with `npm run db:migrate`; seed local demo data with `npm run db:seed`. Seeding is explicit and is not a production startup operation.
 
-The database enforces a single active Season, unique Season numbers and ordered dates. The initial slice has no write endpoint; Season administration is a later ticket.
+The database enforces a single active Season, unique Season numbers and ordered dates. Ops manage Seasons at `/ops/seasons`.
 
 ## Tests and checks
 
@@ -222,3 +222,11 @@ Only the current Activity Owner can close a Project/Event from its detail page. 
 Closure locks the Activity and atomically changes its status, cancels unfinished tasks without clearing their owners, and cancels pending ownership transfers. DONE tasks are untouched. Materials, source Idea, links, participants and ownership attribution remain on the same page. Cancelling the Activity ends active responsibility when there is no successor; it does not erase the historical owner. Project Leave may then proceed.
 
 Events/Projects default to Current; Past (`?view=past`) shows COMPLETED/CANCELLED records. Closed pages hide work, joining, registration and transfer controls. Editing results/materials remains available to Owner/Ops. Event schedule changes are rejected after closure to preserve registrations. Closed Activities cannot request rooms or receive room approvals, and their requests leave the active Ops queue. Manual Discord communication remains the owner's responsibility; no notifications or reopening flow are introduced.
+
+## Seasons and Project continuation
+
+Ops create and edit Seasons at `/ops/seasons` using `GET/POST /api/ops/seasons` and `PATCH /api/ops/seasons/:id`. A Season has a number, title, description, inclusive start/end dates and DRAFT/UPCOMING/ACTIVE/FINISHED/ARCHIVED status. Finish the current ACTIVE Season before activating another; duplicate numbers or competing active Seasons return 409. Season changes never change Activity status.
+
+Public `/seasons` and `/seasons/:id` pages show published Seasons and their Events/Projects. DRAFT Seasons are excluded even for direct public detail requests. `/season` shows the current Season and its Activities. The homepage also shows the six newest PLANNING/ACTIVE Activities, including independent ones. These lists contain public fields only.
+
+An Activity can remain independent. Its owner can choose an UPCOMING/ACTIVE Season on the detail page; Event assignment is to one Season, while a Project can add further Seasons without being copied. `GET/POST /api/activities/:id/seasons` reads history or accepts `{seasonId}`. Writes lock the Activity and target Season and reject closed Activities or unavailable targets. Repeating a link does not duplicate it. `activity_seasons` preserves previous links; there is no destructive move or unlink operation in this slice. Team membership, Tasks, materials and the Project ID stay unchanged. History badges list each actual Season, so participation in Season 0 and Season 2 never implies Season 1.

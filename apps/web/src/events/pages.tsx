@@ -1,3 +1,4 @@
+import { ActivitySeasons } from '../seasons/panel';
 import { LifecyclePanel } from '../lifecycle/panel';
 import { OwnershipPanel } from '../ownership/panel';
 import { TaskPanel } from '../tasks/panel';
@@ -57,6 +58,7 @@ export function EventPage({ language }: { language: Language }) {
         <div><dt>{t.location}</dt><dd>{event.generalLocation || t.locationUnknown}</dd></div>
       </dl><p className="field-hint">{closed ? (language==='de'?'Diese Activity ist beendet.':'This activity has ended.') : event.status === 'ACTIVE' ? t.registrationHint : t.preparingHint}</p></section>
       {event.owner && <p className="project-owner">{t.owner}: <strong>{event.owner.name}</strong></p>}
+      <ActivitySeasons key={`seasons-${event.id}`} id={event.id} language={language}/>
       <p className="idea-description">{event.description}</p>
       <EventGoing closed={closed} key={`going-${event.id}`} id={event.id} language={language} refresh={resource.retry} />
       {!closed&&<InterestedControl key={event.id} target={`/events/${event.id}`} language={language} />}

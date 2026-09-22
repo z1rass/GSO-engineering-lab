@@ -1,3 +1,4 @@
+import { mountSeasons } from './modules/seasons/index.js';
 import { mountLifecycle } from './modules/lifecycle/index.js';
 import { mountOwnership } from './modules/ownership/index.js';
 import { mountTasks } from './modules/tasks/index.js';
@@ -43,6 +44,7 @@ export function createApp(pool: Pool) {
       response.status(503).json({ error: 'Season temporarily unavailable' });
     }
   });
+  mountSeasons(app, pool, requireMember, getMember);
   const handleError: ErrorRequestHandler = (error, _request, response, _next) => {
     void _next;
     const badJson = error instanceof SyntaxError;
