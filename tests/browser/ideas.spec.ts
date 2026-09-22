@@ -1,0 +1,76 @@
+import { test, expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+const databaseUrl = process.env.TEST_DATABASE_URL ?? 'postgres://lab:lab_local@127.0.0.1:55433/lab_test';
+if (!new URL(databaseUrl).pathname.endsWith('_test')) throw new Error('Dedicated test database required');
+const pool = new Pool({ connectionString: databaseUrl });
+test.beforeAll(async () => { await migrate(drizzle(pool), { migrationsFolder: './database/migrations' }); });
+test.beforeEach(async () => { await pool.query('DELETE FROM ideas'); await pool.query('DELETE FROM rate_limits'); });
+test.afterAll(async () => { await pool.end(); });
+test('Member publishes without ownership, Visitor reads anonymously, only Ops edits; content survives DE/EN switching', async ({ page, browser, request }) => {
+  const email = `idea-${randomUUID()}@gso.schule.koeln`;
+  await page.goto('/login');
+  await page.getByLabel('Name', { exact: true }).fill('Private author');
+  await page.getByLabel('Schul-E-Mail').fill(email);
+  await page.getByRole('button', { name: 'Login-Link senden' }).click();
+  await expect(page.getByRole('status')).toContainText('Postfach');
+  const box = await request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
+  const mail = await request.get(`http://127.0.0.1:8025/api/v1/message/${box.messages[0].ID}`).then(r => r.json());
+  await page.goto(mail.Text.match(/https?:\/\/\S+/)[0]);
+  await page.getByRole('link', { name: 'Ideen', exact: true }).click();
+  await page.getByRole('link', { name: 'Idee teilen' }).click();
+  await page.getByLabel('Titel', { exact: true }).fill('Linux für alle');
+  await page.getByLabel('Beschreibung', { exact: true }).fill('Gemeinsam lernen. <script>alert("not executable")</script>');
+  await page.route('**/api/ideas', route => route.request().method() === 'POST'
+    ? route.fulfill({ status: 503, json: { error: 'SERVICE_UNAVAILABLE' } }) : route.continue());
+  await page.getByRole('button', { name: 'Idee veröffentlichen' }).click();
+  await expect(page.getByRole('alert')).toContainText('versuche es erneut');
+  await expect(page.getByLabel('Titel', { exact: true })).toHaveValue('Linux für alle');
+  await page.unroute('**/api/ideas');
+  await page.getByRole('button', { name: 'Idee veröffentlichen' }).click();
+  await expect(page.getByRole('heading', { name: 'Linux für alle' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Idee bearbeiten' })).toHaveCount(0);
+  const ideaUrl = page.url();
+  await page.goto(`${ideaUrl}/edit`);
+  await expect(page.getByRole('alert')).toHaveText('Nur Ops können Ideen bearbeiten.');
+  await expect(page.getByLabel('Titel', { exact: true })).toHaveCount(0);
+  await page.goto(ideaUrl);
+  const visitor = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  try {
+    const publicPage = await visitor.newPage();
+    await publicPage.goto(ideaUrl);
+    await expect(publicPage.getByRole('heading', { name: 'Linux für alle' })).toBeVisible();
+    await expect(publicPage.locator('main')).not.toContainText('Private author');
+    await expect(publicPage.locator('main')).not.toContainText(email);
+    await publicPage.getByRole('button', { name: 'English' }).click();
+    await expect(publicPage.getByRole('heading', { name: 'Linux für alle' })).toBeVisible();
+    await expect(publicPage.getByText('Gemeinsam lernen.', { exact: false })).toContainText('<script>');
+    expect(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await pool.query("UPDATE users SET role='OPS' WHERE email=$1", [email]);
+    await page.reload();
+    await page.getByRole('link', { name: 'Idee bearbeiten' }).click();
+    await page.getByLabel('Titel', { exact: true }).fill('Linux gemeinsam entdecken');
+    await page.getByRole('button', { name: 'Änderungen speichern' }).click();
+    await expect(page.getByRole('heading', { name: 'Linux gemeinsam entdecken' })).toBeVisible();
+    await publicPage.reload();
+    await expect(publicPage.getByRole('heading', { name: 'Linux gemeinsam entdecken' })).toBeVisible();
+  } finally { await visitor.close(); }
+});
+
+test('Visitor sees empty, retry and not-found states and must sign in to publish', async ({ page }) => {
+  await page.route('**/api/ideas', route => route.fulfill({ status: 503, json: { error: 'SERVICE_UNAVAILABLE' } }));
+  await page.goto('/ideas');
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.unroute('**/api/ideas');
+  await page.getByRole('button', { name: 'Erneut versuchen' }).click();
+  await expect(page.getByRole('heading', { name: 'Der erste Gedanke fehlt noch.' })).toBeVisible();
+  await page.getByRole('button', { name: 'English' }).click();
+  await expect(page.getByRole('heading', { name: 'Room for the first idea.' })).toBeVisible();
+  await page.getByRole('link', { name: 'Share an idea' }).click();
+  await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Publish idea' })).toHaveCount(0);
+  await page.goto('/ideas/2147483647');
+  await expect(page.getByRole('heading', { name: 'This idea could not be found.' })).toBeVisible();
+});

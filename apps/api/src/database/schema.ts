@@ -57,3 +57,11 @@ export const roleChanges = pgTable('role_changes', {
   source: text('source').notNull(), operator: text('operator'), confirmedBy: text('confirmed_by'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const ideas = pgTable('ideas', {
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  title: text('title').notNull(), description: text('description').notNull(),
+  createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

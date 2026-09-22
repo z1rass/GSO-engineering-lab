@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile and initial/normal Ops appointments. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, and public Ideas. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Ideas, Events, Projects and other Ops workflows belong to later tickets.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Events, Projects, Interested and other Ops workflows belong to later tickets.
 
 ## Architecture
 
@@ -56,6 +56,14 @@ After a Member verifies their email, a server admin can appoint the first Ops us
 
 Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. Recovery and role removal are outside this slice.
 
+## Ideas
+
+`/ideas` lists suggestions newest first, `/ideas/:id` shows a public idea, and `/ideas/new` lets a signed-in Member publish a title (up to 120 characters) and description (up to 5,000 characters). These are plain text and remain in the author's language when the interface changes. Publishing is immediate: it creates no Activity, ownership or approval workflow.
+
+Visitors receive only the idea ID, title, description and timestamps. Authorship is stored privately for future moderation and is excluded from all public responses. Do not put private contact details in the published text. Only Ops can edit through `/ideas/:id/edit`; even the author has no editing permission unless they are Ops. Server permissions and CSRF checks apply independently of the UI.
+
+API: `GET /api/ideas`, `GET /api/ideas/:id`, `POST /api/ideas`, `PATCH /api/ideas/:id`. Creation and editing accept only `title` and `description`. The list is intentionally simple for the small MVP community; pagination, Interested and moderation are separate work.
+
 ## Environment variables
 
 All local defaults work without a configuration file. `.env.example` documents them; host commands read exported environment variables, not an automatically loaded `.env` file.
@@ -85,7 +93,7 @@ The database enforces a single active Season, unique Season numbers and ordered 
 
 ## Tests and checks
 
-The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth, profile and Ops fixtures (including resetting test roles and clearing the role journal). Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
+The agreed testing seams are the public HTTP API with real PostgreSQL, SMTP delivery through Mailpit, and browser journeys (email → login → profile → logout). Test assertions observe HTTP/UI behavior; SQL is used only to arrange fixtures. Test commands require a database whose name ends in `_test` and modify its Season, auth, profile, Ideas and Ops fixtures (including resetting test roles and clearing the role journal). Never point them at valuable data. API and browser suites run sequentially because they share the dedicated test database.
 
 ```sh
 docker compose --profile test up -d --wait test-db mailpit

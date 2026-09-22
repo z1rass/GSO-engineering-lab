@@ -1,3 +1,4 @@
+import { IdeasPage, IdeaPage, IdeaEditor } from './ideas/pages';
 import { OpsPage } from './ops/page';
 import { LoginPage, ProfilePage } from './auth/pages';
 import { useEffect, useState } from 'react';
@@ -76,7 +77,7 @@ export function App() {
     <a className="skip-link" href="#main">{t.skip}</a>
     <header className="site-header page-width">
       <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="lab-mark" aria-hidden="true"><span /><span /><span /></span><span className="brand-name">GSO <strong>engineering lab</strong></span></Link>
-      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><NavLink to="/season">{t.seasonNav}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/profile">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
+      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><NavLink to="/season">{t.seasonNav}</NavLink><NavLink to="/ideas">{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/profile">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
       <div className="languages" aria-label={language === 'de' ? 'Sprache' : 'Language'}>
         <button aria-label="Deutsch" aria-pressed={language === 'de'} onClick={() => setLanguage('de')}>DE</button>
         <button aria-label="English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
@@ -84,6 +85,10 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/ideas" element={<IdeasPage language={language} />} />
+        <Route path="/ideas/new" element={<IdeaEditor language={language} />} />
+        <Route path="/ideas/:id" element={<IdeaPage language={language} />} />
+        <Route path="/ideas/:id/edit" element={<IdeaEditor language={language} edit />} />
         <Route path="/ops" element={<OpsPage language={language} />} />
         <Route path="/login" element={<LoginPage language={language} />} />
         <Route path="/profile" element={<ProfilePage language={language} />} />

@@ -279,3 +279,33 @@ button:disabled { opacity: .6; cursor: wait; }
 .account-form select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .ops-profile-link { margin-bottom: 24px; }
 @media (max-width: 760px) { .ops-grid { grid-template-columns: 1fr; gap: 48px; } }
+
+.ideas-page { padding: 48px 0 80px; }
+.ideas-heading { display: flex; justify-content: space-between; align-items: end; gap: 40px; }
+.ideas-heading > div { max-width: 720px; }
+.ideas-heading .eyebrow { margin-bottom: 24px; color: var(--muted); }
+.ideas-heading h1, .idea-detail h1, .idea-editor h1 { font-size: clamp(36px, 4.5vw, 58px); line-height: 1.12; }
+.ideas-heading .button-primary { flex-shrink: 0; }
+.ideas-note { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 32px 0; }
+.idea-list { list-style: none; padding: 0; margin: 40px 0 0; }
+.idea-list li { border-top: 1px solid var(--line); }
+.idea-list li:last-child { border-bottom: 1px solid var(--line); }
+.idea-list a { display: flex; justify-content: space-between; gap: 32px; padding: 28px 8px; transition: background var(--motion); }
+.idea-list a:hover { background: var(--surface); }
+.idea-list a > div { min-width: 0; }
+.idea-list h2 { font-size: clamp(24px, 3vw, 32px); line-height: 1.25; letter-spacing: -.035em; margin: 10px 0; overflow-wrap: anywhere; }
+.idea-date { color: var(--muted); font-size: 12px; }
+.idea-preview { color: var(--muted); line-height: 1.7; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.idea-arrow { align-self: center; font-size: 24px; }
+.ideas-empty { padding: 48px 0; border-top: 1px solid var(--line); }
+.ideas-empty h2 { font-size: 28px; margin-bottom: 16px; }
+.ideas-empty p { color: var(--muted); line-height: 1.7; }
+.idea-detail, .idea-editor { max-width: 800px; margin: auto; }
+.idea-detail article { margin-top: 40px; }
+.idea-detail h1 { margin: 20px 0 32px; overflow-wrap: anywhere; }
+.idea-description { font-size: 18px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.idea-detail aside { border-top: 1px solid var(--line); padding-top: 24px; }
+.idea-editor .account-heading { margin: 32px 0; }
+.idea-form textarea { width: 100%; min-width: 0; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 14px; font: inherit; font-size: 16px; line-height: 1.7; color: var(--ink); background: var(--paper); }
+.idea-form textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 760px) { .ideas-heading { flex-direction: column; align-items: start; gap: 24px; } .ideas-page { padding-top: 32px; } .site-header nav { flex-wrap: wrap; } }
