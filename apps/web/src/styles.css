@@ -366,3 +366,9 @@ button:disabled { opacity: .6; cursor: wait; }
 
 .ownership-panel { margin-top: 32px; border-top: 1px solid var(--line); padding-top: 24px; }
 .ownership-panel .account-form { margin-top: 24px; }
+
+.archive-tabs { margin: 24px 0; }
+.archive-tabs [aria-pressed="true"] { text-decoration: underline; text-underline-offset: 6px; }
+.closure-confirmation { margin-top: 24px; }
+.closure-check { display: flex; align-items: center; gap: 12px; min-height: 44px; margin: 16px 0; }
+.closure-check input { width: 20px; height: 20px; flex-shrink: 0; }

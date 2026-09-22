@@ -23,7 +23,7 @@ export function mountProjects(app: Express, pool: Pool, requireMember: RequestHa
     if (!id.success) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
     const member = await getMember(request);
     const fields = member ? `, json_build_object('id', u.id, 'name', u.name) AS owner, a.private_instructions AS "privateInstructions", a.discord_url AS "discordUrl",
-      (a.owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS')) AS "canEdit"` : '';
+      (a.owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS')) AS "canEdit", (a.owner_id=$2 AND a.status IN ('PLANNING','ACTIVE')) AS "canClose"` : '';
     const from = member ? projectFrom.replace('WHERE', 'JOIN users u ON u.id=a.owner_id WHERE') : projectFrom;
     const { rows } = await pool.query(`SELECT ${publicFields}${fields} ${from} AND a.id=$1`, member ? [id.data, member.id] : [id.data]);
     if (!rows[0]) { response.status(404).json({ error: 'NOT_FOUND' }); return; }

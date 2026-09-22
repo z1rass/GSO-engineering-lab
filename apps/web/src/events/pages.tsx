@@ -1,3 +1,4 @@
+import { LifecyclePanel } from '../lifecycle/panel';
 import { OwnershipPanel } from '../ownership/panel';
 import { TaskPanel } from '../tasks/panel';
 import { EventGoing } from './going';
@@ -15,7 +16,7 @@ const eventSchema = z.object({ id: z.number(), title: z.string(), description: z
   plannedDate: z.string().nullable(), endDate: z.string().nullable(), startTime: z.string().nullable(), endTime: z.string().nullable(), generalLocation: z.string(),
   status: z.enum(['PLANNING','ACTIVE','COMPLETED','CANCELLED']), ideaId: z.number().nullable(), materials: z.string(), repositoryUrl: linkSchema,
   schoolRoomRequired: z.boolean().optional(),
-  owner: z.object({ id: z.string(), name: z.string() }).optional(), exactRoom: z.string().optional(), privateInstructions: z.string().optional(), discordUrl: linkSchema.optional(), canEdit: z.boolean().optional(),
+  owner: z.object({ id: z.string(), name: z.string() }).optional(), exactRoom: z.string().optional(), privateInstructions: z.string().optional(), discordUrl: linkSchema.optional(), canEdit: z.boolean().optional(), canClose: z.boolean().optional(),
 });
 const detailSchema = z.object({ event: eventSchema });
 const listSchema = z.object({ events: z.array(eventSchema) });
@@ -32,9 +33,14 @@ function LoadState({ language, loading, status, retry }: { language: Language; l
 export function EventsPage({ language }: { language: Language }) {
   const t = eventCopy[language];
   const resource = useResource('/api/events', listSchema);
+  const [view,setView]=useSearchParams();
+  const past=view.get('view')==='past';
+  const setPast=(value:boolean)=>setView(value?{view:'past'}:{});
+  const visible=resource.data?.events.filter(item=>['COMPLETED','CANCELLED'].includes(item.status)===past);
   return <section className="ideas-page"><div className="ideas-heading"><div><p className="eyebrow">GSO engineering lab / {t.nav}</p><h1>{t.title}</h1><p className="intro">{t.intro}</p></div><Link className="button-primary" to="/events/new">{t.create} ↗</Link></div>
-    {!resource.data ? <LoadState language={language} {...resource} /> : resource.data.events.length ? <ul className="idea-list">{resource.data.events.map(event => <li key={event.id}><Link to={`/events/${event.id}`}><div><span className="status">{t[event.status]}</span><h2>{event.title}</h2><p className="idea-preview">{t[event.category]} · {event.plannedDate ? formatDate(event.plannedDate, language) : t.dateUnknown}</p><p className="field-hint">{event.status === 'ACTIVE' ? t.open : t.tentative}</p></div><span className="idea-arrow" aria-hidden="true">↗</span></Link></li>)}</ul>
-    : <div className="ideas-empty project-empty"><h2>{t.empty}</h2><p>{t.emptyBody}</p></div>}
+    <div className="account-actions archive-tabs"><button className="text-link" aria-pressed={!past} onClick={()=>setPast(false)}>{language==='de'?'Aktuell':'Current'}</button><button className="text-link" aria-pressed={past} onClick={()=>setPast(true)}>{language==='de'?'Vergangene':'Past'}</button></div>
+    {!resource.data ? <LoadState language={language} {...resource} /> : visible?.length ? <ul className="idea-list">{visible.map(event => <li key={event.id}><Link to={`/events/${event.id}`}><div><span className="status">{t[event.status]}</span><h2>{event.title}</h2><p className="idea-preview">{t[event.category]} · {event.plannedDate ? formatDate(event.plannedDate, language) : t.dateUnknown}</p><p className="field-hint">{['COMPLETED','CANCELLED'].includes(event.status) ? t[event.status] : event.status === 'ACTIVE' ? t.open : t.tentative}</p></div><span className="idea-arrow" aria-hidden="true">↗</span></Link></li>)}</ul>
+    : <div className="ideas-empty project-empty"><h2>{past?(language==='de'?'Noch keine vergangenen Aktivitäten.':'No past activities yet.'):t.empty}</h2>{!past&&<p>{t.emptyBody}</p>}</div>}
   </section>;
 }
 export function EventPage({ language }: { language: Language }) {
@@ -42,29 +48,32 @@ export function EventPage({ language }: { language: Language }) {
   const t = eventCopy[language];
   const resource = useResource(`/api/events/${encodeURIComponent(id ?? '')}`, detailSchema);
   const event = resource.data?.event;
-  return <section className="ideas-page idea-detail"><Link className="text-link" to="/events">← {t.back}</Link>
+  const closed=!!event && ['COMPLETED','CANCELLED'].includes(event.status);
+  return <section className="ideas-page idea-detail"><Link className="text-link" to={closed?'/events?view=past':'/events'}>← {t.back}</Link>
     {!event ? <LoadState language={language} {...resource} /> : <article className="project-detail"><span className="status">{t[event.status]}</span><h1>{event.title}</h1><p className="eyebrow">{t[event.category]}</p>
-      <section className="event-plan" aria-label={t.plan}><p className="event-plan-note">{event.status === 'ACTIVE' ? t.open : t.tentative}</p><dl>
+      <section className="event-plan" aria-label={t.plan}><p className="event-plan-note">{['COMPLETED','CANCELLED'].includes(event.status) ? t[event.status] : event.status === 'ACTIVE' ? t.open : t.tentative}</p><dl>
         <div><dt>{t.date}</dt><dd>{event.plannedDate ? formatDate(event.plannedDate, language) : t.dateUnknown}{event.endDate && ` – ${formatDate(event.endDate, language)}`}</dd></div>
         <div><dt>{t.time}</dt><dd>{event.startTime ?? t.startUnknown} – {event.endTime ?? t.endUnknown}<small>{t.timezone}</small></dd></div>
         <div><dt>{t.location}</dt><dd>{event.generalLocation || t.locationUnknown}</dd></div>
-      </dl><p className="field-hint">{event.status === 'ACTIVE' ? t.registrationHint : t.preparingHint}</p></section>
+      </dl><p className="field-hint">{closed ? (language==='de'?'Diese Activity ist beendet.':'This activity has ended.') : event.status === 'ACTIVE' ? t.registrationHint : t.preparingHint}</p></section>
       {event.owner && <p className="project-owner">{t.owner}: <strong>{event.owner.name}</strong></p>}
       <p className="idea-description">{event.description}</p>
-      <EventGoing key={`going-${event.id}`} id={event.id} language={language} refresh={resource.retry} />
-      <InterestedControl key={event.id} target={`/events/${event.id}`} language={language} />
+      <EventGoing closed={closed} key={`going-${event.id}`} id={event.id} language={language} refresh={resource.retry} />
+      {!closed&&<InterestedControl key={event.id} target={`/events/${event.id}`} language={language} />}
       <div className="project-links">{event.repositoryUrl && <a className="text-link" href={event.repositoryUrl} target="_blank" rel="noopener noreferrer">{t.repositoryUrl} ↗</a>}{event.ideaId && <Link className="text-link" to={`/ideas/${event.ideaId}`}>{t.source} ↗</Link>}</div>
       {event.materials && <section><h2>{t.materials}</h2><p className="idea-description">{event.materials}</p></section>}
-      {event.owner ? (event.exactRoom || event.privateInstructions || event.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{event.exactRoom && <p>{t.exactRoom}: {event.exactRoom} · {event.status === 'ACTIVE' ? t.open : t.tentative}</p>}{event.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{event.privateInstructions}</p></>}{event.discordUrl && <a className="text-link" href={event.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>
+      {event.owner ? (event.exactRoom || event.privateInstructions || event.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{event.exactRoom && <p>{t.exactRoom}: {event.exactRoom} · {['COMPLETED','CANCELLED'].includes(event.status) ? t[event.status] : event.status === 'ACTIVE' ? t.open : t.tentative}</p>}{event.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{event.privateInstructions}</p></>}{event.discordUrl && <a className="text-link" href={event.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>
         : <p className="ideas-note">{t.privateLogin} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>}
-      <TaskPanel key={`tasks-${event.id}`} id={event.id} language={language} />
+      <TaskPanel closed={closed} key={`tasks-${event.id}`} id={event.id} language={language} />
       <RoomPanel key={`room-${event.id}`} id={event.id} language={language} onRequested={resource.retry} />
-      {event.owner && <OwnershipPanel key={`ownership-${event.id}`} id={event.id} language={language} refresh={resource.retry} />}
+      {!closed&&event.owner && <OwnershipPanel key={`ownership-${event.id}`} id={event.id} language={language} refresh={resource.retry} />}
+      {event.canClose && <LifecyclePanel id={event.id} language={language} refresh={resource.retry} />}
       {event.canEdit && <div className="account-actions project-actions"><Link className="text-link" to={`/events/${event.id}/edit`}>{t.edit}</Link></div>}
     </article>}
   </section>;
 }
 function EventForm({ language, event }: { language: Language; event?: Event }) {
+  const archived=!!event&&['COMPLETED','CANCELLED'].includes(event.status);
   const t = eventCopy[language];
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -96,9 +105,9 @@ function EventForm({ language, event }: { language: Language; event?: Event }) {
     <label><span id="event-description-label">{t.description}</span><textarea aria-labelledby="event-description-label" name="description" required maxLength={5000} rows={5} defaultValue={event?.description} /></label>
     <p className="field-hint">{t.publicHint}</p>
     {!event && (ideas.data ? <label><span id="event-idea-label">{t.idea}</span><select name="ideaId" aria-labelledby="event-idea-label" defaultValue={params.get('idea') ?? ''}><option value="">{t.noIdea}</option>{ideas.data.ideas.map(idea => <option key={idea.id} value={idea.id}>{idea.title}</option>)}</select></label> : <LoadState language={language} {...ideas} />)}
-    <fieldset className="event-schedule"><legend>{t.plan}</legend><p className="field-hint">{t.planHint}</p>{event && <p className="ideas-note">{t.reschedule}</p>}
-      <div className="event-form-grid"><label>{t.plannedDate}<input type="date" name="plannedDate" defaultValue={event?.plannedDate ?? ''} /></label><label>{t.endDate}<input type="date" name="endDate" defaultValue={event?.endDate ?? ''} /></label>
-      <label>{t.startTime}<input type="time" name="startTime" defaultValue={event?.startTime ?? ''} /></label><label>{t.endTime}<input type="time" name="endTime" defaultValue={event?.endTime ?? ''} /></label></div>
+    <fieldset className="event-schedule"><legend>{t.plan}</legend><p className="field-hint">{t.planHint}</p>{event && <p className="ideas-note">{archived?(language==='de'?'Der Termin einer beendeten Activity bleibt erhalten.':'The schedule of a closed activity is preserved.'):t.reschedule}</p>}
+      <div className="event-form-grid"><label>{t.plannedDate}<input type="date" name="plannedDate" readOnly={archived} defaultValue={event?.plannedDate ?? ''} /></label><label>{t.endDate}<input type="date" name="endDate" readOnly={archived} defaultValue={event?.endDate ?? ''} /></label>
+      <label>{t.startTime}<input type="time" name="startTime" readOnly={archived} defaultValue={event?.startTime ?? ''} /></label><label>{t.endTime}<input type="time" name="endTime" readOnly={archived} defaultValue={event?.endTime ?? ''} /></label></div>
       <label>{t.generalLocation}<input name="generalLocation" maxLength={300} defaultValue={event?.generalLocation} /></label><p className="field-hint">{t.locationHint}</p>
       <label className="room-agreement"><input type="checkbox" name="schoolRoomRequired" defaultChecked={event?.schoolRoomRequired ?? false} />{t.schoolRoomRequired}</label>
     </fieldset>

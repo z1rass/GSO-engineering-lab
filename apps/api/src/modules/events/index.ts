@@ -32,7 +32,7 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     if (!id.success) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
     const member = await getMember(request);
     const fields = member ? `, json_build_object('id', u.id, 'name', u.name) AS owner, p.school_room_required AS "schoolRoomRequired", p.exact_room AS "exactRoom", a.private_instructions AS "privateInstructions", a.discord_url AS "discordUrl",
-      (a.owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS')) AS "canEdit"` : '';
+      (a.owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS')) AS "canEdit", (a.owner_id=$2 AND a.status IN ('PLANNING','ACTIVE')) AS "canClose"` : '';
     const from = member ? eventFrom.replace('WHERE', 'JOIN users u ON u.id=a.owner_id WHERE') : eventFrom;
     const { rows } = await pool.query(`SELECT ${publicFields}${fields} ${from} AND a.id=$1`, member ? [id.data, member.id] : [id.data]);
     if (!rows[0]) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
@@ -77,12 +77,13 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const previous = await client.query(`SELECT
+      const previous = await client.query(`SELECT a.status,
         (p.planned_date,p.start_time,coalesce(p.end_date,p.planned_date),p.end_time)
         IS DISTINCT FROM ($2::date,$3::text,coalesce($4::date,$2::date),$5::text) AS rescheduled, (a.owner_id=$6 OR EXISTS(SELECT 1 FROM users WHERE id=$6 AND role='OPS')) AS allowed
         FROM activities a JOIN event_details p ON p.activity_id=a.id WHERE a.id=$1 FOR UPDATE OF a`,
         [response.locals.eventId,input.plannedDate,input.startTime,input.endDate,input.endTime,response.locals.userId]);
       if(!previous.rows[0]?.allowed){await client.query('ROLLBACK');response.status(403).json({error:'EDITOR_REQUIRED'});return;}
+      if(previous.rows[0]?.rescheduled&&!['PLANNING','ACTIVE'].includes(previous.rows[0].status)){await client.query('ROLLBACK');response.status(409).json({error:'EVENT_CLOSED'});return;}
       if (previous.rows[0]?.rescheduled) {
         await client.query('INSERT INTO activity_interests(activity_id,user_id) SELECT event_id,user_id FROM event_going WHERE event_id=$1 ON CONFLICT DO NOTHING',[response.locals.eventId]);
         await client.query('DELETE FROM event_going WHERE event_id=$1',[response.locals.eventId]);

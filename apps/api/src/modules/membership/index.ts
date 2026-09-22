@@ -30,7 +30,7 @@ export function mountMembership(app: Express, pool: Pool, requireMember: Request
         await client.query('BEGIN');
         const project = await client.query("SELECT owner_id,status FROM activities WHERE id=$1 AND type='PROJECT' FOR UPDATE",[id.data]);
         if (!project.rows[0]) { await client.query('ROLLBACK'); response.status(404).json({error:'NOT_FOUND'}); return; }
-        if (method === 'delete' && project.rows[0].owner_id === response.locals.userId) {
+        if (method === 'delete' && ['PLANNING','ACTIVE'].includes(project.rows[0].status) && project.rows[0].owner_id === response.locals.userId) {
           await client.query('ROLLBACK'); response.status(409).json({error:'OWNER_MUST_TRANSFER'}); return;
         }
         if (method === 'post' && !['PLANNING','ACTIVE'].includes(project.rows[0].status)) {

@@ -42,12 +42,12 @@ function TaskCard({task,id,language,done}:{task:Task;id:number;language:Language
   {task.canEdit&&<details className="project-form-section"><summary>{t.edit}</summary><TaskForm id={id} task={task} language={language} done={done}/></details>}
  </article>;
 }
-export function TaskPanel({id,language}:{id:number;language:Language}){
+export function TaskPanel({id,language,closed=false}:{id:number;language:Language;closed?:boolean}){
  const t=copy[language];const resource=useResource(`/api/activities/${id}/tasks`,schema);
- return <section className="task-panel" aria-label={t.title}><h2>{t.title}</h2><p className="ideas-note">{t.hint}</p>
+ return <section className="task-panel" aria-label={t.title}><h2>{t.title}</h2>{!closed&&<p className="ideas-note">{t.hint}</p>}
   {!resource.data?resource.loading?<p role="status">{t.loading}</p>:<p role="alert">{t.error} <button className="text-link" onClick={resource.retry}>{t.retry}</button></p>
    :<>{resource.data.canCreate&&<details className="project-form-section"><summary>{t.create}</summary><TaskForm id={id} language={language} done={resource.retry}/></details>}
-    {resource.data.canCreate===undefined&&<Link className="text-link" to="/login">{t.login} ↗</Link>}
+    {!closed&&resource.data.canCreate===undefined&&<Link className="text-link" to="/login">{t.login} ↗</Link>}
     {!resource.data.tasks.length?<p>{t.empty}</p>:resource.data.tasks.map(task=><TaskCard key={task.id} task={task} id={id} language={language} done={resource.retry}/>)}
    </>}
  </section>;
