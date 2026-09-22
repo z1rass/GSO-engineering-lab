@@ -26,8 +26,9 @@ export function LoginPage({ language }: { language: Language }) {
     const data = new FormData(event.currentTarget);
     setBusy(true); setError(null); setSent(false);
     try {
+      const callbackURL = `${window.location.origin}/profile`;
       const response = await send('/api/auth/sign-in/magic-link', { name: data.get('name'), email: String(data.get('email')).trim().toLowerCase(),
-        callbackURL: '/profile', newUserCallbackURL: '/profile', errorCallbackURL: '/login' });
+        callbackURL, newUserCallbackURL: callbackURL, errorCallbackURL: `${window.location.origin}/login` });
       if (!response.ok) { setError(response.status === 429 ? 'rate' : 'error'); return; }
       setSent(true);
     } catch { setError('error'); } finally { setBusy(false); }

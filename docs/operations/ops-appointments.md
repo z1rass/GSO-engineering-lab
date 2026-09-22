@@ -1,22 +1,22 @@
-# Назначение Ops
+# Ops appointments
 
-Роль Ops — глобальные полномочия управления Lab, не ownership отдельной Activity. Право действует только при подтверждённой текущей принадлежности Member. Учётная запись Alumni с сохранённой ролью не получает доступ.
+Ops is a global Lab management role, separate from ownership of any Activity. The role is active only while the person has a confirmed current Member affiliation. An Alumni account that retains the role does not receive access.
 
-## Первое назначение (bootstrap)
+## First appointment (bootstrap)
 
-1. School sponsor вне сайта подтверждает первого Ops. Сохраните подтверждение в организационном канале клуба.
-2. Этот человек входит через школьный magic link, чтобы создать и подтвердить свой User.
-3. Server admin применяет миграции и запускает команду из корня репозитория:
+1. A school sponsor confirms the first Ops member outside the site. Keep that confirmation in the club's organisational channel.
+2. The person signs in through the school magic link to create and verify their User account.
+3. A server admin applies migrations and runs the command from the repository root:
 
 ```sh
-# DATABASE_URL уже задан в окружении администратора.
+# DATABASE_URL is already available in the administrator's environment.
 npm run ops:bootstrap --workspace @gso/api -- \
   --email first-ops@gso.schule.koeln \
-  --confirmed-by 'Имя school sponsor' \
-  --operator 'Имя server admin'
+  --confirmed-by 'School sponsor name' \
+  --operator 'Server admin name'
 ```
 
-Для локального Compose:
+For local Compose:
 
 ```sh
 docker compose exec api npm run ops:bootstrap --workspace @gso/api -- \
@@ -25,30 +25,18 @@ docker compose exec api npm run ops:bootstrap --workspace @gso/api -- \
   --operator 'Local server admin'
 ```
 
-Команда требует уже подтверждённого Member. Она не создаёт пользователя, не отправляет письмо и не обходит вход. Поля `confirmed-by` и `operator` фиксируют атрибуцию; сама команда не может независимо проверить внешнее подтверждение sponsor.
+The command requires an already verified Member. It does not create a User, send email or bypass sign-in. The `confirmed-by` and `operator` values record attribution; the command cannot independently verify the sponsor's external confirmation.
 
-Назначение и журнал фиксируются одной транзакцией. Одновременные bootstrap-команды сериализуются: первая может назначить Ops, следующая получит отказ. Если существует хотя бы один User с ролью OPS, в том числе Alumni, bootstrap отказывается работать. Повторное выполнение не является обычным назначением или восстановлением доступа.
+The appointment and audit entry are written in one transaction. Concurrent bootstrap commands are serialized: the first may appoint Ops and the next one is rejected. If any User already has the OPS role, including Alumni, bootstrap refuses to run. Running it again is not a normal appointment or an access-recovery path.
 
-## Обычное назначение
+## Normal appointment
 
-Действующий Ops открывает **Мой Lab → Ops** (`/profile` → `/ops`), выбирает подтверждённого Member и нажимает кнопку назначения. Отдельное подтверждение school sponsor для normal path не предусмотрено последним согласованным решением (ответ 40).
+An existing Ops member opens **My Lab → Ops** (`/profile` → `/ops`), selects a verified Member and appoints them. The agreed normal path does not require a separate school sponsor confirmation.
 
-Экран показывает действующую команду, кандидатов и последние 100 изменений роли. Email не выдаётся в этом списке. Стабильный User ID помогает различать людей с одинаковыми именами. Каждый переход MEMBER → OPS записывает инициатора, получателя и время. Повторное назначение не создаёт дубликат записи.
+The screen shows the current team, candidates and the latest 100 role changes. Email addresses are not exposed in this list. Stable User IDs distinguish people with the same name. Every MEMBER → OPS transition records the initiator, target and timestamp. Repeating an appointment does not create a duplicate entry.
 
-Доступ проверяется сервером при каждом запросе. Обычный Member не может менять роль через профиль или прямым API-запросом. В этом срезе нет снятия роли или кабинета sponsor; recovery описан ниже как отдельная server-admin процедура.
+Access is checked server-side on every request. A regular Member cannot change roles through the profile or a direct API request. This slice has no role removal, sponsor dashboard or access-recovery flow.
 
-## Если все Ops потеряли доступ (recovery)
+## If all Ops lose access
 
-Recovery отличается от bootstrap: это отдельная команда для случая, когда действующих Member-Ops нет. Сначала school sponsor подтверждает новый состав, затем server admin проверяет handover checklist и запускает команду. Sponsor dashboard и recovery API не существуют; обычный Member не может открыть этот путь.
-
-```sh
-npm run ops:recover --workspace @gso/api -- \
-  --emails first-ops@gso.schule.koeln,second-ops@gso.schule.koeln \
-  --confirmed-by 'Имя school sponsor' \
-  --operator 'Имя server admin' \
-  --handover-checklist 'Организационные аккаунты, shared ownership и handover checklist проверены'
-```
-
-Команда требует один или несколько уже подтверждённых Members, отказывается работать, если действующий Ops ещё есть, и не создаёт пользователей. Она сериализует параллельные запуски, назначает весь состав атомарно и пишет `RECOVERY`-запись для каждого User с operator, sponsor confirmation и handover checklist. После команды каждый восстановленный User должен фактически войти через школьный magic link и проверить доступ к `/ops`.
-
-Минимальный handover checklist: организационные аккаунты и секреты находятся у команды, критичные репозитории/домены/почта имеют shared ownership, резервный server admin указан, school sponsor и актуальный список Ops записаны в организационном канале. Секреты не помещаются в журнал или командные аргументы.
+Stop and obtain school sponsor confirmation. Do not remove roles to bypass the bootstrap guard. A separate recovery process is planned in ticket 19; until it is implemented, use a separately reviewed administrative procedure that preserves the audit trail.

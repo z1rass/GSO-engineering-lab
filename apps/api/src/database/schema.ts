@@ -55,7 +55,7 @@ export const roleChanges = pgTable('role_changes', {
   targetId: text('target_id').references(() => user.id, { onDelete: 'set null' }),
   actorId: text('actor_id').references(() => user.id, { onDelete: 'set null' }),
   previousRole: globalRole('previous_role').notNull(), newRole: globalRole('new_role').notNull(),
-  source: text('source').notNull(), operator: text('operator'), confirmedBy: text('confirmed_by'), handoverChecklist: text('handover_checklist'),
+  source: text('source').notNull(), operator: text('operator'), confirmedBy: text('confirmed_by'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -78,7 +78,7 @@ Rate limiting is stored in PostgreSQL: 5 login-link requests per minute per dire
 
 After a Member verifies their email, a server admin can appoint the first Ops using the documented [bootstrap procedure](docs/operations/ops-appointments.md). Bootstrap requires external sponsor confirmation and refuses to run if any Ops already exist. The role change and its attribution are persisted atomically.
 
-Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. If all Ops lose access, a server admin uses the documented `ops:recover` path after school sponsor confirmation; it is not available through the web API.
+Existing Ops open `/profile` → **Manage Ops** (`/ops`) to appoint other verified Members and see the latest 100 role changes. Access is checked server-side, and private email addresses are not included in the directory. Recovery and role removal are outside this slice.
 
 The product areas below follow the same model: public discovery, deliberate participation, and explicit responsibility.
 
@@ -155,6 +155,7 @@ All local defaults work without a configuration file. `.env.example` documents t
 | `DATABASE_URL` | API, migrations, seed | `postgres://lab:lab_local@127.0.0.1:55432/lab` |
 | `TEST_DATABASE_URL` | Isolated API/browser test database | `postgres://lab:lab_local@127.0.0.1:55433/lab_test` |
 | `AUTH_BASE_URL` | Exact public origin used in email links and CSRF checks | `http://localhost:5173` |
+| `AUTH_ADDITIONAL_ORIGINS` | Optional comma-separated fixed frontend origins accepted by CSRF checks | Unset |
 | `AUTH_SECRET` | Auth signing secret; production requires 32+ random characters | Disposable local secret |
 | `SMTP_HOST` / `SMTP_PORT` | SMTP delivery | `127.0.0.1` / `1025` |
 | `SMTP_FROM` | Sender address | `GSO engineering lab <lab@localhost>` |

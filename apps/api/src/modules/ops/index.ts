@@ -13,7 +13,7 @@ export function mountOps(app: Express, pool: Pool, requireMember: RequestHandler
       WHERE affiliation='MEMBER' AND email_verified=true ORDER BY name, id`);
     const changes = await pool.query(`SELECT c.id, c.target_id AS "targetId", c.actor_id AS "actorId",
       target.name AS "targetName", actor.name AS "actorName", c.previous_role AS "previousRole", c.new_role AS "newRole",
-      c.source, c.operator, c.confirmed_by AS "confirmedBy", c.handover_checklist AS "handoverChecklist", c.created_at AS "createdAt"
+      c.source, c.operator, c.confirmed_by AS "confirmedBy", c.created_at AS "createdAt"
       FROM role_changes c LEFT JOIN users target ON target.id=c.target_id LEFT JOIN users actor ON actor.id=c.actor_id
       ORDER BY c.id DESC LIMIT 100`);
     response.json({ members: members.rows, changes: changes.rows });

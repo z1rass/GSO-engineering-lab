@@ -6,7 +6,7 @@ import { magicLink } from 'better-auth/plugins';
 import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Express, Request, RequestHandler } from 'express';
+import type { Express, Request as ExpressRequest, RequestHandler } from 'express';
 import express from 'express';
 import type { Pool } from 'pg';
 import nodemailer from 'nodemailer';
@@ -16,6 +16,27 @@ export function mountAuth(app: Express, pool: Pool) {
   const db = drizzle(pool);
   const baseURL = process.env.AUTH_BASE_URL ?? 'http://localhost:5173';
   const production = process.env.NODE_ENV === 'production';
+  const baseOrigin = new URL(baseURL).origin;
+  const additionalOrigins = (process.env.AUTH_ADDITIONAL_ORIGINS ?? '')
+    .split(',').map(origin => origin.trim()).filter(Boolean);
+  const isDevelopmentTunnelOrigin = (origin: string) => {
+    try {
+      const url = new URL(origin);
+      return !production && url.protocol === 'https:' && url.hostname.endsWith('.ngrok-free.app');
+    } catch {
+      return false;
+    }
+  };
+  const isTrustedRequestOrigin = (origin: string | undefined) => Boolean(origin && (
+    origin === baseOrigin || additionalOrigins.includes(origin) || isDevelopmentTunnelOrigin(origin)
+  ));
+  const requestTunnelOrigin = (request: globalThis.Request | undefined) => {
+    const origin = request?.headers.get('origin');
+    if (origin && isDevelopmentTunnelOrigin(origin)) return origin;
+    const host = request?.headers.get('x-forwarded-host')?.split(',')[0]?.trim() ?? request?.headers.get('host');
+    const tunnelOrigin = host ? `https://${host}` : undefined;
+    return tunnelOrigin && isDevelopmentTunnelOrigin(tunnelOrigin) ? tunnelOrigin : undefined;
+  };
   const secret = process.env.AUTH_SECRET ?? (production ? '' : 'local-development-only-secret-at-least-32-characters');
   if (secret.length < 32 || (production && (!process.env.AUTH_BASE_URL || !baseURL.startsWith('https://') || !process.env.SMTP_HOST || !process.env.SMTP_FROM))) {
     throw new Error('Production auth requires an HTTPS AUTH_BASE_URL, AUTH_SECRET (32+ characters), SMTP_HOST and SMTP_FROM');
@@ -30,7 +51,11 @@ export function mountAuth(app: Express, pool: Pool) {
     database: drizzleAdapter(drizzle(pool), { provider: 'pg', schema }),
     advanced: { useSecureCookies: production || baseURL.startsWith('https://'), ipAddress: { ipAddressHeaders: ['x-gso-client-ip'] } },
     rateLimit: { enabled: true, storage: 'database', window: 60, max: 100, customRules: { '/sign-in/magic-link': { window: 60, max: 5 } } },
-    trustedOrigins: [baseURL],
+    trustedOrigins: async request => {
+      const origin = request?.headers.get('origin');
+      const tunnelOrigin = requestTunnelOrigin(request);
+      return [baseOrigin, ...additionalOrigins, ...(origin && isDevelopmentTunnelOrigin(origin) ? [origin] : []), ...(tunnelOrigin ? [tunnelOrigin] : [])];
+    },
     session: { expiresIn: 60 * 60 * 24 * 7, disableSessionRefresh: true, cookieCache: { enabled: false } },
     user: { additionalFields: { affiliation: { type: 'string', defaultValue: 'MEMBER', input: false } } },
     hooks: { before: createAuthMiddleware(async ctx => {
@@ -48,15 +73,17 @@ export function mountAuth(app: Express, pool: Pool) {
       if (!existing || existing.affiliation !== 'MEMBER') return false;
       return { data: session };
     } } } },
-    plugins: [magicLink({ expiresIn: 900, storeToken: 'hashed', sendMagicLink: async ({ email, url }) => {
+    plugins: [magicLink({ expiresIn: 900, storeToken: 'hashed', sendMagicLink: async ({ email, url }, context) => {
+      const publicOrigin = requestTunnelOrigin(context?.request);
+      const publicURL = publicOrigin ? new URL(url).toString().replace(new URL(url).origin, publicOrigin) : url;
       await mail.sendMail({ from: process.env.SMTP_FROM ?? 'GSO engineering lab <lab@localhost>', to: email,
-        subject: 'Dein Login / Your login — GSO engineering lab', text: `Anmelden / Sign in (15 min):\n${url}\n\nNicht angefordert? Ignoriere diese E-Mail. / Not requested? Ignore this email.` });
+        subject: 'Dein Login / Your login — GSO engineering lab', text: `Anmelden / Sign in (15 min):\n${publicURL}\n\nNicht angefordert? Ignoriere diese E-Mail. / Not requested? Ignore this email.` });
     } })],
   });
   app.all('/api/auth/*splat', (request, response, next) => {
     const allowed = new Map([['/api/auth/sign-in/magic-link', 'POST'], ['/api/auth/magic-link/verify', 'GET'], ['/api/auth/sign-out', 'POST']]);
     if (allowed.get(request.path) !== request.method) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
-    if (request.method === 'POST' && request.get('origin') !== new URL(baseURL).origin) {
+    if (request.method === 'POST' && !isTrustedRequestOrigin(request.get('origin'))) {
       response.status(403).json({ error: 'INVALID_ORIGIN' }); return;
     }
     // Ignore client-supplied forwarding headers: the socket is the trust boundary.
@@ -68,13 +95,13 @@ export function mountAuth(app: Express, pool: Pool) {
     education: z.string().trim().max(100).nullable().optional(), year: z.number().int().min(1).max(6).nullable().optional(),
     interests: z.array(z.string().trim().min(1).max(50)).max(20).optional(),
   }).strict();
-  async function getMember(request: Request) {
+  async function getMember(request: ExpressRequest) {
     const current = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
     return current && current.user.emailVerified && current.user.affiliation === 'MEMBER' ? current.user : null;
   }
   const requireMember: RequestHandler = async (request, response, next) => {
     response.set('Cache-Control', 'no-store');
-    if (request.method !== 'GET' && request.get('origin') !== new URL(baseURL).origin) {
+    if (request.method !== 'GET' && !isTrustedRequestOrigin(request.get('origin'))) {
       response.status(403).json({ error: 'INVALID_ORIGIN' }); return;
     }
     const member = await getMember(request);

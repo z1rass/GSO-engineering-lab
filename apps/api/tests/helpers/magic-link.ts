@@ -14,15 +14,6 @@ export async function requestTestLink(base: string, origin: string, name = 'Ada'
   return { email, url: new URL(mail.Text.match(/https?:\/\/\S+/)[0]) };
 }
 
-export async function requestExistingTestLink(base: string, origin: string, email: string, name = 'Ada') {
-  const response = await fetch(`${base}/api/auth/sign-in/magic-link`, { method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, name, callbackURL: '/profile' }) });
-  expect(response.status).toBe(200);
-  const mailbox = await fetch(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
-  expect(mailbox.messages.length).toBeGreaterThan(0);
-  const mail = await fetch(`http://127.0.0.1:8025/api/v1/message/${mailbox.messages[0].ID}`).then(r => r.json());
-  return { email, url: new URL(mail.Text.match(/https?:\/\/\S+/)[0]) };
-}
-
 export async function redeemTestLink(base: string, url: URL) {
   const verified = await fetch(`${base}${url.pathname}${url.search}`, { redirect: 'manual' });
   expect(verified.status).toBe(302);

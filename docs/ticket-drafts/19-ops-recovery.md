@@ -1,23 +1,19 @@
-# 19: Восстановление Ops и handover
+# 19: Ops recovery and handover
 
-**What to build:** Server admin восстанавливает управление после подтверждения school sponsor, когда все Ops потеряли доступ.
+**What to build:** A server admin restores management after school sponsor confirmation when all Ops have lost access.
 
-**Blocked by:** 03: Первичные Ops и обычное назначение
+**Blocked by:** 03: Initial Ops and normal appointment
 
-**Status:** implemented locally 2026-09-22 — draft not published.
+**Status:** draft — awaiting agreement on the split and tracker; not published.
 
 ## Acceptance criteria
 
-- [x] Документированный recovery-путь отличается от bootstrap и обычного назначения.
-- [x] Server admin может восстановить/назначить одного или нескольких Ops после внешнего подтверждения sponsor.
-- [x] Восстановление проверено через фактический вход с восстановленными полномочиями и сохранение журнала изменений.
-- [x] Документированы organizational accounts, shared ownership ресурсов и handover checklist.
-- [x] Восстановление не открывается обычным Member через web API; sponsor dashboard не добавляется.
+- [ ] The documented recovery path is distinct from bootstrap and normal appointment.
+- [ ] A server admin can restore or appoint one or more Ops after external sponsor confirmation.
+- [ ] Recovery is verified through an actual sign-in with restored permissions and a preserved role-change audit trail.
+- [ ] Organisational accounts, shared ownership of critical resources and the handover checklist are documented.
+- [ ] A regular Member cannot trigger recovery through the web API; no sponsor dashboard is added.
 
-## Проверка и границы
+## Verification and boundaries
 
-Срез включает необходимые изменения хранения, серверного поведения и пользовательского либо административного интерфейса. Проверять внешний результат, не внутреннее устройство. Предложенная основа: API с изолированной PostgreSQL и небольшое число браузерных сценариев; окончательное согласование границ тестирования ещё ожидается. Все добавленные пользовательские тексты доступны на DE/EN, авторский контент не переводится автоматически.
-
-## Результат
-
-Добавлена CLI-команда `ops:recover`: она принимает один или несколько подтверждённых school accounts, требует sponsor/operator/handover атрибуцию, работает только при отсутствии действующих Ops и атомарно пишет `RECOVERY` role changes. API recovery-пути и sponsor dashboard нет. Ops dashboard показывает recovery в журнале. Проверки: 2 дополнительных CLI/API сценария в `ops.test.ts`.
+The slice includes the required storage, server behavior and user or administrative interface changes. Verify externally observable behavior rather than implementation details. The proposed boundary is the API with isolated PostgreSQL plus a small number of browser scenarios; the final test boundary still needs agreement. All added user-facing copy is available in DE/EN; authored content is not translated automatically.

@@ -37,9 +37,6 @@ test('Ops appoints a Member in the bilingual UI and sees the recorded change on 
   await page.reload();
   await expect(page.getByRole('list', { name: 'Ops team' })).toContainText('New candidate');
   await expect(page.getByRole('list', { name: 'Role history' })).toContainText('Existing Ops');
-  await pool.query("INSERT INTO role_changes (target_id,previous_role,new_role,source,operator,confirmed_by,handover_checklist) VALUES ($1,'MEMBER','OPS','RECOVERY','Server admin','School sponsor','Shared ownership checked')", [secondId]);
-  await page.reload();
-  await expect(page.getByRole('list', { name: 'Role history' })).toContainText('Shared ownership checked');
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

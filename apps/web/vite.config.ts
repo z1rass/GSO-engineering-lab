@@ -7,9 +7,8 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    // ngrok assigns a new subdomain to each tunnel; the leading dot allows only
-    // subdomains of this development tunnel domain, never arbitrary Host values.
+    // ngrok assigns a new subdomain to each tunnel; only this development domain is allowed.
     allowedHosts: ['.ngrok-free.app'],
-    proxy: { '/api': process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3001' },
+    proxy: { '/api': { target: process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3001', xfwd: true } },
   },
 });

@@ -94,6 +94,19 @@ test('Cross-site or missing-Origin sign-in requests are rejected', async () => {
   }
 });
 
+test('Development ngrok origins can request a magic link without opening cross-site access', async () => {
+  const tunnelOrigin = 'https://preview-123.ngrok-free.app';
+  const email = `tunnel-${randomUUID()}@gso.schule.koeln`;
+  const response = await fetch(`${base}/api/auth/sign-in/magic-link`, {
+    method: 'POST', headers: { origin: tunnelOrigin, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name: 'Tunnel user' }),
+  });
+  expect(response.status).toBe(200);
+  const mailbox = await fetch(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
+  const message = await fetch(`http://127.0.0.1:8025/api/v1/message/${mailbox.messages[0].ID}`).then(r => r.json());
+  expect(new URL(message.Text.match(/https?:\/\/\S+/)[0]).origin).toBe(tunnelOrigin);
+});
+
 
 test('Repeated magic-link requests are rate limited', async () => {
   const body = { email: `limit-${randomUUID()}@gso.schule.koeln`, name: 'Ada' };
