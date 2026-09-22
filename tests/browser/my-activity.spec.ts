@@ -1,0 +1,57 @@
+import { test, expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+const databaseUrl = process.env.TEST_DATABASE_URL ?? 'postgres://lab:lab_local@127.0.0.1:55433/lab_test';
+if (!new URL(databaseUrl).pathname.endsWith('_test')) throw new Error('Dedicated test database required');
+const pool = new Pool({ connectionString: databaseUrl });
+test.beforeAll(async () => { await migrate(drizzle(pool), { migrationsFolder: './database/migrations' }); });
+test.beforeEach(async () => { await pool.query('DELETE FROM rate_limits'); });
+test.afterAll(async () => { await pool.end(); });
+
+test('Take Task → My Activity shows responsibility in DE/EN on mobile and reflects release on return', async ({ page }) => {
+  const email = `overview-${randomUUID()}@gso.schule.koeln`;
+  await page.goto('/login'); await page.getByLabel('Name', { exact: true }).fill('My Lab member'); await page.getByLabel('Schul-E-Mail').fill(email);
+  await page.getByRole('button', { name: 'Login-Link senden' }).click(); await expect(page.getByRole('status')).toContainText('Postfach');
+  const box = await page.request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
+  const mail = await page.request.get(`http://127.0.0.1:8025/api/v1/message/${box.messages[0].ID}`).then(r => r.json());
+  await page.goto(mail.Text.match(/https?:\/\/\S+/)[0]);
+  await page.getByRole('navigation').getByRole('link', { name: 'Mein Lab', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Meine Aktivitäten', exact: true })).toBeVisible();
+  await expect(page.getByText('Du hast gerade keine Aufgaben übernommen.', { exact: true })).toBeVisible();
+  const project = (await page.request.post('/api/projects', { headers: { origin: 'http://127.0.0.1:5173' }, data: { title: 'Lab Infrastructure', description: 'Build together', goal: 'Build' } }).then(r => r.json())).project;
+  const idea = (await page.request.post('/api/ideas', { headers: { origin: 'http://127.0.0.1:5173' }, data: { title: 'Robotics idea', description: 'Maybe robots' } }).then(r => r.json())).idea;
+  await page.request.post(`/api/ideas/${idea.id}/interested`, { headers: { origin: 'http://127.0.0.1:5173' }, data: {} });
+  await page.request.post(`/api/activities/${project.id}/tasks`, { headers: { origin: 'http://127.0.0.1:5173' }, data: { title: 'Monitoring einrichten', dueDate: '2026-11-27' } });
+  await page.goto(`/projects/${project.id}`);
+  await page.getByRole('button', { name: 'Aufgabe übernehmen', exact: true }).click();
+  await expect(page.getByText('In Arbeit', { exact: true })).toBeVisible();
+  await page.getByRole('navigation').getByRole('link', { name: 'Mein Lab', exact: true }).click();
+  const tasks = page.getByRole('region', { name: 'Meine Aufgaben', exact: true });
+  await expect(tasks.getByRole('link', { name: /Monitoring einrichten/ })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Meine Projekte', exact: true }).getByText('Verantwortlich', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Interessiert', exact: true }).getByRole('link', { name: /Robotics idea/ })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'English' }).click();
+  await expect(page.getByRole('heading', { name: 'My Activity', exact: true })).toBeVisible();
+  const englishTasks = page.getByRole('region', { name: 'My tasks', exact: true });
+  await expect(englishTasks.getByText('In progress', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await englishTasks.getByRole('link', { name: /Monitoring einrichten/ }).click();
+  await page.getByRole('button', { name: 'Release', exact: true }).click();
+  await expect(page.getByText('Open', { exact: true })).toBeVisible();
+  await page.getByRole('navigation').getByRole('link', { name: 'My Lab', exact: true }).click();
+  await expect(page.getByText('You have no tasks in progress.', { exact: true })).toBeVisible();
+  await page.route('**/api/me/activity', r => r.fulfill({ status: 503, json: { error: 'SERVICE_UNAVAILABLE' } }));
+  await page.reload(); await expect(page.getByRole('alert')).toContainText('Could not load your activity');
+  await page.unroute('**/api/me/activity'); await page.getByRole('button', { name: 'Try again', exact: true }).click();
+  await expect(page.getByText('You have no tasks in progress.', { exact: true })).toBeVisible();
+});
+
+test('Visitor gets a sign-in prompt instead of a personal overview', async ({ page }) => {
+  await page.goto('/my-activity');
+  await expect(page.getByText('Melde dich an, um deine Aktivitäten zu sehen.', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Anmelden', exact: true }).click();
+  await expect(page).toHaveURL(/\/login$/);
+});

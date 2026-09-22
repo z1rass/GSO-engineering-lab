@@ -1,4 +1,5 @@
 import { mountSeasons } from './modules/seasons/index.js';
+import { mountMyActivity } from './modules/my-activity/index.js';
 import { mountLifecycle } from './modules/lifecycle/index.js';
 import { mountOwnership } from './modules/ownership/index.js';
 import { mountTasks } from './modules/tasks/index.js';
@@ -33,6 +34,7 @@ export function createApp(pool: Pool) {
   mountTasks(app, pool, requireMember, getMember);
   mountOwnership(app, pool, requireMember);
   mountLifecycle(app, pool, requireMember);
+  mountMyActivity(app, pool, requireMember);
   app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
   app.get('/api/seasons/current', async (_request, response) => {
     response.set('Cache-Control', 'no-store');

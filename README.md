@@ -11,7 +11,7 @@ The interface is German-first with English available. Community-authored content
 
 ## Project status
 
-The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, and completion/cancellation with past Activity pages. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, and the personal My Activity overview. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
 
 Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
 
@@ -230,3 +230,9 @@ Ops create and edit Seasons at `/ops/seasons` using `GET/POST /api/ops/seasons` 
 Public `/seasons` and `/seasons/:id` pages show published Seasons and their Events/Projects. DRAFT Seasons are excluded even for direct public detail requests. `/season` shows the current Season and its Activities. The homepage also shows the six newest PLANNING/ACTIVE Activities, including independent ones. These lists contain public fields only.
 
 An Activity can remain independent. Its owner can choose an UPCOMING/ACTIVE Season on the detail page; Event assignment is to one Season, while a Project can add further Seasons without being copied. `GET/POST /api/activities/:id/seasons` reads history or accepts `{seasonId}`. Writes lock the Activity and target Season and reject closed Activities or unavailable targets. Repeating a link does not duplicate it. `activity_seasons` preserves previous links; there is no destructive move or unlink operation in this slice. Team membership, Tasks, materials and the Project ID stay unchanged. History badges list each actual Season, so participation in Season 0 and Season 2 never implies Season 1.
+
+## My Activity
+
+Members open `/my-activity` through **Mein Lab / My Lab** or their profile. Current owned Tasks appear first, followed by Projects they own or have joined and Events they own or are Going to. Responsibility and participation have separate labels. Interested Ideas and Activities stay in their own section and never imply membership or registration. Completed/cancelled Activities and Tasks remain available under past work.
+
+`GET /api/me/activity` is private to the authenticated Member, including Ops viewing their own work. The endpoint accepts no query parameters or target User ID, sends `Cache-Control: no-store`, and reads all sections in one database snapshot. Returning to the page reloads saved state after task release, team departure, ownership acceptance or Event rescheduling. No additional storage or migration is required.

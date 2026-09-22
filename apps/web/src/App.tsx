@@ -1,4 +1,5 @@
 import {OpsSeasonsPage,SeasonsPage,SeasonPage,SeasonContents,RecentActivities} from './seasons/pages';
+import { MyActivityPage } from './my-activity/page';
 import { RoomQueue } from './rooms/pages';
 import { EventsPage, EventPage, EventEditor } from './events/pages';
 import { ProjectsPage, ProjectPage, ProjectEditor } from './projects/pages';
@@ -82,7 +83,7 @@ export function App() {
     <a className="skip-link" href="#main">{t.skip}</a>
     <header className="site-header page-width">
       <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="lab-mark" aria-hidden="true"><span /><span /><span /></span><span className="brand-name">GSO <strong>engineering lab</strong></span></Link>
-      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><NavLink to="/season">{t.seasonNav}</NavLink><NavLink to="/events">Events</NavLink><NavLink to="/projects">{language === 'de' ? 'Projekte' : 'Projects'}</NavLink><NavLink to="/ideas">{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/profile">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
+      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><NavLink to="/season">{t.seasonNav}</NavLink><NavLink to="/events">Events</NavLink><NavLink to="/projects">{language === 'de' ? 'Projekte' : 'Projects'}</NavLink><NavLink to="/ideas">{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/my-activity">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
       <div className="languages" aria-label={language === 'de' ? 'Sprache' : 'Language'}>
         <button aria-label="Deutsch" aria-pressed={language === 'de'} onClick={() => setLanguage('de')}>DE</button>
         <button aria-label="English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
@@ -90,6 +91,7 @@ export function App() {
     </header>
     <main id="main" className="page-width">
       <Routes>
+        <Route path="/my-activity" element={<MyActivityPage language={language} />} />
         <Route path="/ops/seasons" element={<OpsSeasonsPage language={language}/>} />
         <Route path="/seasons" element={<SeasonsPage language={language}/>} />
         <Route path="/seasons/:id" element={<SeasonPage language={language}/>} />

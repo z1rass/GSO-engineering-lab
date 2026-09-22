@@ -87,7 +87,7 @@ export function ProfilePage({ language }: { language: Language }) {
   if (state === 'loading') return <section className="account-page"><p role="status">{t.loading}</p></section>;
   if (state === 'error' || !profile) return <section className="account-page"><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></section>;
   return <section className="account-page"><div className="account-heading"><p className="eyebrow">GSO engineering lab</p><h1>{t.profileTitle}</h1><p>{t.profileIntro}</p></div>
-    <div>{profile.role === 'OPS' && <Link className="text-link ops-profile-link" to="/ops">{language === 'de' ? 'Ops verwalten' : 'Manage Ops'} ↗</Link>}
+    <div><Link className="text-link ops-profile-link" to="/my-activity">{language === 'de' ? 'Meine Aktivitäten' : 'My Activity'}</Link>{profile.role === 'OPS' && <Link className="text-link ops-profile-link" to="/ops">{language === 'de' ? 'Ops verwalten' : 'Manage Ops'} ↗</Link>}
     <form className="account-form" onSubmit={save} aria-busy={busy} onChange={() => setFeedback(null)}>
       <label>{t.name}<input name="name" autoComplete="name" required maxLength={100} defaultValue={profile.name} /></label>
       <label>{t.email}<input type="email" readOnly value={profile.email} aria-describedby="private-email" /></label>

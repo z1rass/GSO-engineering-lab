@@ -1,0 +1,26 @@
+.my-activity-page { max-width: 960px; margin: 48px auto 72px; }
+.my-activity-heading { display: flex; justify-content: space-between; align-items: start; gap: 24px; margin-bottom: 40px; }
+.my-activity-heading h1 { font-size: 2.5rem; line-height: 1.15; letter-spacing: -.035em; }
+.my-activity-heading p { margin-top: 12px; color: var(--muted); line-height: 1.65; max-width: 60ch; }
+.my-activity-heading > a { flex-shrink: 0; }
+.my-activity-section { border-top: 1px solid var(--line); padding-top: 24px; margin-bottom: 32px; min-width: 0; }
+.my-activity-section h2 { font-size: 1.375rem; font-weight: 500; margin-bottom: 16px; letter-spacing: -.025em; }
+.my-activity-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.my-activity-empty { color: var(--muted); line-height: 1.65; max-width: 65ch; margin-bottom: 12px; }
+.my-activity-list { list-style: none; margin: 0; padding: 0; }
+.my-activity-list li + li { border-top: 1px solid var(--line); }
+.my-activity-list a { display: block; padding: 16px 8px; border-radius: 4px; overflow-wrap: anywhere; }
+.my-activity-list a:hover { background: var(--surface); }
+.my-activity-list h3 { font-size: 1.125rem; font-weight: 500; line-height: 1.45; }
+.my-activity-list p { color: var(--muted); font-size: .875rem; line-height: 1.6; margin-top: 4px; }
+.my-activity-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: .875rem; line-height: 1.6; color: var(--muted); margin-top: 8px; }
+.my-activity-meta strong { color: var(--ink); font-weight: 500; }
+.my-activity-history { border-top: 1px solid var(--line); padding-top: 16px; }
+.my-activity-history summary { min-height: 44px; cursor: pointer; padding-block: 12px; }
+.my-activity-history summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 5px; }
+@media (max-width: 760px) {
+  .my-activity-page { margin-block: 32px 48px; }
+  .my-activity-heading { flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .my-activity-heading h1 { font-size: 2rem; }
+  .my-activity-columns { grid-template-columns: 1fr; gap: 0; }
+}
