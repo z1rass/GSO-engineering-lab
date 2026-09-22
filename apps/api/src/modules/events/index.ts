@@ -2,8 +2,9 @@ import type { Express, Request, RequestHandler } from 'express';
 import type { Pool } from 'pg';
 import { z } from 'zod';
 
+import { registrationReady } from '../going/readiness.js';
 import { webUrl } from '../../shared/validation/web-url.js';
-const content = z.object({ title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(5000),
+const content = z.object({ schoolRoomRequired: z.boolean().default(false), title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(5000),
   category: z.enum(['TALK','WORKSHOP','BUILD_NIGHT','STUDY_SESSION','HACKATHON','SOCIAL','OTHER']),
   plannedDate: z.iso.date().nullable().default(null), endDate: z.iso.date().nullable().default(null),
   startTime: z.iso.time({ precision: -1 }).nullable().default(null), endTime: z.iso.time({ precision: -1 }).nullable().default(null),
@@ -30,7 +31,7 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     const id = idSchema.safeParse(request.params.id);
     if (!id.success) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
     const member = await getMember(request);
-    const fields = member ? `, json_build_object('id', u.id, 'name', u.name) AS owner, p.exact_room AS "exactRoom", a.private_instructions AS "privateInstructions", a.discord_url AS "discordUrl",
+    const fields = member ? `, json_build_object('id', u.id, 'name', u.name) AS owner, p.school_room_required AS "schoolRoomRequired", p.exact_room AS "exactRoom", a.private_instructions AS "privateInstructions", a.discord_url AS "discordUrl",
       (a.owner_id=$2 OR EXISTS(SELECT 1 FROM users WHERE id=$2 AND role='OPS')) AS "canEdit"` : '';
     const from = member ? eventFrom.replace('WHERE', 'JOIN users u ON u.id=a.owner_id WHERE') : eventFrom;
     const { rows } = await pool.query(`SELECT ${publicFields}${fields} ${from} AND a.id=$1`, member ? [id.data, member.id] : [id.data]);
@@ -51,8 +52,8 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
       const activity = await client.query<{ id: number }>(`INSERT INTO activities(type,title,description,owner_id,materials,private_instructions,discord_url,idea_id)
         VALUES ('EVENT',$1,$2,$3,$4,$5,$6,$7) RETURNING id`, [input.title, input.description, response.locals.userId, input.materials, input.privateInstructions, input.discordUrl, input.ideaId]);
       const id = activity.rows[0]!.id;
-      await client.query(`INSERT INTO event_details(activity_id,category,planned_date,end_date,start_time,end_time,general_location,exact_room,repository_url)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)`, [id,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,input.generalLocation,input.exactRoom,input.repositoryUrl]);
+      await client.query(`INSERT INTO event_details(activity_id,category,planned_date,end_date,start_time,end_time,general_location,exact_room,repository_url,school_room_required)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [id,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,input.generalLocation,input.exactRoom,input.repositoryUrl,input.schoolRoomRequired]);
       const result = await client.query(`SELECT ${publicFields} ${eventFrom} AND a.id=$1`, [id]);
       await client.query('COMMIT');
       response.status(201).json({ event: result.rows[0] });
@@ -76,10 +77,21 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      const previous = await client.query(`SELECT
+        (p.planned_date,p.start_time,coalesce(p.end_date,p.planned_date),p.end_time)
+        IS DISTINCT FROM ($2::date,$3::text,coalesce($4::date,$2::date),$5::text) AS rescheduled
+        FROM activities a JOIN event_details p ON p.activity_id=a.id WHERE a.id=$1 FOR UPDATE OF a`,
+        [response.locals.eventId,input.plannedDate,input.startTime,input.endDate,input.endTime]);
+      if (previous.rows[0]?.rescheduled) {
+        await client.query('INSERT INTO activity_interests(activity_id,user_id) SELECT event_id,user_id FROM event_going WHERE event_id=$1 ON CONFLICT DO NOTHING',[response.locals.eventId]);
+        await client.query('DELETE FROM event_going WHERE event_id=$1',[response.locals.eventId]);
+        await client.query("UPDATE activities SET status='PLANNING' WHERE id=$1 AND status='ACTIVE'",[response.locals.eventId]);
+      }
       await client.query('UPDATE activities SET title=$2,description=$3,materials=$4,private_instructions=$5,discord_url=$6,updated_at=NOW() WHERE id=$1',
         [response.locals.eventId,input.title,input.description,input.materials,input.privateInstructions,input.discordUrl]);
-      await client.query(`UPDATE event_details SET category=$2,planned_date=$3,end_date=$4,start_time=$5,end_time=$6,general_location=$7,exact_room=$8,repository_url=$9 WHERE activity_id=$1`,
-        [response.locals.eventId,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,input.generalLocation,input.exactRoom,input.repositoryUrl]);
+      await client.query(`UPDATE event_details SET category=$2,planned_date=$3,end_date=$4,start_time=$5,end_time=$6,general_location=$7,exact_room=$8,repository_url=$9,school_room_required=$10 WHERE activity_id=$1`,
+        [response.locals.eventId,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,input.generalLocation,input.exactRoom,input.repositoryUrl,input.schoolRoomRequired]);
+      if (!(await registrationReady(client,response.locals.eventId))) await client.query("UPDATE activities SET status='PLANNING' WHERE id=$1 AND status='ACTIVE'",[response.locals.eventId]);
       await client.query('COMMIT');
       response.json({ saved: true });
     } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }

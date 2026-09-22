@@ -29,12 +29,17 @@ export function mountRooms(app:Express,pool:Pool,requireMember:RequestHandler,ge
     const id=idSchema.safeParse(request.params.id);const input=requestSchema.safeParse(request.body);
     if(!id.success){response.status(404).json({error:'NOT_FOUND'});return;}
     if(!input.success){response.status(400).json({error:'INVALID_REQUEST'});return;}
-    const activity=await pool.query('SELECT owner_id FROM activities WHERE id=$1',[id.data]);
-    if(!activity.rows[0]){response.status(404).json({error:'NOT_FOUND'});return;}
-    if(activity.rows[0].owner_id!==response.locals.userId){response.status(403).json({error:'OWNER_REQUIRED'});return;}
-    const created=await pool.query('INSERT INTO room_requests(activity_id,note) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING id',[id.data,input.data.note]);
-    if(!created.rowCount){response.status(409).json({error:'REQUEST_EXISTS'});return;}
-    response.status(201).json({saved:true});
+    const client=await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const activity=await client.query('SELECT owner_id FROM activities WHERE id=$1 FOR UPDATE',[id.data]);
+      if(!activity.rows[0]){await client.query('ROLLBACK');response.status(404).json({error:'NOT_FOUND'});return;}
+      if(activity.rows[0].owner_id!==response.locals.userId){await client.query('ROLLBACK');response.status(403).json({error:'OWNER_REQUIRED'});return;}
+      const created=await client.query('INSERT INTO room_requests(activity_id,note) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING id',[id.data,input.data.note]);
+      if(!created.rowCount){await client.query('ROLLBACK');response.status(409).json({error:'REQUEST_EXISTS'});return;}
+      await client.query("UPDATE activities SET status='PLANNING',updated_at=NOW() WHERE id=$1 AND type='EVENT' AND status='ACTIVE'",[id.data]);
+      await client.query('COMMIT');response.status(201).json({saved:true});
+    }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
   });
   // /api/ops middleware enforces current Member and Ops role before these routes.
   app.get('/api/ops/room-requests',async(_request,response)=>{

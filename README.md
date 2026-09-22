@@ -1,8 +1,8 @@
 # GSO Engineering Lab
 
-A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, Project team membership, and school room requests. German and English interface copy; PostgreSQL-backed data.
+A technical community at GSO Berufskolleg: discover ideas, join activities and take responsibility. Implemented slices: public homepage and current Season, school-email magic-link login, a minimal editable profile initial/normal Ops appointments, public Ideas, Projects with ownership, Events in preparation, Interested for Ideas/Projects/Events, Project team membership, school room requests, and Event Going. German and English interface copy; PostgreSQL-backed data.
 
-The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Event Going, Tasks and remaining Ops workflows belong to later tickets.
+The approved scope is in [the product specification](docs/mvp-product-spec.md); vocabulary is in [CONTEXT.md](CONTEXT.md). Tasks and remaining Ops workflows belong to later tickets.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ API: `GET /api/projects`, `GET /api/projects/:id`, `POST /api/projects`, `PATCH 
 
 `/events` lists Events; `/events/new` creates one, `/events/:id` shows it and `/events/:id/edit` edits it. Members can create independent Events or start from an Idea; multiple Events may share the same Idea. The creator immediately owns the Event in PLANNING, without Ops approval. Only the owner and Ops can edit.
 
-Planned date, end date, start/end times and general location are optional. Dates are ISO calendar dates and times are `HH:mm` wall times in **Europe/Berlin**, not browser-local or UTC timestamps. An omitted end date means the same day when comparing known times. A supplied end date requires a start date and cannot precede it; on the same day the end time must follow the start. Multi-day Events may end at an earlier clock time on the later day. Unknown fields stay explicit in DE/EN, and all plans are labelled unconfirmed. Room requests are handled separately below; Going is a later ticket; entering a room does not confirm a reservation.
+Planned date, end date, start/end times and general location are optional. Dates are ISO calendar dates and times are `HH:mm` wall times in **Europe/Berlin**, not browser-local or UTC timestamps. An omitted end date means the same day when comparing known times. A supplied end date requires a start date and cannot precede it; on the same day the end time must follow the start. Multi-day Events may end at an earlier clock time on the later day. Unknown fields stay explicit in DE/EN, and plans are labelled unconfirmed until the owner opens registration. Room requests are handled separately below; entering a room does not confirm a reservation.
 
 Public fields include category, description, tentative schedule/general location, materials and repository link. Exact room, access instructions, owner identity and the manually entered Discord link are returned only to current Members on the detail endpoint. Lists always use public fields. No attendee identities are stored in this slice.
 
@@ -92,7 +92,7 @@ Idea, Project and Event detail pages show the persisted count and a Member-only 
 
 Each target supports `GET`, `POST` and `DELETE` on `/api/ideas/:id/interested`, `/api/projects/:id/interested` or `/api/events/:id/interested`. GET returns `{ count, interested }`; `interested` is the current Member's boolean or `null` for a Visitor/Alumni. Writes accept `{}`, use the authenticated Member only and enforce the usual Origin check. DELETE also accepts no body. Repeated writes are idempotent, including concurrent POSTs. Missing targets and wrong Activity types return 404.
 
-`idea_interests` and `activity_interests` store only foreign keys to the target and User, with composite primary keys preventing duplicates. Neither endpoint writes participation or ownership. Membership tests now verify this independence; future Going and Task tests should preserve it as those relations arrive. The UI reads the count after a successful write and preserves the displayed state with a retryable message if saving fails.
+`idea_interests` and `activity_interests` store only foreign keys to the target and User, with composite primary keys preventing duplicates. Neither endpoint writes participation or ownership. Membership tests now verify this independence; Going tests also verify separation; future Task tests should preserve it. The UI reads the count after a successful write and preserves the displayed state with a retryable message if saving fails.
 
 ## Project team membership
 
@@ -106,9 +106,19 @@ The Project detail page has a **Join project / Leave team** control, a count, an
 
 On an Event or Project page the owner can send one room request describing preferred dates, group size and plans. Ops see the queue at `/ops/rooms` (linked from `/ops`) and either offer an alternative or explicitly confirm a room/time. Alternatives are coordinated with the owner through Discord; offering one never confirms it automatically. The Ops form asks them to acknowledge agreement with owner and school before final confirmation. No equipment catalogue, booking engine or confirmation revocation is included.
 
-A request is PENDING, ALTERNATIVE or CONFIRMED. Confirmation is final: the API rejects every later update, including an alternative or changed room. Dates and times use Cologne wall time (Europe/Berlin), with an optional end date for multi-day bookings. Known slots must have an end after the start. Room confirmation does not modify Activity status, planned Event fields, Interested or membership, and does not open Going. The confirmed conditions are displayed separately; later registration must validate its Event plan against them.
+A request is PENDING, ALTERNATIVE or CONFIRMED. Confirmation is final: the API rejects every later update, including an alternative or changed room. Dates and times use Cologne wall time (Europe/Berlin), with an optional end date for multi-day bookings. Known slots must have an end after the start. Room confirmation does not modify Activity status, planned Event fields, Interested or membership, and does not open Going. The confirmed conditions are displayed separately; opening registration validates the Event plan against them.
 
 `GET /api/activities/:id/room-request` exposes only status publicly. Current Members can see confirmed dates/times and exact room; only the Activity owner and Ops see request wishes, alternatives and reply notes. `POST` on that route accepts `{ note }` from the owner only, including when that owner is Ops; Ops cannot request on someone else's behalf. Duplicate requests return 409. `GET /api/ops/room-requests` lists all requests, unresolved first. `PATCH /api/ops/room-requests/:id` accepts `{ status: 'ALTERNATIVE' | 'CONFIRMED', date, endDate?, startTime, endTime, room, message? }` from Ops. Confirmed rows cannot be changed (409); no delete endpoint exists.
+
+## Event registration (Going)
+
+Only the Activity owner opens registration with `POST /api/events/:id/open` and `{}`. Ops may edit Events but cannot open another owner's registration. PLANNING becomes ACTIVE (registration open) when date, start, end and public general location are present. Events without a school-room dependency open independently. `schoolRoomRequired` is an editable boolean, default false. If true **or any Room Request exists**, that request must be CONFIRMED, the exact room must match, and the Event's entire interval must fit inside the confirmed slot. Unchecking the field cannot bypass an existing request. Enter the confirmed exact room in the Members-only form section.
+
+`GET /api/events/:id/going` returns public `{ open, count }`; current Members also receive their own `going`, `isOwner`, `canOpen` and participant id/name pairs, never emails. `POST` registers the authenticated Member, `DELETE` withdraws; both accept `{}` (or no body). Composite keys prevent duplicate registrations. There is no capacity limit or waitlist; Interested is independent and may remain marked when joining/withdrawing.
+
+Changing the start date/time or effective end date/time in the normal Event PATCH moves all current Going into Interested without duplicates, removes their Going and returns an ACTIVE Event to PLANNING in one transaction. Description-only editing preserves registration. Owners reopen registration once the revised conditions are ready; participants explicitly register again. The editor warns about this and asks owners to communicate changes manually through Discord. Invalid edits roll back without changing registrations. The Event row lock serializes opening, joining and editing.
+
+Edits that make venue/room conditions invalid close registration without removing unchanged-time registrations. A new Room Request on an ACTIVE Event also returns it to PLANNING under the same row lock; existing Going stay unless dates/times change. Room confirmation alone never reopens registration. Closed/cancelled Events cannot open or accept new Going. Activity completion/cancellation controls are a later ticket.
 
 ## Environment variables
 

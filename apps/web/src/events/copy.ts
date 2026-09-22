@@ -1,5 +1,6 @@
 export const eventCopy = {
   de: {
+    open: 'Anmeldung offen', registrationHint: 'Melde dich unten für diesen Termin an.', schoolRoomRequired: 'Wir brauchen einen Schulraum.', reschedule: 'Änderst du Datum oder Uhrzeit, werden Anmeldungen zu Interesse. Öffne die Anmeldung danach erneut und informiere alle über Discord.',
     nav: 'Events', title: 'Zusammen ausprobieren.', intro: 'Workshops, Gespräche und Abende zum Bauen.', create: 'Event erstellen', edit: 'Event bearbeiten', back: 'Alle Events',
     newTitle: 'Bring Menschen zusammen.', ownership: 'Du übernimmst die Verantwortung. Datum und Ort können noch offen bleiben.',
     titleField: 'Titel', description: 'Beschreibung', category: 'Kategorie', TALK: 'Talk', WORKSHOP: 'Workshop', BUILD_NIGHT: 'Build Night', STUDY_SESSION: 'Lerngruppe', HACKATHON: 'Hackathon', SOCIAL: 'Social', OTHER: 'Sonstiges',
@@ -10,12 +11,13 @@ export const eventCopy = {
     repositoryUrl: 'GitHub / Repository', materials: 'Materialien', privateInstructions: 'Interne Hinweise', discordUrl: 'Discord-Link', resources: 'Materialien und Links', membersOnly: 'Nur für Members',
     publicHint: 'Beschreibung und Materialien sind öffentlich. Keine privaten Kontaktdaten eintragen.', privateHint: 'Raumnummer, Zugangshinweise, Discord und Owner sehen nur angemeldete Members. Eine Raumnummer bestätigt noch keine Reservierung.',
     idea: 'Aus einer Idee (optional)', noIdea: 'Eigenständiges Event', source: 'Ursprüngliche Idee', save: 'Änderungen speichern', saving: 'Wird gespeichert …', cancel: 'Abbrechen', owner: 'Owner',
-    PLANNING: 'In Vorbereitung', ACTIVE: 'Aktiv', COMPLETED: 'Abgeschlossen', CANCELLED: 'Abgesagt',
+    PLANNING: 'In Vorbereitung', ACTIVE: 'Anmeldung offen', COMPLETED: 'Abgeschlossen', CANCELLED: 'Abgesagt',
     loading: 'Event wird geladen …', error: 'Das hat nicht geklappt. Bitte versuche es erneut.', invalid: 'Prüfe die Pflichtfelder, die Reihenfolge von Datum und Uhrzeit und vollständige http(s)-Links ohne Zugangsdaten.', retry: 'Erneut versuchen', missing: 'Dieses Event wurde nicht gefunden.',
     empty: 'Platz für deinen nächsten Workshop.', emptyBody: 'Ein Thema, ein paar neugierige Menschen. Den Rest könnt ihr gemeinsam planen.',
     login: 'Melde dich an, um ein Event zu erstellen oder zu bearbeiten.', signIn: 'Anmelden', forbidden: 'Nur Owner und Ops können dieses Event bearbeiten.', session: 'Deine Sitzung ist abgelaufen. Melde dich erneut an; dein Text bleibt hier stehen.', privateLogin: 'Melde dich an, um Owner und interne Informationen zu sehen.',
   },
   en: {
+    open: 'Registration open', registrationHint: 'Register below for this schedule.', schoolRoomRequired: 'We need a school room.', reschedule: 'Changing the date or time moves registrations to Interested. Reopen registration afterwards and tell everyone through Discord.',
     nav: 'Events', title: 'Try things together.', intro: 'Workshops, conversations and evenings spent building.', create: 'Create event', edit: 'Edit event', back: 'All events',
     newTitle: 'Bring people together.', ownership: 'You take responsibility. The date and venue can stay open for now.',
     titleField: 'Title', description: 'Description', category: 'Category', TALK: 'Talk', WORKSHOP: 'Workshop', BUILD_NIGHT: 'Build Night', STUDY_SESSION: 'Study Session', HACKATHON: 'Hackathon', SOCIAL: 'Social', OTHER: 'Other',
@@ -26,7 +28,7 @@ export const eventCopy = {
     repositoryUrl: 'GitHub / Repository', materials: 'Materials', privateInstructions: 'Internal instructions', discordUrl: 'Discord link', resources: 'Materials and links', membersOnly: 'Members only',
     publicHint: 'Description and materials are public. Do not include private contact details.', privateHint: 'Only signed-in Members see the room, access instructions, Discord and owner. Entering a room does not confirm a reservation.',
     idea: 'Based on an idea (optional)', noIdea: 'Independent event', source: 'Original idea', save: 'Save changes', saving: 'Saving …', cancel: 'Cancel', owner: 'Owner',
-    PLANNING: 'Preparing', ACTIVE: 'Active', COMPLETED: 'Completed', CANCELLED: 'Cancelled',
+    PLANNING: 'Preparing', ACTIVE: 'Registration open', COMPLETED: 'Completed', CANCELLED: 'Cancelled',
     loading: 'Loading event …', error: 'Something went wrong. Please try again.', invalid: 'Check required fields, date and time order, and complete http(s) links without credentials.', retry: 'Try again', missing: 'This event could not be found.',
     empty: 'Room for your next workshop.', emptyBody: 'A topic and a few curious people. Plan the rest together.',
     login: 'Sign in to create or edit an event.', signIn: 'Sign in', forbidden: 'Only the owner and Ops can edit this event.', session: 'Your session expired. Sign in again; your text will stay here.', privateLogin: 'Sign in to see the owner and internal information.',

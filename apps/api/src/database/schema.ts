@@ -87,6 +87,7 @@ export const eventCategory = pgEnum('event_category', ['TALK', 'WORKSHOP', 'BUIL
 export const eventDetails = pgTable('event_details', {
   activityId: integer('activity_id').primaryKey().references(() => activities.id, { onDelete: 'cascade' }),
   category: eventCategory('category').notNull(),
+  schoolRoomRequired: boolean('school_room_required').notNull().default(false),
   plannedDate: date('planned_date'), endDate: date('end_date'), startTime: text('start_time'), endTime: text('end_time'),
   generalLocation: text('general_location').notNull().default(''), exactRoom: text('exact_room').notNull().default(''), repositoryUrl: text('repository_url'),
 });
@@ -117,3 +118,8 @@ export const roomRequests = pgTable('room_requests', {
   createdAt: timestamp('created_at', {withTimezone:true}).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', {withTimezone:true}).notNull().defaultNow(),
 });
+
+export const eventGoing = pgTable('event_going', {
+  eventId: integer('event_id').notNull().references(() => eventDetails.activityId, {onDelete:'cascade'}),
+  userId: text('user_id').notNull().references(() => user.id, {onDelete:'cascade'}),
+}, table => [primaryKey({columns:[table.eventId,table.userId]})]);

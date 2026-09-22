@@ -35,11 +35,11 @@ function RequestForm({id,language,done}:{id:number;language:Language;done:()=>vo
  function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();void state.save(`/api/activities/${id}/room-request`,{note:String(new FormData(e.currentTarget).get('note'))});}
  return <form className="account-form idea-form" onSubmit={submit} aria-busy={state.busy}><label><span id={label}>{t.note}</span><textarea aria-labelledby={label} name="note" required maxLength={3000} rows={3}/></label><p className="field-hint">{t.hint}</p><Feedback error={state.error} language={language} retry={done}/><button className="button-primary" disabled={state.busy}>{state.busy?t.saving:t.request}</button></form>;
 }
-export function RoomPanel({id,language}:{id:number;language:Language}){
+export function RoomPanel({id,language,onRequested}:{id:number;language:Language;onRequested?:()=>void}){
  const t=roomCopy[language];const resource=useResource(`/api/activities/${id}/room-request`,detailSchema);
  return <section className="project-room" aria-label={t.title}><h2>{t.title}</h2>
   {!resource.data?resource.loading?<p role="status">{t.loading}</p>:<p role="alert">{t.error} <button className="text-link" onClick={resource.retry}>{t.retry}</button></p>
-   :<>{resource.data.request?<RoomDetails room={resource.data.request} language={language}/>:resource.data.canRequest?<RequestForm id={id} language={language} done={resource.retry}/>:<p className="ideas-note">{t.none}</p>}
+   :<>{resource.data.request?<RoomDetails room={resource.data.request} language={language}/>:resource.data.canRequest?<RequestForm id={id} language={language} done={()=>{resource.retry();onRequested?.();}}/>:<p className="ideas-note">{t.none}</p>}
     {resource.data.canRespond&&resource.data.request&&<Link className="text-link" to="/ops/rooms">{t.queue} ↗</Link>}</>}
  </section>;
 }
