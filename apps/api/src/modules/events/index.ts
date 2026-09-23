@@ -4,11 +4,11 @@ import { z } from 'zod';
 
 import { registrationReady } from '../going/readiness.js';
 import { webUrl } from '../../shared/validation/web-url.js';
-const content = z.object({ schoolRoomRequired: z.boolean().default(false), title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(5000),
+const content = z.object({ placeType: z.enum(['SCHOOL','ONLINE','OTHER']).optional(), schoolRoomRequired: z.boolean().optional(), title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(12000),
   category: z.enum(['TALK','WORKSHOP','BUILD_NIGHT','STUDY_SESSION','HACKATHON','SOCIAL','OTHER']),
   plannedDate: z.iso.date().nullable().default(null), endDate: z.iso.date().nullable().default(null),
   startTime: z.iso.time({ precision: -1 }).nullable().default(null), endTime: z.iso.time({ precision: -1 }).nullable().default(null),
-  generalLocation: z.string().trim().max(300).default(''), exactRoom: z.string().trim().max(300).default(''),
+  generalLocation: z.string().trim().max(300).default(''),
   repositoryUrl: webUrl.nullable().default(null), materials: z.string().max(5000).default(''),
   privateInstructions: z.string().max(5000).default(''), discordUrl: webUrl.nullable().default(null),
 }).strict().refine(input => {
@@ -20,8 +20,10 @@ const idSchema = z.coerce.number().int().positive().max(2147483647);
 const publicFields = `a.id, a.title, a.description, a.status, (SELECT i.id FROM ideas i WHERE i.id=a.idea_id AND NOT i.hidden) AS "ideaId", a.materials,
   a.created_at AS "createdAt", a.updated_at AS "updatedAt", p.category,
   p.planned_date::text AS "plannedDate", p.end_date::text AS "endDate", p.start_time AS "startTime", p.end_time AS "endTime",
-  p.general_location AS "generalLocation", p.repository_url AS "repositoryUrl"`;
+  p.general_location AS "generalLocation", p.place_type AS "placeType", p.repository_url AS "repositoryUrl"`;
 const eventFrom = "FROM activities a JOIN event_details p ON p.activity_id=a.id WHERE a.type='EVENT'";
+function schoolRoom(input: z.infer<typeof content>) { return (input.placeType ?? (input.schoolRoomRequired ? 'SCHOOL' : 'OTHER')) === 'SCHOOL'; }
+function requestable(input: z.infer<typeof content>) { return schoolRoom(input) && Boolean(input.plannedDate && input.startTime && input.endTime); }
 export function mountEvents(app: Express, pool: Pool, requireMember: RequestHandler, getMember: (request: Request) => Promise<{ id: string } | null>) {
   app.use('/api/events', (_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
   app.get('/api/events', async (_request, response) => {
@@ -52,8 +54,9 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
       const activity = await client.query<{ id: number }>(`INSERT INTO activities(type,title,description,owner_id,materials,private_instructions,discord_url,idea_id)
         VALUES ('EVENT',$1,$2,$3,$4,$5,$6,$7) RETURNING id`, [input.title, input.description, response.locals.userId, input.materials, input.privateInstructions, input.discordUrl, input.ideaId]);
       const id = activity.rows[0]!.id;
-      await client.query(`INSERT INTO event_details(activity_id,category,planned_date,end_date,start_time,end_time,general_location,exact_room,repository_url,school_room_required)
-        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [id,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,input.generalLocation,input.exactRoom,input.repositoryUrl,input.schoolRoomRequired]);
+      await client.query(`INSERT INTO event_details(activity_id,category,planned_date,end_date,start_time,end_time,general_location,repository_url,school_room_required,place_type)
+        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [id,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,schoolRoom(input) ? (input.generalLocation || 'GSO') : input.placeType==='ONLINE' ? 'Online' : input.generalLocation,input.repositoryUrl,schoolRoom(input),input.placeType ?? (schoolRoom(input) ? 'SCHOOL' : 'OTHER')]);
+      if (requestable(input)) await client.query("INSERT INTO room_requests(activity_id,note) VALUES($1,'') ON CONFLICT DO NOTHING",[id]);
       const result = await client.query(`SELECT ${publicFields} ${eventFrom} AND a.id=$1`, [id]);
       await client.query('COMMIT');
       response.status(201).json({ event: result.rows[0] });
@@ -77,13 +80,19 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const previous = await client.query(`SELECT a.status,
+      const previous = await client.query(`SELECT a.status, p.place_type AS "placeType",
         (p.planned_date,p.start_time,coalesce(p.end_date,p.planned_date),p.end_time)
         IS DISTINCT FROM ($2::date,$3::text,coalesce($4::date,$2::date),$5::text) AS rescheduled, (a.owner_id=$6 OR EXISTS(SELECT 1 FROM users WHERE id=$6 AND role='OPS')) AS allowed
         FROM activities a JOIN event_details p ON p.activity_id=a.id WHERE a.id=$1 FOR UPDATE OF a`,
         [response.locals.eventId,input.plannedDate,input.startTime,input.endDate,input.endTime,response.locals.userId]);
       if(!previous.rows[0]?.allowed){await client.query('ROLLBACK');response.status(403).json({error:'EDITOR_REQUIRED'});return;}
       if(previous.rows[0]?.rescheduled&&!['PLANNING','ACTIVE'].includes(previous.rows[0].status)){await client.query('ROLLBACK');response.status(409).json({error:'EVENT_CLOSED'});return;}
+      const placeType = input.placeType ?? (input.schoolRoomRequired ? 'SCHOOL' : 'OTHER');
+      if (previous.rows[0]?.placeType === 'SCHOOL' && placeType !== 'SCHOOL') {
+        await client.query("DELETE FROM room_requests WHERE activity_id=$1 AND status<>'CONFIRMED'",[response.locals.eventId]);
+        const confirmed=await client.query("SELECT 1 FROM room_requests WHERE activity_id=$1 AND status='CONFIRMED'",[response.locals.eventId]);
+        if (confirmed.rowCount) { await client.query('ROLLBACK');response.status(409).json({error:'CONFIRMATION_FINAL'});return; }
+      }
       if (previous.rows[0]?.rescheduled) {
         await client.query('INSERT INTO activity_interests(activity_id,user_id) SELECT event_id,user_id FROM event_going WHERE event_id=$1 ON CONFLICT DO NOTHING',[response.locals.eventId]);
         await client.query('DELETE FROM event_going WHERE event_id=$1',[response.locals.eventId]);
@@ -91,8 +100,9 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
       }
       await client.query('UPDATE activities SET title=$2,description=$3,materials=$4,private_instructions=$5,discord_url=$6,updated_at=NOW() WHERE id=$1',
         [response.locals.eventId,input.title,input.description,input.materials,input.privateInstructions,input.discordUrl]);
-      await client.query(`UPDATE event_details SET category=$2,planned_date=$3,end_date=$4,start_time=$5,end_time=$6,general_location=$7,exact_room=$8,repository_url=$9,school_room_required=$10 WHERE activity_id=$1`,
-        [response.locals.eventId,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,input.generalLocation,input.exactRoom,input.repositoryUrl,input.schoolRoomRequired]);
+      await client.query(`UPDATE event_details SET category=$2,planned_date=$3,end_date=$4,start_time=$5,end_time=$6,general_location=$7,repository_url=$8,school_room_required=$9,place_type=$10 WHERE activity_id=$1`,
+        [response.locals.eventId,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,placeType==='SCHOOL' ? (input.generalLocation || 'GSO') : placeType==='ONLINE' ? 'Online' : input.generalLocation,input.repositoryUrl,placeType==='SCHOOL',placeType]);
+      if (requestable(input)) await client.query("INSERT INTO room_requests(activity_id,note) VALUES($1,'') ON CONFLICT DO NOTHING",[response.locals.eventId]);
       if (!(await registrationReady(client,response.locals.eventId))) await client.query("UPDATE activities SET status='PLANNING' WHERE id=$1 AND status='ACTIVE'",[response.locals.eventId]);
       await client.query('COMMIT');
       response.json({ saved: true });

@@ -1,6 +1,7 @@
 import type { Express, Request, RequestHandler } from 'express';
 import type { Pool } from 'pg';
 import { z } from 'zod';
+import { registrationReady } from '../going/readiness.js';
 
 const idSchema=z.coerce.number().int().positive().max(2147483647);
 const requestSchema=z.object({note:z.string().trim().min(1).max(3000)}).strict();
@@ -23,7 +24,9 @@ export function mountRooms(app:Express,pool:Pool,requireMember:RequestHandler,ge
     const owner=activity.rows[0].owner_id===member.id;
     const canRespond=Boolean(ops.rowCount);
     const details=owner||canRespond ? room : room?.status==='CONFIRMED' ? {status:room.status,date:room.date,endDate:room.endDate,startTime:room.startTime,endTime:room.endTime,room:room.room} : room?{status:room.status}:null;
-    response.json({request:details??null,canRequest:owner&&['PLANNING','ACTIVE'].includes(activity.rows[0].status),canRespond:canRespond&&['PLANNING','ACTIVE'].includes(activity.rows[0].status)});
+    const event=await pool.query('SELECT place_type,planned_date::text AS date,end_date::text AS "endDate",start_time AS "startTime",end_time AS "endTime" FROM event_details WHERE activity_id=$1',[id.data]);
+    const offerAccepted=room?.status==='ALTERNATIVE'&&event.rows[0]&&event.rows[0].date===room.date&&event.rows[0].endDate===room.endDate&&event.rows[0].startTime===room.startTime&&event.rows[0].endTime===room.endTime;
+    response.json({request:details??null,canRequest:Boolean(owner&&['PLANNING','ACTIVE'].includes(activity.rows[0].status)&&(!event.rowCount||event.rows[0].place_type==='SCHOOL'&&event.rows[0].date&&event.rows[0].startTime&&event.rows[0].endTime)),canRespond:canRespond&&['PLANNING','ACTIVE'].includes(activity.rows[0].status),...(owner&&event.rowCount?{canAccept:event.rows[0]?.place_type==='SCHOOL'&&room?.status==='ALTERNATIVE'&&!offerAccepted,offerAccepted:Boolean(offerAccepted)}:{})});
   });
   app.post(path,requireMember,async(request,response)=>{
     const id=idSchema.safeParse(request.params.id);const input=requestSchema.safeParse(request.body);
@@ -36,10 +39,36 @@ export function mountRooms(app:Express,pool:Pool,requireMember:RequestHandler,ge
       if(!activity.rows[0]){await client.query('ROLLBACK');response.status(404).json({error:'NOT_FOUND'});return;}
       if(activity.rows[0].owner_id!==response.locals.userId){await client.query('ROLLBACK');response.status(403).json({error:'OWNER_REQUIRED'});return;}
       if(!['PLANNING','ACTIVE'].includes(activity.rows[0].status)){await client.query('ROLLBACK');response.status(409).json({error:'ACTIVITY_CLOSED'});return;}
+      const event=await client.query('SELECT place_type,planned_date,start_time,end_time FROM event_details WHERE activity_id=$1',[id.data]);
+      if(event.rowCount&&(event.rows[0].place_type!=='SCHOOL'||!event.rows[0].planned_date||!event.rows[0].start_time||!event.rows[0].end_time)){await client.query('ROLLBACK');response.status(409).json({error:'ROOM_PLAN_INCOMPLETE'});return;}
       const created=await client.query('INSERT INTO room_requests(activity_id,note) VALUES($1,$2) ON CONFLICT DO NOTHING RETURNING id',[id.data,input.data.note]);
       if(!created.rowCount){await client.query('ROLLBACK');response.status(409).json({error:'REQUEST_EXISTS'});return;}
       await client.query("UPDATE activities SET status='PLANNING',updated_at=NOW() WHERE id=$1 AND type='EVENT' AND status='ACTIVE'",[id.data]);
       await client.query('COMMIT');response.status(201).json({saved:true});
+    }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+  });
+  app.post('/api/activities/:id/room-request/accept',requireMember,async(request,response)=>{
+    const id=idSchema.safeParse(request.params.id);
+    if(!id.success){response.status(404).json({error:'NOT_FOUND'});return;}
+    if(!z.object({}).strict().safeParse(request.body).success){response.status(400).json({error:'INVALID_REQUEST'});return;}
+    const client=await pool.connect();
+    try{
+      await client.query('BEGIN');
+      const activity=await client.query("SELECT a.owner_id,a.status,p.place_type FROM activities a JOIN event_details p ON p.activity_id=a.id WHERE a.id=$1 FOR UPDATE OF a",[id.data]);
+      if(!activity.rowCount){await client.query('ROLLBACK');response.status(404).json({error:'NOT_FOUND'});return;}
+      if(activity.rows[0].owner_id!==response.locals.userId){await client.query('ROLLBACK');response.status(403).json({error:'OWNER_REQUIRED'});return;}
+      if(!['PLANNING','ACTIVE'].includes(activity.rows[0].status)||activity.rows[0].place_type!=='SCHOOL'){await client.query('ROLLBACK');response.status(409).json({error:'INVALID_TRANSITION'});return;}
+      const offer=await client.query("SELECT date::text AS date,end_date::text AS \"endDate\",start_time AS \"startTime\",end_time AS \"endTime\" FROM room_requests WHERE activity_id=$1 AND status='ALTERNATIVE' FOR UPDATE",[id.data]);
+      if(!offer.rowCount){await client.query('ROLLBACK');response.status(409).json({error:'NO_ALTERNATIVE'});return;}
+      const v=offer.rows[0];
+      const changed=await client.query(`UPDATE event_details SET planned_date=$2,end_date=$3,start_time=$4,end_time=$5 WHERE activity_id=$1
+        AND (planned_date,start_time,coalesce(end_date,planned_date),end_time) IS DISTINCT FROM ($2::date,$4::text,coalesce($3::date,$2::date),$5::text) RETURNING activity_id`,[id.data,v.date,v.endDate,v.startTime,v.endTime]);
+      if(changed.rowCount){
+        await client.query('INSERT INTO activity_interests(activity_id,user_id) SELECT event_id,user_id FROM event_going WHERE event_id=$1 ON CONFLICT DO NOTHING',[id.data]);
+        await client.query('DELETE FROM event_going WHERE event_id=$1',[id.data]);
+        await client.query("UPDATE activities SET status='PLANNING',updated_at=NOW() WHERE id=$1",[id.data]);
+      }
+      await client.query('COMMIT');response.json({saved:true});
     }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
   });
   // /api/ops middleware enforces current Member and Ops role before these routes.
@@ -53,11 +82,16 @@ export function mountRooms(app:Express,pool:Pool,requireMember:RequestHandler,ge
     if(!input.success){response.status(400).json({error:'INVALID_RESPONSE'});return;}
     const v=input.data;const client=await pool.connect();try{
       await client.query('BEGIN');
-      const activity=(await client.query('SELECT a.status FROM activities a JOIN room_requests r ON r.activity_id=a.id WHERE r.id=$1 FOR UPDATE OF a',[id.data])).rows[0];
+      const activity=(await client.query('SELECT a.status,a.id,a.type,p.planned_date::text AS planned_date,p.start_time,p.end_time,coalesce(p.end_date,p.planned_date)::text AS end_date FROM activities a JOIN room_requests r ON r.activity_id=a.id LEFT JOIN event_details p ON p.activity_id=a.id WHERE r.id=$1 FOR UPDATE OF a',[id.data])).rows[0];
       if(!activity){await client.query('ROLLBACK');response.status(404).json({error:'NOT_FOUND'});return;}
       if(!['PLANNING','ACTIVE'].includes(activity.status)){await client.query('ROLLBACK');response.status(409).json({error:'ACTIVITY_CLOSED'});return;}
+      if(v.status==='CONFIRMED'&&activity.type==='EVENT'&&(!activity.planned_date||!activity.start_time||!activity.end_time||`${v.date}T${v.startTime}`>`${activity.planned_date}T${activity.start_time}`||`${v.endDate??v.date}T${v.endTime}`<`${activity.end_date}T${activity.end_time}`)){await client.query('ROLLBACK');response.status(409).json({error:'OWNER_MUST_ACCEPT_SCHEDULE'});return;}
       const result=await client.query(`UPDATE room_requests SET status=$2,date=$3,end_date=$4,start_time=$5,end_time=$6,room=$7,message=$8,updated_at=NOW() WHERE id=$1 AND status<>'CONFIRMED' RETURNING id`,[id.data,v.status,v.date,v.endDate,v.startTime,v.endTime,v.room,v.message]);
       if(!result.rowCount){await client.query('ROLLBACK');response.status(409).json({error:'CONFIRMATION_FINAL'});return;}
+      if(v.status==='CONFIRMED'&&activity.type==='EVENT'){
+        await client.query('UPDATE event_details SET exact_room=$2 WHERE activity_id=$1',[activity.id,v.room]);
+        if(!(await registrationReady(client,activity.id))) await client.query("UPDATE activities SET status='PLANNING' WHERE id=$1 AND status='ACTIVE'",[activity.id]);
+      }
       await client.query('COMMIT');response.json({saved:true});
     }catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
   });

@@ -19,7 +19,7 @@ test('Owner opens registration, Member joins, and a reschedule requires fresh co
   const box = await request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r => r.json());
   const mail = await request.get(`http://127.0.0.1:8025/api/v1/message/${box.messages[0].ID}`).then(r => r.json());
   await page.goto(mail.Text.match(/https?:\/\/\S+/)[0]);
-  const created=await page.request.post('/api/events',{headers:{origin:'http://127.0.0.1:5173'},data:{title:'Going workshop',description:'Learn together',category:'WORKSHOP',plannedDate:'2026-11-28',startTime:'16:00',endTime:'18:00',generalLocation:'Online'}});
+  const created=await page.request.post('/api/events',{headers:{origin:new URL(page.url()).origin},data:{title:'Going workshop',description:'Learn together',category:'WORKSHOP',plannedDate:'2026-11-28',startTime:'16:00',endTime:'18:00',generalLocation:'Online'}});
   const id=(await created.json()).event.id;
   await page.goto(`/events/${id}`);
   await page.getByRole('button',{name:'Anmeldung öffnen',exact:true}).click();
@@ -44,8 +44,9 @@ test('Owner opens registration, Member joins, and a reschedule requires fresh co
     await expect(page.getByText('1 going',{exact:true})).toBeVisible();
     await page.getByRole('button',{name:'Withdraw registration',exact:true}).click();
     await expect(page.getByText('0 going',{exact:true})).toBeVisible();
-    await page.getByLabel('Room wishes',{exact:true}).fill('Need a classroom now');
-    await page.getByRole('button',{name:'Request room',exact:true}).click();
+    await page.getByRole('link',{name:'Edit event',exact:true}).click();
+    await page.locator('select[name="placeType"]').selectOption('SCHOOL');
+    await page.getByRole('button',{name:'Save changes',exact:true}).click();
     await expect(page.getByText('Waiting for Ops',{exact:true})).toBeVisible();
     await expect(page.getByText('Registration open',{exact:true})).toHaveCount(0);
     await expect(page.getByRole('button',{name:'I’m going',exact:true})).toHaveCount(0);

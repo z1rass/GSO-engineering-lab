@@ -28,29 +28,29 @@ test('Member toggles Interested on all targets, with persistence, public counts 
   try {
     const publicPage = await visitor.newPage();
     for (const input of inputs) {
-      const response = await page.request.post(`/api/${input.kind}`, { headers: { origin: 'http://127.0.0.1:5173' }, data: input.body });
+      const response = await page.request.post(`/api/${input.kind}`, { headers: { origin: new URL(page.url()).origin }, data: input.body });
       expect(response.status()).toBe(201);
       const id = (await response.json())[input.key].id;
       const path = `/${input.kind}/${id}`;
       await page.goto(path);
       await expect(page.getByText('0 Interessierte', { exact: true })).toBeVisible();
       await page.getByRole('button', { name: 'Interessiert', exact: true }).click();
-      await expect(page.getByRole('button', { name: 'Interessiert', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.getByRole('button', { name: 'Interesse zurückziehen', exact: true })).toHaveAttribute('aria-pressed', 'true');
       await page.reload();
       await expect(page.getByText('1 interessiert', { exact: true })).toBeVisible();
-      await publicPage.goto(`http://127.0.0.1:5173${path}`);
+      await publicPage.goto(new URL(path, page.url()).toString());
       await expect(publicPage.getByText('1 interessiert', { exact: true })).toBeVisible();
       await expect(publicPage.getByRole('button', { name: 'Interessiert', exact: true })).toHaveCount(0);
       await page.route(`**/api${path}/interested`, async route => {
         if (route.request().method() === 'DELETE') await route.fulfill({ status: 503, json: { error: 'Unavailable' } });
         else await route.continue();
       });
-      await page.getByRole('button', { name: 'Interessiert', exact: true }).click();
+      await page.getByRole('button', { name: 'Interesse zurückziehen', exact: true }).click();
       await expect(page.getByRole('alert')).toContainText('nicht gespeichert');
       await expect(page.getByText('1 interessiert', { exact: true })).toBeVisible();
       await page.unroute(`**/api${path}/interested`);
       await page.getByRole('button', { name: 'English' }).click();
-      await page.getByRole('button', { name: 'Interested', exact: true }).click();
+      await page.getByRole('button', { name: 'Withdraw interest', exact: true }).click();
       await expect(page.getByText('0 interested', { exact: true })).toBeVisible();
       await expect(page.getByText('Interest only — no registration, team membership or responsibility.', { exact: true })).toBeVisible();
       await page.getByRole('button', { name: 'Deutsch' }).click();

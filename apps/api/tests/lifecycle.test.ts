@@ -82,10 +82,10 @@ test('Archived Event keeps its Idea, materials and participants, and cannot resc
  const event=(await write('/api/events',owner.cookie,input).then(r=>r.json())).event;
  const id=event.id;const path=`/api/activities/${id}`;
  await write(`/api/events/${id}/open`,owner.cookie,{});await write(`/api/events/${id}/going`,guest.cookie,{});
- await write(`${path}/room-request`,owner.cookie,{note:'Room for finale'});
+ const {ideaId,...edit}={...input,placeType:'SCHOOL'};void ideaId;
+ expect((await write(`/api/events/${id}`,owner.cookie,edit,'PATCH')).status).toBe(200);
  const room=(await fetch(`${base}${path}/room-request`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request;
  expect((await write(`${path}/close`,owner.cookie,{status:'COMPLETED'})).status).toBe(200);
- const {ideaId,...edit}=input;void ideaId;
  expect((await write(`/api/events/${id}`,owner.cookie,{...edit,plannedDate:'2026-12-01'},'PATCH')).status).toBe(409);
  expect((await write(`/api/events/${id}`,owner.cookie,{...edit,materials:'Final demo notes'},'PATCH')).status).toBe(200);
  expect((await fetch(`${base}/api/events/${id}`).then(r=>r.json())).event).toMatchObject({status:'COMPLETED',ideaId:idea.id,materials:'Final demo notes',repositoryUrl:input.repositoryUrl});

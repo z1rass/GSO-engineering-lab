@@ -29,7 +29,7 @@ async function member() {
 function write(path: string, cookie: string, body: unknown, method = 'POST', requestOrigin = origin) {
   return fetch(`${base}${path}`, { method, headers: { cookie, origin: requestOrigin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 }
-const eventInput = { title: 'Docker workshop', description: 'Build containers together.', category: 'WORKSHOP', materials: 'Public notes', repositoryUrl: 'https://github.com/example/workshop', exactRoom: 'A103', privateInstructions: 'Use the side entrance', discordUrl: 'https://discord.gg/private' };
+const eventInput = { title: 'Docker workshop', description: 'Build containers together.', category: 'WORKSHOP', materials: 'Public notes', repositoryUrl: 'https://github.com/example/workshop', privateInstructions: 'Use the side entrance', discordUrl: 'https://discord.gg/private' };
 test('Member creates an Event without confirmed conditions and becomes owner; Visitors receive only public fields', async () => {
   const author = await member();
   const response = await write('/api/events', author.cookie, eventInput);
@@ -37,10 +37,10 @@ test('Member creates an Event without confirmed conditions and becomes owner; Vi
   const { event } = await response.json();
   const publicView = await fetch(`${base}/api/events/${event.id}`).then(r => r.json());
   expect(publicView.event).toEqual({ id: event.id, title: 'Docker workshop', description: 'Build containers together.', category: 'WORKSHOP', status: 'PLANNING', ideaId: null,
-    plannedDate: null, endDate: null, startTime: null, endTime: null, generalLocation: '', materials: 'Public notes', repositoryUrl: 'https://github.com/example/workshop',
+    plannedDate: null, endDate: null, startTime: null, endTime: null, generalLocation: '', placeType:'OTHER', materials: 'Public notes', repositoryUrl: 'https://github.com/example/workshop',
     createdAt: expect.any(String), updatedAt: expect.any(String) });
   const personal = await fetch(`${base}/api/events/${event.id}`, { headers: { cookie: author.cookie } }).then(r => r.json());
-  expect(personal.event).toMatchObject({ owner: { name: 'Private author' }, canEdit: true, exactRoom: 'A103', privateInstructions: 'Use the side entrance', discordUrl: 'https://discord.gg/private' });
+  expect(personal.event).toMatchObject({ owner: { name: 'Private author' }, canEdit: true, exactRoom: '', privateInstructions: 'Use the side entrance', discordUrl: 'https://discord.gg/private' });
   const list = await fetch(`${base}/api/events`).then(r => r.json());
   expect(list.events.find((item: { id: number }) => item.id === event.id)).toEqual(publicView.event);
 });
@@ -49,13 +49,14 @@ test('Only owner and Ops edit preparation details, including a multi-day plan; c
   await pool.query("UPDATE users SET role='OPS' WHERE email=$1", [ops.email]);
   const { event } = await write('/api/events', author.cookie, eventInput).then(r => r.json());
   const path = `/api/events/${event.id}`;
-  const revised = { ...eventInput, plannedDate: '2026-11-28', endDate: '2026-11-29', startTime: '18:00', endTime: '10:00', generalLocation: 'Köln', exactRoom: 'B202' };
+  const revised = { ...eventInput, plannedDate: '2026-11-28', endDate: '2026-11-29', startTime: '18:00', endTime: '10:00', generalLocation: 'Köln' };
   expect((await write(path, other.cookie, revised, 'PATCH')).status).toBe(403);
   expect((await write(path, author.cookie, revised, 'PATCH')).status).toBe(200);
   expect((await fetch(`${base}${path}`).then(r => r.json())).event).toMatchObject({ plannedDate: '2026-11-28', endDate: '2026-11-29', startTime: '18:00', endTime: '10:00', generalLocation: 'Köln', status: 'PLANNING' });
   expect((await write(path, ops.cookie, { ...revised, title: 'Updated by Ops' }, 'PATCH')).status).toBe(200);
   expect((await fetch(`${base}${path}`).then(r => r.json())).event.title).toBe('Updated by Ops');
   expect((await write(path, author.cookie, { ...revised, ownerId: 'someone-else', status: 'ACTIVE' }, 'PATCH')).status).toBe(400);
+  expect((await write(path, author.cookie, { ...revised, exactRoom:'B202' }, 'PATCH')).status).toBe(400);
   expect((await write(path, author.cookie, revised, 'PATCH', 'https://untrusted.example')).status).toBe(403);
 });
 test('Preparation accepts unknown conditions but rejects invalid dates, backwards schedules and unsafe links', async () => {

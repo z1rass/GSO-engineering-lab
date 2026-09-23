@@ -387,3 +387,32 @@ button:disabled { opacity: .6; cursor: wait; }
 .season-badge { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 24px; font-size: 14px; }
 .season-badge:hover { border-color: var(--ink); }
 .season-attach { margin: 20px 0; max-width: 460px; }
+
+/* Actions have a visible hit area; navigation keeps its link affordance. */
+a.text-link { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+a.text-link:hover { text-decoration-thickness: 2px; }
+button.text-link, .account-actions button.text-link {
+  justify-content: center; min-height: 44px; padding: 10px 15px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper); color: var(--ink); text-decoration: none;
+  font-weight: 500; line-height: 1.3;
+  transition: background var(--motion), border-color var(--motion), color var(--motion);
+}
+.account-actions a.text-link, .idea-detail article > a.text-link {
+  justify-content: center; min-height: 44px; padding: 10px 15px;
+  border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper); color: var(--ink); text-decoration: none;
+  font-weight: 500; line-height: 1.3;
+}
+.account-actions a.text-link:hover, .idea-detail article > a.text-link:hover { background: var(--surface); border-color: var(--accent); }
+.idea-detail article > a.text-link { margin: 8px 8px 0 0; }
+button.text-link:hover { background: var(--surface); border-color: var(--accent); color: var(--ink); text-decoration: none; }
+button.text-link:active { background: var(--line); }
+button.text-link[aria-pressed="true"] { border-color: var(--accent); background: var(--surface); color: var(--accent); }
+.archive-tabs { display: inline-flex; gap: 0; border-bottom: 1px solid var(--line); }
+.archive-tabs button.text-link { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; }
+.archive-tabs button.text-link[aria-pressed="true"] { border-bottom-color: var(--accent); text-decoration: none; }
+.current-season-link { max-width: 200px; color: var(--accent); font-weight: 600; }
+.current-season-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.participation-state { display: inline-flex; align-items: center; min-height: 36px; margin: 12px 0; padding: 6px 12px; border-radius: 5px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 500; }
+@media(max-width:760px) { .current-season-link { max-width: 100%; } }

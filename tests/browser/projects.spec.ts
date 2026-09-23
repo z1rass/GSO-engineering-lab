@@ -9,7 +9,7 @@ const pool = new Pool({ connectionString: databaseUrl });
 test.beforeAll(async () => { await migrate(drizzle(pool), { migrationsFolder: './database/migrations' }); });
 test.beforeEach(async () => { await pool.query('DELETE FROM activities'); await pool.query('DELETE FROM ideas'); await pool.query('DELETE FROM rate_limits'); });
 test.afterAll(async () => { await pool.end(); });
-test('Owner creates from an Idea, edits materials and starts work while Visitors see only public information', async ({ page, browser, request }) => {
+test('Owner creates from an Idea, adds materials to description and starts work while Visitors see only public information', async ({ page, browser, request }) => {
   const email = `project-${randomUUID()}@gso.schule.koeln`;
   await page.goto('/login');
   await page.getByLabel('Name', { exact: true }).fill('Private owner');
@@ -24,11 +24,10 @@ test('Owner creates from an Idea, edits materials and starts work while Visitors
   await page.getByRole('link', { name: 'Projekt daraus starten' }).click();
   await page.getByLabel('Titel', { exact: true }).fill('Unser Homelab');
   await page.getByLabel('Ziel', { exact: true }).fill('Ein gemeinsames Labor bauen');
-  await page.getByLabel('Beschreibung', { exact: true }).fill('Gemeinsam lernen und bauen.');
-  await page.getByText('Materialien und Links', { exact: true }).click();
+  await page.getByLabel('Beschreibung', { exact: true }).fill('Gemeinsam lernen und bauen. Öffentliche Notizen');
+  await page.getByText('Links und Tech Stack', { exact: true }).click();
   await page.getByLabel('Tech Stack', { exact: true }).fill('Linux, Docker');
   await page.getByLabel('Repository', { exact: true }).fill('https://github.com/example/homelab');
-  await page.getByLabel('Materialien', { exact: true }).fill('Öffentliche Notizen');
   await page.getByText('Nur für Members', { exact: true }).click();
   await page.getByLabel('Interne Hinweise', { exact: true }).fill('Private instructions');
   await page.getByLabel('Discord-Link', { exact: true }).fill('https://discord.gg/private-example');

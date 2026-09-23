@@ -88,7 +88,7 @@ function ProjectForm({ language, project }: { language: Language; project?: Proj
     const form = new FormData(event.currentTarget);
     const body = { title: String(form.get('title')).trim(), goal: String(form.get('goal')).trim(), description: String(form.get('description')).trim(),
       techStack: String(form.get('techStack')).split(',').map(s => s.trim()).filter(Boolean), repositoryUrl: form.get('repositoryUrl') || null, documentationUrl: form.get('documentationUrl') || null,
-      materials: form.get('materials'), privateInstructions: form.get('privateInstructions'), discordUrl: form.get('discordUrl') || null,
+      privateInstructions: form.get('privateInstructions'), discordUrl: form.get('discordUrl') || null,
       ...(!project ? { ideaId: form.get('ideaId') ? Number(form.get('ideaId')) : null } : {}),
     };
     if (!body.title || !body.goal || !body.description) { setError('invalid'); return; }
@@ -103,14 +103,13 @@ function ProjectForm({ language, project }: { language: Language; project?: Proj
   return <form className="account-form idea-form" onSubmit={submit} aria-busy={busy}>
     <label>{t.titleField}<input name="title" required maxLength={120} defaultValue={project?.title} /></label>
     <label><span id="project-goal-label">{t.goal}</span><textarea aria-labelledby="project-goal-label" name="goal" required maxLength={1000} rows={2} defaultValue={project?.goal} /></label>
-    <label><span id="project-description-label">{t.description}</span><textarea aria-labelledby="project-description-label" name="description" required maxLength={5000} rows={5} defaultValue={project?.description} /></label>
+    <label><span id="project-description-label">{t.description}</span><textarea aria-labelledby="project-description-label" name="description" required maxLength={12000} rows={5} defaultValue={project?.description} /></label>
     <p className="field-hint">{t.publicHint}</p>
     {!project && (ideas.data ? <label><span id="project-idea-label">{t.idea}</span><select name="ideaId" aria-labelledby="project-idea-label" defaultValue={params.get('idea') ?? ''}><option value="">{t.noIdea}</option>{ideas.data.ideas.map(idea => <option key={idea.id} value={idea.id}>{idea.title}</option>)}</select></label> : <LoadState language={language} {...ideas} />)}
     <details className="project-form-section"><summary>{t.resources}</summary><div>
       <label>{t.techStack}<input name="techStack" defaultValue={project?.techStack.join(', ')} aria-describedby="stack-hint" /></label><p className="field-hint" id="stack-hint">{t.stackHint}</p>
-      <label>{t.repositoryUrl}<input type="url" name="repositoryUrl" maxLength={2000} defaultValue={project?.repositoryUrl ?? ''} /></label>
+      <label>{t.repositoryUrl}<input type="url" name="repositoryUrl" maxLength={2000} defaultValue={project?.repositoryUrl ?? ''} /></label><p className="field-hint">{t.repositoryHint}</p>
       <label>{t.documentationUrl}<input type="url" name="documentationUrl" maxLength={2000} defaultValue={project?.documentationUrl ?? ''} /></label>
-      <label><span id="project-materials-label">{t.materials}</span><textarea aria-labelledby="project-materials-label" name="materials" maxLength={5000} rows={4} defaultValue={project?.materials} /></label>
     </div></details>
     <details className="project-form-section"><summary>{t.membersOnly}</summary><div><p className="field-hint">{t.privateHint}</p>
       <label><span id="project-privateInstructions-label">{t.privateInstructions}</span><textarea aria-labelledby="project-privateInstructions-label" name="privateInstructions" maxLength={5000} rows={4} defaultValue={project?.privateInstructions} /></label>

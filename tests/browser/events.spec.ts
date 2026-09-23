@@ -26,7 +26,6 @@ test('Owner prepares an Event from an Idea; Visitors see tentative conditions wi
   await page.getByLabel('Beschreibung', { exact: true }).fill('Container bauen und ausprobieren.');
   await page.getByLabel('Kategorie', { exact: true }).selectOption('WORKSHOP');
   await page.getByText('Nur für Members', { exact: true }).click();
-  await page.getByLabel('Genaue Raumnummer', { exact: true }).fill('A103');
   await page.getByLabel('Interne Hinweise', { exact: true }).fill('Private entrance instructions');
   await page.getByRole('button', { name: 'Event erstellen', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Docker gemeinsam lernen' })).toBeVisible();
@@ -37,7 +36,7 @@ test('Owner prepares an Event from an Idea; Visitors see tentative conditions wi
   try {
     const publicPage = await visitor.newPage();
     await publicPage.goto(url);
-    await expect(publicPage.getByText('Ort noch offen', { exact: true })).toBeVisible();
+    await expect(publicPage.getByText('GSO', { exact: true })).toBeVisible();
     await expect(publicPage.locator('main')).not.toContainText('A103');
     await expect(publicPage.locator('main')).not.toContainText('Private owner');
     await expect(publicPage.locator('main')).not.toContainText('Private entrance instructions');
@@ -45,6 +44,7 @@ test('Owner prepares an Event from an Idea; Visitors see tentative conditions wi
     await page.getByLabel('Geplantes Datum', { exact: true }).fill('2026-11-28');
     await page.getByLabel('Beginn', { exact: true }).fill('16:00');
     await page.getByLabel('Ende', { exact: true }).fill('18:00');
+    await page.locator('select[name="placeType"]').selectOption('OTHER');
     await page.getByLabel('Allgemeiner Ort', { exact: true }).fill('Köln');
     await page.getByRole('button', { name: 'Änderungen speichern' }).click();
     await expect(page.getByText('16:00', { exact: false })).toBeVisible();

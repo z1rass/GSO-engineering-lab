@@ -3,7 +3,7 @@ import type { Pool } from 'pg';
 import { z } from 'zod';
 
 import { webUrl } from '../../shared/validation/web-url.js';
-const content = z.object({ title: z.string().trim().min(1).max(120), goal: z.string().trim().min(1).max(1000), description: z.string().trim().min(1).max(5000),
+const content = z.object({ title: z.string().trim().min(1).max(120), goal: z.string().trim().min(1).max(1000), description: z.string().trim().min(1).max(12000),
   techStack: z.array(z.string().trim().min(1).max(50)).max(30).default([]),
   repositoryUrl: webUrl.nullable().default(null), documentationUrl: webUrl.nullable().default(null),
   materials: z.string().max(5000).default(''), privateInstructions: z.string().max(5000).default(''), discordUrl: webUrl.nullable().default(null),

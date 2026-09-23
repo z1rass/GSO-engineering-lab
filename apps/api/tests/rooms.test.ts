@@ -35,10 +35,10 @@ async function activity(cookie: string, type='projects') {
   return result[type==='projects'?'project':'event'].id as number;
 }
 const slot = {date:'2026-11-28',startTime:'16:00',endTime:'18:00',room:'A103',message:'Use the side entrance'};
-test('Owner requests a room for either Activity; Ops see the queue and an alternative stays unconfirmed until explicitly confirmed',async()=>{
+test('Owner requests a Project room; Ops see the queue and an alternative stays unconfirmed until explicitly confirmed',async()=>{
   const owner=await member(); const ops=await member();
   await pool.query("UPDATE users SET role='OPS' WHERE email=$1",[ops.email]);
-  for(const type of ['projects','events']) {
+  for(const type of ['projects']) {
     const id=await activity(owner.cookie,type); const path=`/api/activities/${id}/room-request`;
     expect((await write(path,owner.cookie,{note:'A room for 12 people in November'})).status).toBe(201);
     const own=await fetch(`${base}${path}`,{headers:{cookie:owner.cookie}}).then(r=>r.json());
@@ -54,6 +54,35 @@ test('Owner requests a room for either Activity; Ops see the queue and an altern
     const view=await fetch(`${base}/api/${type}/${id}`,{headers:{cookie:owner.cookie}}).then(r=>r.json());
     expect(view[type==='projects'?'project':'event'].status).toBe('PLANNING');
   }
+});
+test('A scheduled school Event requests a room once; the owner accepts another time before Ops confirms its room',async()=>{
+  const owner=await member();const ops=await member();await pool.query("UPDATE users SET role='OPS' WHERE email=$1",[ops.email]);
+  const input={title:'School workshop',description:'Build together',category:'WORKSHOP',placeType:'SCHOOL',plannedDate:'2026-11-28',startTime:'16:00',endTime:'18:00'};
+  const created=await write('/api/events',owner.cookie,input);expect(created.status).toBe(201);
+  const id=(await created.json()).event.id;const path=`/api/activities/${id}/room-request`;
+  const before=(await fetch(`${base}${path}`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request;
+  expect(before.status).toBe('PENDING');
+  expect((await write(`/api/events/${id}`,owner.cookie,input,'PATCH')).status).toBe(200);
+  expect((await fetch(`${base}${path}`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request.id).toBe(before.id);
+  const alternate={...slot,startTime:'17:00',endTime:'19:00'};
+  expect((await write(`/api/ops/room-requests/${before.id}`,ops.cookie,{status:'ALTERNATIVE',...alternate},'PATCH')).status).toBe(200);
+  expect((await write(`/api/ops/room-requests/${before.id}`,ops.cookie,{status:'CONFIRMED',...alternate},'PATCH')).status).toBe(409);
+  expect((await write(`${path}/accept`,owner.cookie,{})).status).toBe(200);
+  const accepted=await fetch(`${base}/api/events/${id}`).then(r=>r.json());
+  expect(accepted.event).toMatchObject({plannedDate:alternate.date,startTime:'17:00',endTime:'19:00',status:'PLANNING'});
+  expect((await write(`/api/ops/room-requests/${before.id}`,ops.cookie,{status:'CONFIRMED',...alternate},'PATCH')).status).toBe(200);
+  expect((await fetch(`${base}/api/events/${id}`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).event.exactRoom).toBe('A103');
+  expect((await write(`/api/events/${id}/open`,owner.cookie,{})).status).toBe(200);
+});
+test('A school Event without a date stays in preparation until its schedule is saved',async()=>{
+  const owner=await member();
+  const input={title:'Planning a workshop',description:'Find a date',category:'WORKSHOP',placeType:'SCHOOL'};
+  const created=await write('/api/events',owner.cookie,input);expect(created.status).toBe(201);
+  const id=(await created.json()).event.id;const roomPath=`/api/activities/${id}/room-request`;
+  expect((await fetch(`${base}${roomPath}`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request).toBeNull();
+  expect((await write(roomPath,owner.cookie,{note:'Please book it'})).status).toBe(409);
+  expect((await write(`/api/events/${id}`,owner.cookie,{...input,plannedDate:'2026-11-28',startTime:'16:00',endTime:'18:00'},'PATCH')).status).toBe(200);
+  expect((await fetch(`${base}${roomPath}`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request.status).toBe('PENDING');
 });
 test('Confirmed room conditions are final and cannot be overwritten or reverted, even by Ops',async()=>{
   const owner=await member();const ops=await member();await pool.query("UPDATE users SET role='OPS' WHERE email=$1",[ops.email]);

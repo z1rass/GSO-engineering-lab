@@ -52,16 +52,17 @@ test('Opening requires complete conditions and a matching confirmed school room 
  for(const partial of [{plannedDate:null},{startTime:null},{endTime:null},{generalLocation:''}]){
   const id=await createEvent(owner.cookie,{...readyEvent,...partial});expect((await write(`/api/events/${id}/open`,owner.cookie,{})).status).toBe(409);
  }
- const id=await createEvent(owner.cookie,{...readyEvent,schoolRoomRequired:true,exactRoom:'A103'});const path=`/api/events/${id}`;
+ const id=await createEvent(owner.cookie,{...readyEvent,placeType:'SCHOOL'});const path=`/api/events/${id}`;
  expect((await write(`${path}/open`,owner.cookie,{})).status).toBe(409);
- await write(`/api/activities/${id}/room-request`,owner.cookie,{note:'Room needed'});
  const room=(await fetch(`${base}/api/activities/${id}/room-request`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request;
  const slot={date:'2026-11-28',startTime:'15:00',endTime:'19:00',room:'A103'};
  await write(`/api/ops/room-requests/${room.id}`,ops.cookie,{...slot,status:'ALTERNATIVE'},'PATCH');
  expect((await write(`${path}/open`,owner.cookie,{})).status).toBe(409);
  await write(`/api/ops/room-requests/${room.id}`,ops.cookie,{...slot,status:'CONFIRMED'},'PATCH');
  expect((await write(`${path}/open`,owner.cookie,{})).status).toBe(200);
- await write(path,owner.cookie,{...readyEvent,schoolRoomRequired:false,exactRoom:'B202'},'PATCH');
+ expect((await fetch(`${base}${path}`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).event.exactRoom).toBe('A103');
+ expect((await write(path,owner.cookie,{...readyEvent,placeType:'OTHER'},'PATCH')).status).toBe(409);
+ await write(path,owner.cookie,{...readyEvent,placeType:'SCHOOL',plannedDate:'2026-11-29'},'PATCH');
  expect((await write(`${path}/open`,owner.cookie,{})).status).toBe(409);
 });
 test('Rescheduling atomically moves Going to Interested and closes registration; description edits preserve Going',async()=>{
@@ -100,10 +101,11 @@ test('Registration enforces membership, Origin, closed state and serializes a co
  expect((await write(`${path}/going`,guest.cookie,{})).status).toBe(401);
  expect(await fetch(`${base}${path}/going`,{headers:{cookie:guest.cookie}}).then(r=>r.json())).toEqual({open:false,count:0});
 });
-test('Requesting a school room after opening returns the Event to preparation until its room conditions are ready',async()=>{
+test('Selecting school after opening creates the room request and returns the Event to preparation',async()=>{
  const owner=await member();const id=await createEvent(owner.cookie);const path=`/api/events/${id}`;
  await write(`${path}/open`,owner.cookie,{});
- expect((await write(`/api/activities/${id}/room-request`,owner.cookie,{note:'Now need a school room'})).status).toBe(201);
+ expect((await write(path,owner.cookie,{...readyEvent,placeType:'SCHOOL'},'PATCH')).status).toBe(200);
+ expect((await fetch(`${base}/api/activities/${id}/room-request`,{headers:{cookie:owner.cookie}}).then(r=>r.json())).request.status).toBe('PENDING');
  expect((await fetch(`${base}${path}`).then(r=>r.json())).event.status).toBe('PLANNING');
  expect((await write(`${path}/going`,owner.cookie,{})).status).toBe(409);
 });

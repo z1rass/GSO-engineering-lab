@@ -86,7 +86,7 @@ export function App() {
     <a className="skip-link" href="#main">{t.skip}</a>
     <header className="site-header page-width">
       <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="lab-mark" aria-hidden="true"><span /><span /><span /></span><span className="brand-name">GSO <strong>engineering lab</strong></span></Link>
-      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}><NavLink to="/season">{t.seasonNav}</NavLink><NavLink to="/events">Events</NavLink><NavLink to="/projects">{language === 'de' ? 'Projekte' : 'Projects'}</NavLink><NavLink to="/ideas">{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/my-activity">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
+      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}>{season&&!error&&<NavLink className="current-season-link" to={`/seasons/${season.id}`}>Season {season.number}<span className="current-season-title"> · {season.title}</span></NavLink>}<NavLink to="/events">Events</NavLink><NavLink to="/projects">{language === 'de' ? 'Projekte' : 'Projects'}</NavLink><NavLink to="/ideas">{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/my-activity">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
       <div className="languages" aria-label={language === 'de' ? 'Sprache' : 'Language'}>
         <button aria-label="Deutsch" aria-pressed={language === 'de'} onClick={() => setLanguage('de')}>DE</button>
         <button aria-label="English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>

@@ -5,15 +5,15 @@ import type {Language} from '../i18n';
 import {useResource} from '../shared/use-resource';
 import {roomCopy} from './copy';
 const roomSchema=z.object({id:z.number().optional(),activityId:z.number().optional(),status:z.enum(['PENDING','ALTERNATIVE','CONFIRMED']),note:z.string().optional(),date:z.string().nullable().optional(),endDate:z.string().nullable().optional(),startTime:z.string().nullable().optional(),endTime:z.string().nullable().optional(),room:z.string().nullable().optional(),message:z.string().nullable().optional()});
-const detailSchema=z.object({request:roomSchema.nullable(),canRequest:z.boolean().optional(),canRespond:z.boolean().optional()});
+const detailSchema=z.object({request:roomSchema.nullable(),canRequest:z.boolean().optional(),canRespond:z.boolean().optional(),canAccept:z.boolean().optional(),offerAccepted:z.boolean().optional()});
 const queueSchema=z.object({requests:z.array(roomSchema.extend({id:z.number(),activityId:z.number(),title:z.string(),type:z.enum(['EVENT','PROJECT'])}))});
 type Room=z.infer<typeof roomSchema>;
-function RoomDetails({room,language}:{room:Room;language:Language}){
+function RoomDetails({room,language,offerAccepted=false}:{room:Room;language:Language;offerAccepted?:boolean}){
  const t=roomCopy[language];
- return <><p className="status">{t[room.status]}</p>{room.note&&<p className="idea-description">{room.note}</p>}
+ return <><p className="status">{t[room.status]}</p>{room.note!==undefined&&(room.note?<p className="idea-description">{room.note}</p>:<p className="ideas-note">{t.automaticRequest}</p>)}
   {room.date&&<p className="room-slot">{room.date}{room.endDate&&` – ${room.endDate}`} · {room.startTime} – {room.endTime}<br/>{room.room}<br/><small>{t.timezone}</small></p>}
   {room.message&&<p className="idea-description">{room.message}</p>}
-  {room.status==='ALTERNATIVE'&&<p className="ideas-note">{t.alternative}</p>}
+  {room.status==='ALTERNATIVE'&&<p className="ideas-note">{offerAccepted?t.awaitingConfirmation:t.alternative}</p>}
   {room.status==='CONFIRMED'&&room.date&&<p className="ideas-note">{t.independent}</p>}</>;
 }
 function useRoomWrite(done:()=>void){
@@ -35,11 +35,13 @@ function RequestForm({id,language,done}:{id:number;language:Language;done:()=>vo
  function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();void state.save(`/api/activities/${id}/room-request`,{note:String(new FormData(e.currentTarget).get('note'))});}
  return <form className="account-form idea-form" onSubmit={submit} aria-busy={state.busy}><label><span id={label}>{t.note}</span><textarea aria-labelledby={label} name="note" required maxLength={3000} rows={3}/></label><p className="field-hint">{t.hint}</p><Feedback error={state.error} language={language} retry={done}/><button className="button-primary" disabled={state.busy}>{state.busy?t.saving:t.request}</button></form>;
 }
-export function RoomPanel({id,language,onRequested}:{id:number;language:Language;onRequested?:()=>void}){
+export function RoomPanel({id,language,onRequested,scheduleNeeded=false}:{id:number;language:Language;onRequested?:()=>void;scheduleNeeded?:boolean}){
  const t=roomCopy[language];const resource=useResource(`/api/activities/${id}/room-request`,detailSchema);
+ const acceptance=useRoomWrite(()=>{resource.retry();onRequested?.();});
  return <section className="project-room" aria-label={t.title}><h2>{t.title}</h2>
   {!resource.data?resource.loading?<p role="status">{t.loading}</p>:<p role="alert">{t.error} <button className="text-link" onClick={resource.retry}>{t.retry}</button></p>
-   :<>{resource.data.request?<RoomDetails room={resource.data.request} language={language}/>:resource.data.canRequest?<RequestForm id={id} language={language} done={()=>{resource.retry();onRequested?.();}}/>:<p className="ideas-note">{t.none}</p>}
+   :<>{resource.data.request?<RoomDetails room={resource.data.request} language={language} offerAccepted={resource.data.offerAccepted}/>:scheduleNeeded?<p className="ideas-note">{t.scheduleNeeded}</p>:resource.data.canRequest?<RequestForm id={id} language={language} done={()=>{resource.retry();onRequested?.();}}/>:<p className="ideas-note">{t.none}</p>}
+    {resource.data.canAccept&&<><button className="button-primary" disabled={acceptance.busy} onClick={()=>void acceptance.save(`/api/activities/${id}/room-request/accept`,{})}>{acceptance.busy?t.saving:t.acceptAlternative}</button><Feedback error={acceptance.error} language={language} retry={resource.retry}/></>}
     {resource.data.canRespond&&resource.data.request&&<Link className="text-link" to="/ops/rooms">{t.queue} ↗</Link>}</>}
  </section>;
 }

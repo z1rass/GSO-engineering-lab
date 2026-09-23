@@ -55,7 +55,7 @@ export const roleChanges = pgTable('role_changes', {
   targetId: text('target_id').references(() => user.id, { onDelete: 'set null' }),
   actorId: text('actor_id').references(() => user.id, { onDelete: 'set null' }),
   previousRole: globalRole('previous_role').notNull(), newRole: globalRole('new_role').notNull(),
-  source: text('source').notNull(), operator: text('operator'), confirmedBy: text('confirmed_by'),
+  source: text('source').notNull(), operator: text('operator'), confirmedBy: text('confirmed_by'), handoverChecklist: text('handover_checklist'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -111,9 +111,11 @@ export const activitySeasons = pgTable('activity_seasons', {
 }, table=>[primaryKey({columns:[table.activityId,table.seasonId]})]);
 
 export const eventCategory = pgEnum('event_category', ['TALK', 'WORKSHOP', 'BUILD_NIGHT', 'STUDY_SESSION', 'HACKATHON', 'SOCIAL', 'OTHER']);
+export const eventPlaceType = pgEnum('event_place_type', ['SCHOOL', 'ONLINE', 'OTHER']);
 export const eventDetails = pgTable('event_details', {
   activityId: integer('activity_id').primaryKey().references(() => activities.id, { onDelete: 'cascade' }),
   category: eventCategory('category').notNull(),
+  placeType: eventPlaceType('place_type').notNull().default('OTHER'),
   schoolRoomRequired: boolean('school_room_required').notNull().default(false),
   plannedDate: date('planned_date'), endDate: date('end_date'), startTime: text('start_time'), endTime: text('end_time'),
   generalLocation: text('general_location').notNull().default(''), exactRoom: text('exact_room').notNull().default(''), repositoryUrl: text('repository_url'),
