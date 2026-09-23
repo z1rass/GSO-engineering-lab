@@ -36,13 +36,19 @@ export function IdeaPage({ language }: { language: Language }) {
   const viewer = useResource('/api/me', viewerSchema);
   const t = ideasCopy[language];
   const idea = resource.data?.idea;
-  return <section className="ideas-page idea-detail"><Link className="text-link" to="/ideas">← {t.back}</Link>
-    {!idea ? <LoadingOrError language={language} {...resource} /> : <article><IdeaDate idea={idea} language={language} /><h1>{idea.title}</h1><p className="idea-description">{idea.description}</p>
-      <InterestedControl key={idea.id} target={`/ideas/${idea.id}`} language={language} />
-      <aside className="ideas-note"><p>{t.note}</p><p>{t.editNote}</p></aside>
-      <Link className="text-link" to={`/events/new?idea=${idea.id}`}>{language === 'de' ? 'Event daraus erstellen' : 'Create an event from this'} ↗</Link>
-      <Link className="text-link" to={`/projects/new?idea=${idea.id}`}>{language === 'de' ? 'Projekt daraus starten' : 'Start a project from this'} ↗</Link>
-      {viewer.data?.user.role === 'OPS' && <Link className="text-link" to={`/ideas/${idea.id}/edit`}>{t.edit} ↗</Link>}
+  return <section className="ideas-page idea-detail split-detail"><Link className="text-link" to="/ideas">← {t.back}</Link>
+    {!idea ? <LoadingOrError language={language} {...resource} /> : <article><IdeaDate idea={idea} language={language} /><h1>{idea.title}</h1>
+      <div className="detail-columns"><div className="detail-main"><section className="detail-section"><h2>{language === 'de' ? 'Die Idee' : 'The idea'}</h2><p className="idea-description">{idea.description}</p></section></div>
+        <aside className="detail-sidebar" aria-label={language === 'de' ? 'Interesse und nächste Schritte' : 'Interest and next steps'}>
+          <InterestedControl key={idea.id} target={`/ideas/${idea.id}`} language={language} />
+          <section className="detail-section idea-next-steps"><h2>{language === 'de' ? 'Idee umsetzen' : 'Build on this idea'}</h2><p>{t.note}</p>
+            <div className="idea-actions"><Link className="text-link" to={`/events/new?idea=${idea.id}`}>{language === 'de' ? 'Event daraus erstellen' : 'Create an event from this'} <span aria-hidden="true">↗</span></Link>
+              <Link className="text-link" to={`/projects/new?idea=${idea.id}`}>{language === 'de' ? 'Projekt daraus starten' : 'Start a project from this'} <span aria-hidden="true">↗</span></Link>
+              {viewer.data?.user.role === 'OPS' && <Link className="text-link" to={`/ideas/${idea.id}/edit`}>{t.edit} <span aria-hidden="true">↗</span></Link>}</div>
+            <p className="field-hint">{t.editNote}</p>
+          </section>
+        </aside>
+      </div>
     </article>}
   </section>;
 }

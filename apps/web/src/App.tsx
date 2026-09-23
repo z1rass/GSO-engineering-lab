@@ -9,7 +9,8 @@ import { ProjectsPage, ProjectPage, ProjectEditor } from './projects/pages';
 import { IdeasPage, IdeaPage, IdeaEditor } from './ideas/pages';
 import { OpsPage } from './ops/page';
 import { LoginPage, ProfilePage } from './auth/pages';
-import { useEffect, useState } from 'react';
+import { OwnershipInvitationPage } from './ownership/panel';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { z } from 'zod';
 import { copy, type Language } from './i18n';
@@ -53,12 +54,24 @@ export function App() {
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [recentLoading, setRecentLoading] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
   const t = copy[language];
   const location = useLocation();
+  const previousPath = useRef(location.pathname);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (location.hash && !loading && !recentLoading) document.getElementById(location.hash.slice(1))?.scrollIntoView();
   }, [location, loading, recentLoading]);
+  useEffect(() => {
+    setMenuOpen(false);
+    if (previousPath.current !== location.pathname) {
+      mainRef.current?.focus({ preventScroll: true });
+      if (!location.hash) window.scrollTo(0, 0);
+      previousPath.current = location.pathname;
+    }
+  }, [location.pathname]);
   useEffect(() => { document.documentElement.lang = language; localStorage.setItem('lab-language', language); }, [language]);
   useEffect(() => {
     const controller = new AbortController();
@@ -84,15 +97,30 @@ export function App() {
 
   return <>
     <a className="skip-link" href="#main">{t.skip}</a>
-    <header className="site-header page-width">
-      <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="lab-mark" aria-hidden="true"><span /><span /><span /></span><span className="brand-name">GSO <strong>engineering lab</strong></span></Link>
-      <nav aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}>{season&&!error&&<NavLink className="current-season-link" to={`/seasons/${season.id}`}>Season {season.number}<span className="current-season-title"> · {season.title}</span></NavLink>}<NavLink to="/events">Events</NavLink><NavLink to="/projects">{language === 'de' ? 'Projekte' : 'Projects'}</NavLink><NavLink to="/ideas">{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink><Link to="/#about" className="about-link">{t.about}</Link><NavLink to="/my-activity">{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink></nav>
-      <div className="languages" aria-label={language === 'de' ? 'Sprache' : 'Language'}>
-        <button aria-label="Deutsch" aria-pressed={language === 'de'} onClick={() => setLanguage('de')}>DE</button>
-        <button aria-label="English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
+    <header className="site-header page-width" onKeyDown={event => { if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuButtonRef.current?.focus(); } }}>
+      <div className="header-top">
+        <Link to="/" className="brand" aria-label="GSO Engineering Lab"><span className="lab-mark" aria-hidden="true"><span /><span /><span /></span><span className="brand-name">GSO <strong>engineering lab</strong></span></Link>
+        <div className="header-tools">
+          {season&&!error&&<Link className="current-season-link" to={`/seasons/${season.id}`}><span className="season-indicator" aria-hidden="true" />Season {season.number}<span className="current-season-title"> · {season.title}</span></Link>}
+          <Link className="account-link" to="/profile">{language === 'de' ? 'Konto' : 'Account'}<span aria-hidden="true"> ↗</span></Link>
+          <div className="languages" role="group" aria-label={language === 'de' ? 'Sprache' : 'Language'}>
+            <button type="button" aria-label="Deutsch" aria-pressed={language === 'de'} onClick={() => setLanguage('de')}>DE</button>
+            <button type="button" aria-label="English" aria-pressed={language === 'en'} onClick={() => setLanguage('en')}>EN</button>
+          </div>
+          <button ref={menuButtonRef} className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="primary-nav" onClick={() => setMenuOpen(open => !open)}><span className="menu-icon" aria-hidden="true"><span /><span /></span>{language === 'de' ? 'Menü' : 'Menu'}</button>
+        </div>
       </div>
+      <nav id="primary-nav" className={menuOpen ? 'primary-nav is-open' : 'primary-nav'} aria-label={language === 'de' ? 'Hauptnavigation' : 'Main navigation'}>
+        <NavLink to="/home" onClick={() => setMenuOpen(false)}>{t.homeNav}</NavLink>
+        <NavLink to="/events" onClick={() => setMenuOpen(false)}>Events</NavLink>
+        <NavLink to="/projects" onClick={() => setMenuOpen(false)}>{language === 'de' ? 'Projekte' : 'Projects'}</NavLink>
+        <NavLink to="/ideas" onClick={() => setMenuOpen(false)}>{language === 'de' ? 'Ideen' : 'Ideas'}</NavLink>
+        <NavLink to="/seasons" onClick={() => setMenuOpen(false)}>Seasons</NavLink>
+        <NavLink className="nav-personal" to="/my-activity" onClick={() => setMenuOpen(false)}>{language === 'de' ? 'Mein Lab' : 'My Lab'}</NavLink>
+        <div className="mobile-nav-tools"><Link to="/profile">{language === 'de' ? 'Konto öffnen' : 'Open account'} ↗</Link></div>
+      </nav>
     </header>
-    <main id="main" className="page-width">
+    <main id="main" ref={mainRef} tabIndex={-1} className="page-width">
       <Routes>
         <Route path="/ops/moderation" element={<ModerationPage language={language} />} />
         <Route path="/ops/users/:id/profile-deletion" element={<ProfileDeletionPage language={language} />} />
@@ -116,22 +144,19 @@ export function App() {
         <Route path="/ideas/:id/edit" element={<IdeaEditor language={language} edit />} />
         <Route path="/ops" element={<OpsPage language={language} />} />
         <Route path="/login" element={<LoginPage language={language} />} />
+        <Route path="/ownership/accept" element={<OwnershipInvitationPage language={language} />} />
         <Route path="/profile" element={<ProfilePage language={language} />} />
         <Route path="/me" element={<ProfilePage language={language} />} />
-        <Route path="/" element={<>
-          <div className="hero-grid">
-            <section className="hero-copy"><p className="eyebrow hero-eyebrow">{t.eyebrow}</p>
-              <h1>{t.headline}<br /><span>{t.emphasis}</span></h1><p className="intro">{t.introduction}</p>
-              <div className="hero-actions"><a className="button-primary" href="#season">{t.seasonNav}<Arrow /></a><a className="text-link" href="#about">{t.secondary}<span aria-hidden="true">↓</span></a></div>
-
-            </section>{currentSeason}
-          </div>
-          <RecentActivities language={language} onLoadingChange={setRecentLoading}/>
-          <section id="about" className="about-section"><div className="about-heading"><p className="eyebrow">{t.model}</p><h2>{t.discoverTitle}</h2><p>{t.discoverIntro}</p></div>
-            <div className="steps">{t.steps.map(([title, body], index) => <article key={index}><span className="step-number">0{index + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div>
-          </section>
-        </>} />
-        <Route path="/season" element={<div className="season-page"><Link className="text-link" to="/">← {t.back}</Link><h1>{t.periodNote}</h1><Link className="text-link" to="/seasons">{language==='de'?'Alle Seasons':'All seasons'} ↗</Link>{currentSeason}{season&&!loading&&!error&&<SeasonContents id={season.id} language={language}/>}</div>} />
+        <Route path="/" element={<div className="landing-page">
+          <div className="landing-hero"><section className="hero-copy"><p className="eyebrow hero-eyebrow">{t.eyebrow}</p><h1>{t.headline}<br/><span>{t.emphasis}</span></h1><p className="intro">{t.introduction}</p><div className="hero-actions"><Link className="button-primary" to="/home">{t.exploreLab}<Arrow/></Link><a className="text-link" href="#about">{t.secondary}<span aria-hidden="true">↓</span></a></div></section>
+            <aside className="landing-visual" aria-label={t.landingFlowTitle}><p className="eyebrow">{t.landingFlowTitle}</p><div className="landing-flow">{t.landingFlow.map(([number,title,body])=><div className="landing-flow-step" key={number}><span>{number}</span><div><strong>{title}</strong><p>{body}</p></div></div>)}</div><p className="landing-visual-foot">{t.landingFlowFoot}</p></aside></div>
+          <section id="about" className="landing-intro"><p className="eyebrow">{t.about}</p><h2>{t.landingWhatTitle}</h2><p>{t.landingWhatBody}</p></section>
+          <section className="landing-values" aria-label={t.landingValuesTitle}><p className="eyebrow">{t.landingValuesTitle}</p><div>{t.landingValues.map(([title,body],index)=><article key={title}><span className="step-number">0{index+1}</span><h3>{title}</h3><p>{body}</p></article>)}</div></section>
+          <section className="landing-audience"><div><p className="eyebrow">{t.landingFor}</p><h2>{t.landingAudienceTitle}</h2></div><p>{t.landingAudienceBody}</p></section>
+          <section className="landing-cta"><p className="eyebrow">{t.model}</p><h2>{t.landingCtaTitle}</h2><p>{t.landingCtaBody}</p><div className="hero-actions"><Link className="button-primary" to="/home">{t.exploreLab}<Arrow/></Link><Link className="text-link" to="/ideas">{t.exploreIdeas} ↗</Link></div></section>
+        </div>} />
+        <Route path="/home" element={<div className="home-page"><div className="home-heading"><h1>{t.homeTitle}</h1><p className="intro">{t.homeIntro}</p><div className="home-links"><Link to="/events">Events ↗</Link><Link to="/projects">{language==='de'?'Projekte':'Projects'} ↗</Link><Link to="/ideas">{language==='de'?'Ideen':'Ideas'} ↗</Link></div></div><section className="home-season" aria-label={t.current}><div className="home-section-heading"><h2>{language==='de'?'In dieser Season':'This season'}</h2><Link className="text-link" to="/seasons">{language==='de'?'Alle Seasons':'All seasons'} ↗</Link></div>{currentSeason}</section><RecentActivities language={language} onLoadingChange={setRecentLoading}/></div>} />
+        <Route path="/season" element={<div className="season-page"><Link className="text-link" to="/home">← {t.back}</Link><h1>{t.periodNote}</h1><Link className="text-link" to="/seasons">{language==='de'?'Alle Seasons':'All seasons'} ↗</Link>{currentSeason}{season&&!loading&&!error&&<SeasonContents id={season.id} language={language}/>}</div>} />
         <Route path="*" element={<section className="season-page"><h1>{t.notFound}</h1><Link to="/">{t.back}</Link></section>} />
       </Routes>
     </main>

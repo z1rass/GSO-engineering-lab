@@ -9,8 +9,8 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import type { Express, Request as ExpressRequest, RequestHandler } from 'express';
 import express from 'express';
 import type { Pool } from 'pg';
-import nodemailer from 'nodemailer';
 import * as schema from '../../database/schema.js';
+import { createMailTransport } from '../../shared/mail.js';
 
 export function mountAuth(app: Express, pool: Pool) {
   const db = drizzle(pool);
@@ -41,11 +41,7 @@ export function mountAuth(app: Express, pool: Pool) {
   if (secret.length < 32 || (production && (!process.env.AUTH_BASE_URL || !baseURL.startsWith('https://') || !process.env.SMTP_HOST || !process.env.SMTP_FROM))) {
     throw new Error('Production auth requires an HTTPS AUTH_BASE_URL, AUTH_SECRET (32+ characters), SMTP_HOST and SMTP_FROM');
   }
-  const mail = nodemailer.createTransport({ host: process.env.SMTP_HOST ?? '127.0.0.1', port: Number(process.env.SMTP_PORT ?? 1025),
-    secure: process.env.SMTP_SECURE === 'true', requireTLS: production && process.env.SMTP_SECURE !== 'true',
-    ...(process.env.SMTP_USER ? { auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD } } : {}),
-    connectionTimeout: 10000, socketTimeout: 15000,
-  });
+  const mail = createMailTransport();
   const auth = betterAuth({
     baseURL, secret,
     database: drizzleAdapter(drizzle(pool), { provider: 'pg', schema }),

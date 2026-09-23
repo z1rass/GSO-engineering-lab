@@ -35,14 +35,15 @@ function RequestForm({id,language,done}:{id:number;language:Language;done:()=>vo
  function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();void state.save(`/api/activities/${id}/room-request`,{note:String(new FormData(e.currentTarget).get('note'))});}
  return <form className="account-form idea-form" onSubmit={submit} aria-busy={state.busy}><label><span id={label}>{t.note}</span><textarea aria-labelledby={label} name="note" required maxLength={3000} rows={3}/></label><p className="field-hint">{t.hint}</p><Feedback error={state.error} language={language} retry={done}/><button className="button-primary" disabled={state.busy}>{state.busy?t.saving:t.request}</button></form>;
 }
-export function RoomPanel({id,language,onRequested,scheduleNeeded=false}:{id:number;language:Language;onRequested?:()=>void;scheduleNeeded?:boolean}){
+export function RoomPanel({id,language,onRequested,scheduleNeeded=false,manage=false}:{id:number;language:Language;onRequested?:()=>void;scheduleNeeded?:boolean;manage?:boolean}){
  const t=roomCopy[language];const resource=useResource(`/api/activities/${id}/room-request`,detailSchema);
  const acceptance=useRoomWrite(()=>{resource.retry();onRequested?.();});
+ if(!manage&&!resource.data?.request)return null;
  return <section className="project-room" aria-label={t.title}><h2>{t.title}</h2>
   {!resource.data?resource.loading?<p role="status">{t.loading}</p>:<p role="alert">{t.error} <button className="text-link" onClick={resource.retry}>{t.retry}</button></p>
-   :<>{resource.data.request?<RoomDetails room={resource.data.request} language={language} offerAccepted={resource.data.offerAccepted}/>:scheduleNeeded?<p className="ideas-note">{t.scheduleNeeded}</p>:resource.data.canRequest?<RequestForm id={id} language={language} done={()=>{resource.retry();onRequested?.();}}/>:<p className="ideas-note">{t.none}</p>}
-    {resource.data.canAccept&&<><button className="button-primary" disabled={acceptance.busy} onClick={()=>void acceptance.save(`/api/activities/${id}/room-request/accept`,{})}>{acceptance.busy?t.saving:t.acceptAlternative}</button><Feedback error={acceptance.error} language={language} retry={resource.retry}/></>}
-    {resource.data.canRespond&&resource.data.request&&<Link className="text-link" to="/ops/rooms">{t.queue} ↗</Link>}</>}
+   :<>{resource.data.request?<RoomDetails room={resource.data.request} language={language} offerAccepted={resource.data.offerAccepted}/>:scheduleNeeded?<p className="ideas-note">{t.scheduleNeeded}</p>:manage&&resource.data.canRequest?<RequestForm id={id} language={language} done={()=>{resource.retry();onRequested?.();}}/>:<p className="ideas-note">{t.none}</p>}
+    {manage&&resource.data.canAccept&&<><button className="button-primary" disabled={acceptance.busy} onClick={()=>void acceptance.save(`/api/activities/${id}/room-request/accept`,{})}>{acceptance.busy?t.saving:t.acceptAlternative}</button><Feedback error={acceptance.error} language={language} retry={resource.retry}/></>}
+    {manage&&resource.data.canRespond&&resource.data.request&&<Link className="text-link" to="/ops/rooms">{t.queue} ↗</Link>}</>}
  </section>;
 }
 function AnswerForm({room,language,done}:{room:Room&{id:number};language:Language;done:()=>void}){

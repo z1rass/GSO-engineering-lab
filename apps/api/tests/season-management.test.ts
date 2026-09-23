@@ -23,27 +23,24 @@ test('Project continues across actual Seasons without losing its team or Tasks; 
  const later=(await write('/api/ops/seasons',ops,{...seasonInput,number:2,status:'UPCOMING'}).then(r=>r.json())).season;
  const project=(await write('/api/projects',owner,{title:'Persistent project',description:'Public notes',goal:'Build'}).then(r=>r.json())).project;
  const path=`/api/activities/${project.id}/seasons`;
- expect((await fetch(`${base}${path}`).then(r=>r.json())).seasons).toEqual([]);
- expect((await write(path,participant,{seasonId:first.id})).status).toBe(403);
- expect((await write(path,owner,{seasonId:first.id})).status).toBe(200);
+ expect((await fetch(`${base}${path}`).then(r=>r.json())).seasons).toMatchObject([{id:first.id}]);
  await write(`/api/projects/${project.id}/membership`,participant,{});
  const task=(await write(`/api/activities/${project.id}/tasks`,owner,{title:'Keep this task'}).then(r=>r.json())).task;
  await write(`/api/tasks/${task.id}/take`,participant,{});
  const teamBefore=await fetch(`${base}/api/projects/${project.id}/membership`,{headers:{cookie:owner}}).then(r=>r.json());
  const tasksBefore=await fetch(`${base}/api/activities/${project.id}/tasks`,{headers:{cookie:owner}}).then(r=>r.json());
  await write(`/api/ops/seasons/${first.id}`,ops,{...seasonInput,status:'FINISHED'},'PATCH');
- expect((await write(path,owner,{seasonId:later.id})).status).toBe(200);
- expect((await write(path,owner,{seasonId:later.id})).status).toBe(200);
+ await write(`/api/ops/seasons/${later.id}`,ops,{...seasonInput,number:2,status:'ACTIVE'},'PATCH');
  const history=await fetch(`${base}${path}`).then(r=>r.json());expect(history.seasons.map((s:{number:number})=>s.number)).toEqual([0,2]);
  expect(history).not.toHaveProperty('candidates');
  expect(await fetch(`${base}/api/projects/${project.id}/membership`,{headers:{cookie:owner}}).then(r=>r.json())).toEqual(teamBefore);
  expect(await fetch(`${base}/api/activities/${project.id}/tasks`,{headers:{cookie:owner}}).then(r=>r.json())).toEqual(tasksBefore);
  expect((await fetch(`${base}/api/projects/${project.id}`).then(r=>r.json())).project).toMatchObject({id:project.id,status:'PLANNING'});
  for(const season of [first,later]){
-  const view=await fetch(`${base}/api/seasons/${season.id}`).then(r=>r.json());expect(view.activities).toEqual([{id:project.id,type:'PROJECT',title:'Persistent project',description:'Public notes',status:'PLANNING'}]);
+  const view=await fetch(`${base}/api/seasons/${season.id}`).then(r=>r.json());expect(view.activities).toContainEqual({id:project.id,type:'PROJECT',title:'Persistent project',description:'Public notes',status:'PLANNING'});
  }
  const event=(await write('/api/events',owner,{title:'Build night',description:'Open to all',category:'BUILD_NIGHT'}).then(r=>r.json())).event;
- expect((await write(`/api/activities/${event.id}/seasons`,owner,{seasonId:later.id})).status).toBe(200);
+ expect((await fetch(`${base}/api/activities/${event.id}/seasons`).then(r=>r.json())).seasons).toMatchObject([{id:later.id}]);
  expect((await fetch(`${base}/api/activities/recent`).then(r=>r.json())).activities).toContainEqual({id:event.id,type:'EVENT',title:'Build night',description:'Open to all',status:'PLANNING'});
 });
 test('Ops publish and edit Seasons; drafts stay private, invalid dates and competing active Seasons are rejected',async()=>{
@@ -62,18 +59,18 @@ test('Ops publish and edit Seasons; drafts stay private, invalid dates and compe
  expect((await fetch(`${base}/api/seasons/current`).then(r=>r.json())).season).toBeNull();
  expect((await fetch(`${base}/api/seasons/${id}`).then(r=>r.json())).season.status).toBe('FINISHED');
 });
-test('Season links reject unpublished or finished targets and closed Activities; concurrent activation has one winner',async()=>{
+test('Activities created before a Season join on activation; concurrent activation has one winner',async()=>{
  const ops=await member(true);const owner=await member();
  const draft=(await write('/api/ops/seasons',ops,seasonInput).then(r=>r.json())).season;
  const otherInput={...seasonInput,number:1};const other=(await write('/api/ops/seasons',ops,otherInput).then(r=>r.json())).season;
  const project=(await write('/api/projects',owner,{title:'Unassigned',goal:'Independent',description:'No season required'}).then(r=>r.json())).project;
  const path=`/api/activities/${project.id}/seasons`;
- expect((await write(path,owner,{seasonId:draft.id})).status).toBe(409);
- expect((await write(path,'',{seasonId:draft.id})).status).toBe(401);
+ expect((await fetch(`${base}${path}`).then(r=>r.json())).seasons).toEqual([]);
  const attempts=await Promise.all([write(`/api/ops/seasons/${draft.id}`,ops,{...seasonInput,status:'ACTIVE'},'PATCH'),write(`/api/ops/seasons/${other.id}`,ops,{...otherInput,status:'ACTIVE'},'PATCH')]);
  expect(attempts.map(r=>r.status).sort()).toEqual([200,409]);
  const current=(await fetch(`${base}/api/seasons/current`).then(r=>r.json())).season;
+ expect((await fetch(`${base}${path}`).then(r=>r.json())).seasons).toMatchObject([{id:current.id}]);
  await write(`/api/activities/${project.id}/close`,owner,{status:'COMPLETED'});
- expect((await write(path,owner,{seasonId:current.id})).status).toBe(409);
+ expect((await fetch(`${base}${path}`).then(r=>r.json())).seasons).toMatchObject([{id:current.id}]);
  expect((await fetch(`${base}/api/activities/recent`).then(r=>r.json())).activities).not.toContainEqual(expect.objectContaining({id:project.id}));
 });

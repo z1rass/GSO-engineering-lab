@@ -57,10 +57,9 @@ test('Owner must confirm unfinished Tasks before closing either Activity type; h
 });
 test('Cancellation without a successor ends pending transfer and lets the former active owner leave; closed Activity rejects new work',async()=>{
  const owner=await member();const next=await member();const ops=await member();await pool.query("UPDATE users SET role='OPS' WHERE email=$1",[ops.email]);
- const nextId=(await fetch(`${base}/api/me`,{headers:{cookie:next.cookie}}).then(r=>r.json())).user.id;
  const id=await activity(owner.cookie);const path=`/api/activities/${id}`;
  await write(`/api/projects/${id}/membership`,owner.cookie,{});
- const transfer=(await write(`${path}/ownership`,owner.cookie,{recipientId:nextId}).then(r=>r.json())).transfer;
+ const transfer=(await write(`${path}/ownership`,owner.cookie,{email:next.email}).then(r=>r.json())).transfer;
  expect((await write(`${path}/close`,next.cookie,{status:'CANCELLED'})).status).toBe(403);
  expect((await write(`${path}/close`,ops.cookie,{status:'CANCELLED'})).status).toBe(403);
  expect((await write(`${path}/close`,'',{status:'CANCELLED'})).status).toBe(401);
@@ -68,7 +67,7 @@ test('Cancellation without a successor ends pending transfer and lets the former
  expect((await write(`${path}/close`,owner.cookie,{status:'ACTIVE'})).status).toBe(400);
  expect((await write(`${path}/close`,owner.cookie,{status:'CANCELLED'})).status).toBe(200);
  expect((await fetch(`${base}${path}/ownership`,{headers:{cookie:next.cookie}}).then(r=>r.json())).pending).toBeNull();
- expect((await write(`${path}/ownership/accept`,next.cookie,{transferId:transfer.id})).status).toBe(409);
+ expect((await write(`${path}/ownership/cancel`,next.cookie,{transferId:transfer.id})).status).toBe(409);
  expect((await write(`/api/projects/${id}/membership`,owner.cookie,{},'DELETE')).status).toBe(200);
  expect((await write(`/api/projects/${id}/membership`,next.cookie,{})).status).toBe(409);
  expect((await write(`/api/projects/${id}/start`,owner.cookie,{})).status).toBe(409);

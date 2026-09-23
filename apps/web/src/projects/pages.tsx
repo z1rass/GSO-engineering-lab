@@ -43,36 +43,27 @@ export function ProjectPage({ language }: { language: Language }) {
   const { id } = useParams();
   const t = projectCopy[language];
   const resource = useResource(`/api/projects/${encodeURIComponent(id ?? '')}`, detailSchema);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
   const project = resource.data?.project;
   const closed=!!project && ['COMPLETED','CANCELLED'].includes(project.status);
-  async function start() {
-    setBusy(true); setError(false);
-    try {
-      const response = await fetch(`/api/projects/${project!.id}/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(15000) });
-      if (!response.ok) throw new Error('Cannot start');
-      resource.retry();
-    } catch { setError(true); } finally { setBusy(false); }
-  }
-  return <section className="ideas-page idea-detail"><Link className="text-link" to={closed?'/projects?view=past':'/projects'}>← {t.back}</Link>
-    {!project ? <LoadState language={language} {...resource} /> : <article className="project-detail"><span className="status">{t[project.status]}</span><h1>{project.title}</h1><p className="project-goal">{project.goal}</p>
-      {project.owner && <p className="project-owner">{t.owner}: <strong>{project.owner.name}</strong></p>}
-      <ActivitySeasons key={`seasons-${project.id}`} id={project.id} language={language} project/>
-      <p className="idea-description">{project.description}</p>
-      {!closed&&<InterestedControl key={project.id} target={`/projects/${project.id}`} language={language} />}
-      {!!project.techStack.length && <p className="project-stack">{project.techStack.join(' / ')}</p>}
-      <div className="project-links">{project.repositoryUrl && <a className="text-link" href={project.repositoryUrl} target="_blank" rel="noopener noreferrer">{t.repositoryUrl} ↗</a>}{project.documentationUrl && <a className="text-link" href={project.documentationUrl} target="_blank" rel="noopener noreferrer">{t.documentationUrl} ↗</a>}{project.ideaId && <Link className="text-link" to={`/ideas/${project.ideaId}`}>{t.source} ↗</Link>}</div>
-      {project.materials && <section><h2>{t.materials}</h2><p className="idea-description">{project.materials}</p></section>}
-      {project.owner ? (project.privateInstructions || project.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{project.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{project.privateInstructions}</p></>}{project.discordUrl && <a className="text-link" href={project.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>
-        : <p className="ideas-note">{t.privateLogin} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>}
-      <ProjectTeam closed={closed} key={`team-${project.id}`} id={project.id} language={language} />
-      <TaskPanel closed={closed} key={`tasks-${project.id}`} id={project.id} language={language} />
-      <RoomPanel key={`room-${project.id}`} id={project.id} language={language} />
-      {!closed&&project.owner && <OwnershipPanel key={`ownership-${project.id}`} id={project.id} language={language} refresh={resource.retry} />}
-      {project.canClose && <LifecyclePanel id={project.id} language={language} refresh={resource.retry} />}
-      {project.canEdit && <div className="account-actions project-actions"><Link className="text-link" to={`/projects/${project.id}/edit`}>{t.edit}</Link>{project.status === 'PLANNING' && <button className="button-primary" disabled={busy} onClick={() => void start()}>{busy ? t.starting : t.start}</button>}</div>}
-      {error && <p className="form-error" role="alert">{t.error}</p>}
+  return <section className="ideas-page idea-detail split-detail"><Link className="text-link" to={closed?'/projects?view=past':'/projects'}>← {t.back}</Link>
+    {!project ? <LoadState language={language} {...resource} /> : <article className="project-detail"><div className="detail-topline"><span className="status">{t[project.status]}</span>{project.canEdit&&<Link className="management-link" to={`/projects/${project.id}/edit`}>{t.edit}<span aria-hidden="true"> ↗</span></Link>}</div><h1>{project.title}</h1>
+      <div className="detail-metadata">{project.owner && <p className="project-owner">{t.owner}: <strong>{project.owner.name}</strong></p>}<ActivitySeasons key={`seasons-${project.id}`} id={project.id} language={language}/></div>
+      <div className="detail-columns project-columns"><div className="detail-main">
+        <section className="project-goal-panel"><h2>{t.goal}</h2><p className="project-goal">{project.goal}</p></section>
+        <section className="detail-section"><h2>{language === 'de' ? 'Über das Projekt' : 'About this project'}</h2><p className="idea-description">{project.description}</p></section>
+      </div><aside className="detail-sidebar" aria-label={language === 'de' ? 'Teilnahme und Projektressourcen' : 'Participation and project resources'}>
+        {!closed&&<InterestedControl key={project.id} target={`/projects/${project.id}`} language={language} />}
+        <ProjectTeam closed={closed} key={`team-${project.id}`} id={project.id} language={language} />
+        {!!(project.techStack.length || project.repositoryUrl || project.documentationUrl || project.ideaId) && <section className="detail-section project-resources"><h2>{t.resources}</h2>
+          {!!project.techStack.length && <div className="project-stack-group"><h3>{t.techStack}</h3><ul className="project-stack-list">{project.techStack.map(item=><li key={item}>{item}</li>)}</ul></div>}
+          <div className="project-links">{project.repositoryUrl && <a className="text-link" href={project.repositoryUrl} target="_blank" rel="noopener noreferrer">{t.repositoryUrl} ↗</a>}{project.documentationUrl && <a className="text-link" href={project.documentationUrl} target="_blank" rel="noopener noreferrer">{t.documentationUrl} ↗</a>}{project.ideaId && <Link className="text-link" to={`/ideas/${project.ideaId}`}>{t.source} ↗</Link>}</div>
+        </section>}
+      </aside><div className="detail-more">
+        {project.materials && <section className="detail-section"><h2>{t.materials}</h2><p className="idea-description">{project.materials}</p></section>}
+        {project.owner ? (project.privateInstructions || project.discordUrl) && <section className="project-private"><p className="eyebrow">{t.membersOnly}</p>{project.privateInstructions && <><h2>{t.privateInstructions}</h2><p className="idea-description">{project.privateInstructions}</p></>}{project.discordUrl && <a className="text-link" href={project.discordUrl} target="_blank" rel="noopener noreferrer">Discord ↗</a>}</section>
+          : <p className="ideas-note">{t.privateLogin} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>}
+      </div></div>
+      <div className="project-work"><TaskPanel closed={closed} key={`tasks-${project.id}`} id={project.id} language={language} /><RoomPanel key={`room-${project.id}`} id={project.id} language={language} /></div>
     </article>}
   </section>;
 }
@@ -119,15 +110,37 @@ function ProjectForm({ language, project }: { language: Language; project?: Proj
     <div className="account-actions"><button className="button-primary" disabled={busy || (!project && !ideas.data)}>{busy ? t.saving : project ? t.save : t.create}</button><Link className="text-link" to={project ? `/projects/${project.id}` : '/projects'}>{t.cancel}</Link></div>
   </form>;
 }
+function ProjectManagement({ project, language, refresh, closed }: { project: Project; language: Language; refresh: () => void; closed: () => void }) {
+  const t = projectCopy[language];
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  async function start() {
+    setBusy(true); setError(false);
+    try {
+      const response = await fetch(`/api/projects/${project.id}/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error('Cannot start');
+      refresh();
+    } catch { setError(true); } finally { setBusy(false); }
+  }
+  const isClosed = ['COMPLETED', 'CANCELLED'].includes(project.status);
+  return <div className="management-area"><div className="management-heading"><p className="eyebrow">GSO engineering lab</p><h2>{language === 'de' ? 'Projekt verwalten' : 'Manage project'}</h2><p>{language === 'de' ? 'Aufgaben, Raum und Verantwortung an einem Ort.' : 'Tasks, room and responsibility in one place.'}</p></div>
+    {project.status === 'PLANNING' && <section className="management-action"><h3>{language === 'de' ? 'Projekt starten' : 'Start project'}</h3><p>{language === 'de' ? 'Markiere das Projekt als in Arbeit, wenn ihr loslegt.' : 'Mark the project as in progress when work begins.'}</p><button className="button-primary" disabled={busy} onClick={() => void start()}>{busy ? t.starting : t.start}</button>{error && <p className="form-error" role="alert">{t.error}</p>}</section>}
+    <TaskPanel manage id={project.id} language={language} closed={isClosed}/>
+    <RoomPanel manage id={project.id} language={language}/>
+    {project.owner && <OwnershipPanel id={project.id} language={language} refresh={refresh}/>}
+    {project.canClose && <LifecyclePanel id={project.id} language={language} refresh={closed}/>}
+  </div>;
+}
 export function ProjectEditor({ language, edit = false }: { language: Language; edit?: boolean }) {
   const { id } = useParams();
+  const navigate = useNavigate();
   const t = projectCopy[language];
   const viewer = useResource('/api/me', viewerSchema);
   const resource = useResource(edit ? `/api/projects/${encodeURIComponent(id ?? '')}` : null, detailSchema);
-  return <section className="ideas-page idea-editor"><Link className="text-link" to="/projects">← {t.back}</Link><div className="account-heading"><h1>{edit ? t.edit : t.newTitle}</h1>{!edit && <p>{t.ownership}</p>}</div>
+  return <section className="ideas-page idea-editor"><Link className="text-link" to={edit?`/projects/${id}`:'/projects'}>← {edit?(language==='de'?'Zum Projekt':'Back to project'):t.back}</Link><div className="account-heading"><h1>{edit ? t.edit : t.newTitle}</h1>{!edit && <p>{t.ownership}</p>}</div>
     {viewer.loading ? <LoadState language={language} {...viewer} /> : viewer.status === 401 ? <p>{t.login} <Link className="text-link" to="/login">{t.signIn} ↗</Link></p>
       : !viewer.data ? <LoadState language={language} {...viewer} /> : edit && !resource.data ? <LoadState language={language} {...resource} />
       : edit && !resource.data?.project.canEdit ? <p role="alert">{t.forbidden}</p>
-      : <ProjectForm key={resource.data?.project.id ?? 'new'} language={language} project={resource.data?.project} />}
+      : <><ProjectForm key={resource.data?.project.id ?? 'new'} language={language} project={resource.data?.project} />{edit&&resource.data?.project&&<ProjectManagement project={resource.data.project} language={language} refresh={resource.retry} closed={()=>{resource.retry();navigate(`/projects/${id}`);}}/>}</>}
   </section>;
 }

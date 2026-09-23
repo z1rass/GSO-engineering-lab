@@ -48,7 +48,9 @@ test('Owner creates from an Idea, adds materials to description and starts work 
     await page.getByLabel('Ziel', { exact: true }).fill('Ein besseres Labor bauen');
     await page.getByRole('button', { name: 'Änderungen speichern' }).click();
     await expect(page.getByText('Ein besseres Labor bauen')).toBeVisible();
+    await page.getByRole('link', { name: 'Projekt bearbeiten' }).click();
     await page.getByRole('button', { name: 'Arbeit starten' }).click();
+    await page.goto(url);
     await expect(page.getByText('In Arbeit', { exact: true })).toBeVisible();
     await publicPage.reload();
     await publicPage.getByRole('button', { name: 'English' }).click();

@@ -6,7 +6,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
 import { createApp } from '../src/app.js';
-import { requestTestLink, redeemTestLink } from './helpers/magic-link.js';
+import { requestTestLink, redeemTestLink, ownershipInvitationToken } from './helpers/magic-link.js';
 
 const url = process.env.TEST_DATABASE_URL ?? 'postgres://lab:lab_local@127.0.0.1:55433/lab_test';
 if (!new URL(url).pathname.endsWith('_test')) throw new Error('Dedicated test database required');
@@ -79,10 +79,11 @@ test('Overview follows saved task release, team departure and accepted ownership
   expect((await overview(user).then(r => r.json())).projects).toHaveLength(1);
   await write(`/api/projects/${project.id}/membership`, user, {}, 'DELETE');
   expect((await overview(user).then(r => r.json())).projects).toEqual([]);
-  const userId = (await fetch(`${base}/api/me`, { headers: { cookie: user } }).then(r => r.json())).user.id;
-  const transfer = (await write(`/api/activities/${project.id}/ownership`, owner, { recipientId: userId })).transfer;
+  const userEmail = (await fetch(`${base}/api/me`, { headers: { cookie: user } }).then(r => r.json())).user.email;
+  await write(`/api/activities/${project.id}/ownership`, owner, { email: userEmail });
+  const token = await ownershipInvitationToken(userEmail);
   expect((await overview(user).then(r => r.json())).projects).toEqual([]);
-  await write(`/api/activities/${project.id}/ownership/accept`, user, { transferId: transfer.id });
+  await write(`/api/ownership-invitations/${token}/accept`, user);
   data = await overview(user).then(r => r.json());
   expect(data.projects).toEqual([expect.objectContaining({ id: project.id, isOwner: true, joined: false })]);
   expect((await overview(owner).then(r => r.json())).projects).toEqual([]);

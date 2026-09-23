@@ -18,7 +18,7 @@ test('Owner confirms remaining work before cancellation; archived Project stays 
  const result=await page.request.post('/api/projects',{headers:{origin:'http://127.0.0.1:5173'},data:{title:'Archived build',goal:'Keep results',description:'Our findings',materials:'Demo notes'}});
  const id=(await result.json()).project.id;
  await page.request.post(`/api/activities/${id}/tasks`,{headers:{origin:'http://127.0.0.1:5173'},data:{title:'Remaining work'}});
- await page.goto(`/projects/${id}`);
+ await page.goto(`/projects/${id}/edit`);
  await page.getByText('Activity abschließen',{exact:true}).click();await page.getByRole('button',{name:'Activity absagen',exact:true}).click();
  await expect(page.getByText('1 offene oder laufende Aufgaben werden abgesagt.',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Absage bestätigen',exact:true})).toBeDisabled();

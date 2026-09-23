@@ -22,7 +22,10 @@ test('Owner opens registration, Member joins, and a reschedule requires fresh co
   const created=await page.request.post('/api/events',{headers:{origin:new URL(page.url()).origin},data:{title:'Going workshop',description:'Learn together',category:'WORKSHOP',plannedDate:'2026-11-28',startTime:'16:00',endTime:'18:00',generalLocation:'Online'}});
   const id=(await created.json()).event.id;
   await page.goto(`/events/${id}`);
+  await expect(page.getByRole('heading',{name:'Teilnehmen',exact:true})).toHaveCount(0);
+  await page.goto(`/events/${id}/edit`);
   await page.getByRole('button',{name:'Anmeldung öffnen',exact:true}).click();
+  await page.goto(`/events/${id}`);
   await expect(page.getByText('Anmeldung offen',{exact:true}).first()).toBeVisible();
   await page.getByRole('button',{name:'Ich bin dabei',exact:true}).click();
   await expect(page.getByText('1 angemeldet',{exact:true})).toBeVisible();
@@ -35,11 +38,13 @@ test('Owner opens registration, Member joins, and a reschedule requires fresh co
     await expect(page.getByText('Änderst du Datum oder Uhrzeit, werden Anmeldungen zu Interesse. Öffne die Anmeldung danach erneut und informiere alle über Discord.',{exact:true})).toBeVisible();
     await page.getByLabel('Geplantes Datum',{exact:true}).fill('2026-11-29');
     await page.getByRole('button',{name:'Änderungen speichern',exact:true}).click();
-    await expect(page.getByText('0 angemeldet',{exact:true})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Teilnehmen',exact:true})).toHaveCount(0);
     await expect(page.getByText('1 interessiert',{exact:true})).toBeVisible();
     await expect(page.getByRole('button',{name:'Ich bin dabei',exact:true})).toHaveCount(0);
     await page.getByRole('button',{name:'English'}).click();
+    await page.goto(`/events/${id}/edit`);
     await page.getByRole('button',{name:'Open registration',exact:true}).click();
+    await page.goto(`/events/${id}`);
     await page.getByRole('button',{name:'I’m going',exact:true}).click();
     await expect(page.getByText('1 going',{exact:true})).toBeVisible();
     await page.getByRole('button',{name:'Withdraw registration',exact:true}).click();
@@ -50,6 +55,8 @@ test('Owner opens registration, Member joins, and a reschedule requires fresh co
     await expect(page.getByText('Waiting for Ops',{exact:true})).toBeVisible();
     await expect(page.getByText('Registration open',{exact:true})).toHaveCount(0);
     await expect(page.getByRole('button',{name:'I’m going',exact:true})).toHaveCount(0);
+    await expect(page.getByRole('heading',{name:'Take part',exact:true})).toHaveCount(0);
+    await page.goto(`/events/${id}/edit`);
     await expect(page.getByRole('button',{name:'Open registration',exact:true})).toBeDisabled();
     await publicPage.reload();expect(await publicPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   } finally {await visitor.close();}

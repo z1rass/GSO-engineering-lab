@@ -170,6 +170,8 @@ export const ownershipTransfers = pgTable('ownership_transfers', {
   activityId: integer('activity_id').notNull().references(()=>activities.id,{onDelete:'cascade'}),
   fromOwnerId: text('from_owner_id').notNull().references(()=>user.id),
   recipientId: text('recipient_id').notNull().references(()=>user.id),
+  tokenHash: text('token_hash'),
+  expiresAt: timestamp('expires_at',{withTimezone:true}),
   status: ownershipTransferStatus('status').notNull().default('PENDING'),
   createdAt: timestamp('created_at',{withTimezone:true}).notNull().defaultNow(),
   resolvedAt: timestamp('resolved_at',{withTimezone:true}),

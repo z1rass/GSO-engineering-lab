@@ -25,13 +25,13 @@ test('Ops manage Seasons and an owner continues a Project with real history visi
  }
  await create(0,'First builders');
  const project=(await page.request.post('/api/projects',{headers:{origin:'http://127.0.0.1:5173'},data:{title:'Continuous build',description:'Keep building',goal:'Across seasons'}}).then(r=>r.json())).project;
- await page.goto(`/projects/${project.id}`);await page.getByLabel('Season auswählen',{exact:true}).selectOption({label:'Season 0 · First builders'});await page.getByRole('button',{name:'Season zuordnen',exact:true}).click();
+ await page.goto(`/projects/${project.id}`);await expect(page.getByLabel('Season auswählen',{exact:true})).toHaveCount(0);
  await expect(page.getByRole('link',{name:'Season 0',exact:true})).toBeVisible();
  await page.goto('/ops/seasons');await page.getByText('Season bearbeiten',{exact:true}).click();const edit=page.getByRole('form',{name:'Season bearbeiten'});
  await edit.getByLabel('Status',{exact:true}).selectOption('FINISHED');await edit.getByRole('button',{name:'Season speichern'}).click();await expect(page.getByRole('article').getByText('Beendet',{exact:true}).first()).toBeVisible();
- await create(2,'Next builders');await page.goto(`/projects/${project.id}`);await page.getByLabel('Season auswählen',{exact:true}).selectOption({label:'Season 2 · Next builders'});await page.getByRole('button',{name:'Season zuordnen',exact:true}).click();
+ await create(2,'Next builders');await page.goto(`/projects/${project.id}`);
  await expect(page.getByRole('link',{name:'Season 0',exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'Season 1',exact:true})).toHaveCount(0);
  await page.getByRole('link',{name:'Season 2',exact:true}).click();await expect(page.getByRole('heading',{name:'Continuous build',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'English'}).click();await expect(page.getByRole('heading',{name:'Projects',exact:true})).toBeVisible();
- const context=await browser.newContext({viewport:{width:390,height:844}});try{const visitor=await context.newPage();await visitor.goto('/');await expect(visitor.getByRole('heading',{name:'Next builders'})).toBeVisible();await expect(visitor.getByRole('heading',{name:'Continuous build'})).toBeVisible();expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}finally{await context.close();}
+ const context=await browser.newContext({viewport:{width:390,height:844}});try{const visitor=await context.newPage();await visitor.goto('/home');await expect(visitor.getByRole('heading',{name:'Next builders'})).toBeVisible();await expect(visitor.getByRole('heading',{name:'Continuous build'})).toBeVisible();expect(await visitor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}finally{await context.close();}
 });

@@ -41,6 +41,7 @@ test('Owner requests a room and sees an Ops alternative before final confirmatio
     const publicPage=await visitor.newPage();await publicPage.goto(`/events/${id}`);
     await expect(publicPage.getByText('Alternative · noch nicht bestätigt',{exact:true})).toBeVisible();
     await expect(publicPage.locator('main')).not.toContainText('A103');
+    await page.goto(`/events/${id}/edit`);
     await page.getByRole('button',{name:'Vorgeschlagenen Termin übernehmen',exact:true}).click();
     await expect(page.getByText('17:00',{exact:false}).first()).toBeVisible();
     await expect(page.getByText('Der vorgeschlagene Termin ist übernommen. Ops bestätigt noch die Raumzusage.',{exact:true})).toBeVisible();

@@ -16,26 +16,39 @@ async function login(page:Page,name:string){
  const box=await page.request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`).then(r=>r.json());
  const mail=await page.request.get(`http://127.0.0.1:8025/api/v1/message/${box.messages[0].ID}`).then(r=>r.json());
  await page.goto(mail.Text.match(/https?:\/\/\S+/)[0]);
+ return email;
 }
 test('Owner proposes, successor accepts in EN, and both pages show the changed responsibility and permissions',async({page,browser})=>{
  const successorName=`Next owner ${randomUUID().slice(0,8)}`;
  await login(page,'Original owner');
  const context=await browser.newContext({viewport:{width:390,height:844}});const next=await context.newPage();
  try{
-  await login(next,successorName);
+  const successorEmail=await login(next,successorName);
   const created=await page.request.post('/api/projects',{headers:{origin:'http://127.0.0.1:5173'},data:{title:'Ownership project',goal:'Build together',description:'Hand over the Lab'}});
-  const id=(await created.json()).project.id;await page.goto(`/projects/${id}`);
-  await page.getByText('Verantwortung übertragen',{exact:true}).click();
-  await page.getByLabel('Neuer Owner',{exact:true}).selectOption({label:successorName});
-  await page.getByRole('button',{name:'Übergabe vorschlagen',exact:true}).click();
-  await expect(page.getByText('Wartet auf Annahme',{exact:true})).toBeVisible();
-  await expect(page.getByRole('link',{name:'Projekt bearbeiten',exact:true})).toBeVisible();
-  await next.goto(`/projects/${id}`);await next.getByRole('button',{name:'English'}).click();
+  const id=(await created.json()).project.id;await page.goto(`/projects/${id}/edit`);
+  await page.getByLabel('Schul-E-Mail der Person',{exact:true}).fill(successorEmail);
+  await page.getByRole('button',{name:'Einladung senden',exact:true}).click();
+  await expect(page.getByText('Einladung gesendet',{exact:true})).toBeVisible();
+  const box=await page.request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${successorEmail}`)}`).then(r=>r.json());
+  let invite='';for(const message of box.messages){const mail=await page.request.get(`http://127.0.0.1:8025/api/v1/message/${message.ID}`).then(r=>r.json());invite=mail.Text.match(/https?:\/\/\S+\/ownership\/accept\?token=[a-f0-9]{64}/)?.[0]??'';if(invite)break;}
+  expect(invite).not.toBe('');
+  await next.request.post('/api/auth/sign-out',{headers:{origin:new URL(next.url()).origin},data:{}});
+  await next.goto(invite);
+  await next.getByRole('link',{name:'Mit der eingeladenen E-Mail anmelden'}).click();
+  await next.getByLabel('Name',{exact:true}).fill(successorName);
+  await next.getByLabel('Schul-E-Mail').fill(successorEmail);
+  await next.getByRole('button',{name:'Login-Link senden'}).click();
+  await expect(next.getByRole('status')).toContainText('Postfach');
+  const mailbox=await next.request.get(`http://127.0.0.1:8025/api/v1/search?query=${encodeURIComponent(`to:${successorEmail}`)}`).then(r=>r.json());
+  const earlier=new Set(box.messages.map((message:{ID:string})=>message.ID));
+  const loginMail=await next.request.get(`http://127.0.0.1:8025/api/v1/message/${mailbox.messages.find((message:{ID:string})=>!earlier.has(message.ID)).ID}`).then(r=>r.json());
+  await next.goto(loginMail.Text.match(/https?:\/\/\S+/)[0]);
+  await next.getByRole('button',{name:'English'}).click();
   await next.getByRole('button',{name:'Accept ownership',exact:true}).click();
   await expect(next.getByRole('link',{name:'Edit project',exact:true})).toBeVisible();
   await expect(next.locator('.project-owner').first()).toContainText(successorName);
   expect(await next.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  await page.reload();await expect(page.getByRole('link',{name:'Projekt bearbeiten',exact:true})).toHaveCount(0);
+  await page.goto(`/projects/${id}`);await expect(page.getByRole('link',{name:'Projekt bearbeiten',exact:true})).toHaveCount(0);
   await expect(page.locator('.project-owner').first()).toContainText(successorName);
  }finally{await context.close();}
 });

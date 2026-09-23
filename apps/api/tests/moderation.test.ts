@@ -50,7 +50,7 @@ test('Hidden Activity and Idea disappear from every discovery surface and child 
   await write(`/api/projects/${project.id}/interested`, owner.cookie);
   await write(`/api/ideas/${idea.id}/interested`, owner.cookie);
   const season = (await write('/api/ops/seasons', ops.cookie, { number: 1900000000, title: 'Moderation season', description: '', startsOn: '2026-11-01', endsOn: '2026-12-01', status: 'UPCOMING' })).season;
-  await write(`/api/activities/${project.id}/seasons`, owner.cookie, { seasonId: season.id });
+  await pool.query('INSERT INTO activity_seasons(activity_id,season_id) VALUES($1,$2)', [project.id, season.id]);
   await write(`${moderation}/ideas/${idea.id}`, ops.cookie, { hidden: true, reason: 'Check seed' });
   expect((await call(`/api/projects/${project.id}`).then(r => r.json())).project.ideaId).toBeNull();
   await write(`${moderation}/activities/${project.id}`, ops.cookie, { hidden: true, reason: 'Check project' });

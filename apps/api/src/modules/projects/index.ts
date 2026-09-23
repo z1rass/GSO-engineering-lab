@@ -36,6 +36,7 @@ export function mountProjects(app: Express, pool: Pool, requireMember: RequestHa
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock(826001)'); // Coordinate creation with Season activation.
       if (input.ideaId !== null) {
         const idea = await client.query('SELECT id FROM ideas WHERE id=$1 AND NOT hidden FOR SHARE', [input.ideaId]);
         if (!idea.rowCount) { await client.query('ROLLBACK'); response.status(400).json({ error: 'INVALID_IDEA' }); return; }
@@ -43,6 +44,7 @@ export function mountProjects(app: Express, pool: Pool, requireMember: RequestHa
       const activity = await client.query<{ id: number }>(`INSERT INTO activities(type,title,description,owner_id,materials,private_instructions,discord_url,idea_id)
         VALUES ('PROJECT',$1,$2,$3,$4,$5,$6,$7) RETURNING id`, [input.title, input.description, response.locals.userId, input.materials, input.privateInstructions, input.discordUrl, input.ideaId]);
       const id = activity.rows[0]!.id;
+      await client.query("INSERT INTO activity_seasons(activity_id,season_id) SELECT $1,id FROM seasons WHERE status='ACTIVE' ON CONFLICT DO NOTHING",[id]);
       await client.query('INSERT INTO project_details(activity_id,goal,tech_stack,repository_url,documentation_url) VALUES($1,$2,$3,$4,$5)', [id,input.goal,input.techStack,input.repositoryUrl,input.documentationUrl]);
       const result = await client.query(`SELECT ${publicFields} ${projectFrom} AND a.id=$1`, [id]);
       await client.query('COMMIT');

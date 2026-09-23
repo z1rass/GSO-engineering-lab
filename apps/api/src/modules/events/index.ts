@@ -47,6 +47,7 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock(826001)'); // Coordinate creation with Season activation.
       if (input.ideaId !== null) {
         const idea = await client.query('SELECT id FROM ideas WHERE id=$1 AND NOT hidden FOR SHARE', [input.ideaId]);
         if (!idea.rowCount) { await client.query('ROLLBACK'); response.status(400).json({ error: 'INVALID_IDEA' }); return; }
@@ -54,6 +55,7 @@ export function mountEvents(app: Express, pool: Pool, requireMember: RequestHand
       const activity = await client.query<{ id: number }>(`INSERT INTO activities(type,title,description,owner_id,materials,private_instructions,discord_url,idea_id)
         VALUES ('EVENT',$1,$2,$3,$4,$5,$6,$7) RETURNING id`, [input.title, input.description, response.locals.userId, input.materials, input.privateInstructions, input.discordUrl, input.ideaId]);
       const id = activity.rows[0]!.id;
+      await client.query("INSERT INTO activity_seasons(activity_id,season_id) SELECT $1,id FROM seasons WHERE status='ACTIVE' ON CONFLICT DO NOTHING",[id]);
       await client.query(`INSERT INTO event_details(activity_id,category,planned_date,end_date,start_time,end_time,general_location,repository_url,school_room_required,place_type)
         VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [id,input.category,input.plannedDate,input.endDate,input.startTime,input.endTime,schoolRoom(input) ? (input.generalLocation || 'GSO') : input.placeType==='ONLINE' ? 'Online' : input.generalLocation,input.repositoryUrl,schoolRoom(input),input.placeType ?? (schoolRoom(input) ? 'SCHOOL' : 'OTHER')]);
       if (requestable(input)) await client.query("INSERT INTO room_requests(activity_id,note) VALUES($1,'') ON CONFLICT DO NOTHING",[id]);

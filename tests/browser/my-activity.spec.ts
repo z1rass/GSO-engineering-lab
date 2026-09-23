@@ -39,8 +39,11 @@ test('Take Task → My Activity shows responsibility in DE/EN on mobile and refl
   await expect(englishTasks.getByText('In progress', { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await englishTasks.getByRole('link', { name: /Monitoring einrichten/ }).click();
+  await page.getByRole('link', { name: 'Edit project', exact: true }).click();
+  await page.getByText('Manage task', { exact: true }).click();
   await page.getByRole('button', { name: 'Release', exact: true }).click();
   await expect(page.getByText('Open', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Menu' }).click();
   await page.getByRole('navigation').getByRole('link', { name: 'My Lab', exact: true }).click();
   await expect(page.getByText('You have no tasks in progress.', { exact: true })).toBeVisible();
   await page.route('**/api/me/activity', r => r.fulfill({ status: 503, json: { error: 'SERVICE_UNAVAILABLE' } }));
