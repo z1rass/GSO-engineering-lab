@@ -301,7 +301,6 @@ button:disabled { opacity: .6; cursor: wait; }
 .idea-list h2 { font-size: clamp(24px, 3vw, 32px); line-height: 1.25; letter-spacing: -.035em; margin: 10px 0; overflow-wrap: anywhere; }
 .idea-date { color: var(--muted); font-size: 12px; }
 .idea-preview { color: var(--muted); line-height: 1.7; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-.idea-arrow { align-self: center; font-size: 24px; }
 .ideas-empty { padding: 48px 0; border-top: 1px solid var(--line); }
 .ideas-empty h2 { font-size: 28px; margin-bottom: 16px; }
 .ideas-empty p { color: var(--muted); line-height: 1.7; }

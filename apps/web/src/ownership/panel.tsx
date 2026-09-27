@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import type { Language } from '../i18n';
 import { useResource } from '../shared/use-resource';
+import { Icon } from '../shared/icon';
 
 const person = z.object({ id: z.string(), name: z.string() });
 const schema = z.object({ canPropose: z.boolean(), pending: z.object({ id: z.number(), recipient: person, fromOwner: person, canCancel: z.boolean() }).nullable() });
@@ -56,12 +57,12 @@ export function OwnershipInvitationPage({ language }: { language: Language }) {
       navigate(`/${invitation.type === 'EVENT' ? 'events' : 'projects'}/${invitation.activityId}`);
     } catch { setError(true); } finally { setBusy(false); }
   }
-  return <section className="account-page invitation-page"><div className="account-heading"><p className="eyebrow">GSO engineering lab</p><h1>{t.inviteTitle}</h1><p>{t.acceptHint}</p></div><div className="invitation-card">
+  return <section className="account-page invitation-page"><div className="account-heading"><h1>{t.inviteTitle}</h1><p>{t.acceptHint}</p></div><div className="invitation-card">
     {!validToken || resource.status === 410 ? <p role="alert">{t.expired}</p>
       : resource.status === 401 ? <><p>{t.signIn}</p><Link className="button-primary" to={`/login?next=${encodeURIComponent(`/ownership/accept?token=${token}`)}`}>{t.signIn}</Link></>
-      : resource.status === 404 ? <><p role="alert">{t.wrongAccount}</p><Link className="text-link" to={`/login?next=${encodeURIComponent(`/ownership/accept?token=${token}`)}`}>{t.signIn} ↗</Link></>
+      : resource.status === 404 ? <><p role="alert">{t.wrongAccount}</p><Link className="text-link" to={`/login?next=${encodeURIComponent(`/ownership/accept?token=${token}`)}`}>{t.signIn}</Link></>
       : !resource.data ? <p role={resource.loading ? 'status' : 'alert'}>{resource.loading ? t.loading : t.error} {!resource.loading && <button className="text-link" onClick={resource.retry}>{t.retry}</button>}</p>
       : <><p className="eyebrow">{resource.data.invitation.type === 'EVENT' ? 'Event' : 'Project'}</p><h2>{resource.data.invitation.title}</h2><p>{t.invitedBy}: {resource.data.invitation.fromOwner}</p><button className="button-primary" disabled={busy} onClick={() => void accept()}>{busy ? t.accepting : t.accept}</button>{error && <p role="alert" className="form-error">{t.expired}</p>}</>}
-    <Link className="text-link" to="/home">← {t.back}</Link>
+    <Link className="text-link back-link" to="/home"><Icon name="arrow-left" />{t.back}</Link>
   </div></section>;
 }

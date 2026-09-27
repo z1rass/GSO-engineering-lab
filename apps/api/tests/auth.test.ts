@@ -107,6 +107,14 @@ test('Development ngrok origins can request a magic link without opening cross-s
   expect(new URL(message.Text.match(/https?:\/\/\S+/)[0]).origin).toBe(tunnelOrigin);
 });
 
+test('Development loopback origin keeps the magic link on the same browser host', async () => {
+  const loopbackOrigin = 'http://127.0.0.1:5173';
+  const { url } = await requestTestLink(base, loopbackOrigin);
+  expect(url.origin).toBe(loopbackOrigin);
+  const { cookie } = await redeemTestLink(base, url);
+  expect((await fetch(`${base}/api/me`, { headers: { cookie } })).status).toBe(200);
+});
+
 
 test('Repeated magic-link requests are rate limited', async () => {
   const body = { email: `limit-${randomUUID()}@gso.schule.koeln`, name: 'Ada' };

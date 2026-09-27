@@ -1,0 +1,709 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-27T18:21:39Z",
+  "title": "Design System: GSO Engineering Lab",
+  "extensions": {
+    "colorMeta": {
+      "mint": {
+        "role": "primary",
+        "displayName": "Pale Mint",
+        "canonical": "#bdd8d2",
+        "tonalRamp": [
+          "oklch(15% 0.040 169)",
+          "oklch(26% 0.040 169)",
+          "oklch(38% 0.040 169)",
+          "oklch(49% 0.040 169)",
+          "oklch(60% 0.040 169)",
+          "oklch(72% 0.040 169)",
+          "oklch(84% 0.040 169)",
+          "oklch(95% 0.040 169)"
+        ]
+      },
+      "mint-hover": {
+        "role": "primary",
+        "displayName": "Lifted Mint",
+        "canonical": "#e3f0eb",
+        "tonalRamp": [
+          "oklch(15% 0.030 169)",
+          "oklch(26% 0.030 169)",
+          "oklch(38% 0.030 169)",
+          "oklch(49% 0.030 169)",
+          "oklch(60% 0.030 169)",
+          "oklch(72% 0.030 169)",
+          "oklch(84% 0.030 169)",
+          "oklch(95% 0.030 169)"
+        ]
+      },
+      "mint-soft": {
+        "role": "primary",
+        "displayName": "Deep Mint Wash",
+        "canonical": "#273532",
+        "tonalRamp": [
+          "oklch(15% 0.025 169)",
+          "oklch(26% 0.025 169)",
+          "oklch(38% 0.025 169)",
+          "oklch(49% 0.025 169)",
+          "oklch(60% 0.025 169)",
+          "oklch(72% 0.025 169)",
+          "oklch(84% 0.025 169)",
+          "oklch(95% 0.025 169)"
+        ]
+      },
+      "mint-ink": {
+        "role": "primary",
+        "displayName": "Ink on Mint",
+        "canonical": "#111514",
+        "tonalRamp": [
+          "oklch(15% 0.010 169)",
+          "oklch(26% 0.010 169)",
+          "oklch(38% 0.010 169)",
+          "oklch(49% 0.010 169)",
+          "oklch(60% 0.010 169)",
+          "oklch(72% 0.010 169)",
+          "oklch(84% 0.010 169)",
+          "oklch(95% 0.010 169)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Workshop Charcoal",
+        "canonical": "#151515",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card Charcoal",
+        "canonical": "#202020",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Raised Charcoal",
+        "canonical": "#252525",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "card-hover": {
+        "role": "neutral",
+        "displayName": "Hover Charcoal",
+        "canonical": "#292929",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Warm Chalk",
+        "canonical": "#f4f3f0",
+        "tonalRamp": [
+          "oklch(15% 0.006 85)",
+          "oklch(26% 0.006 85)",
+          "oklch(38% 0.006 85)",
+          "oklch(49% 0.006 85)",
+          "oklch(60% 0.006 85)",
+          "oklch(72% 0.006 85)",
+          "oklch(84% 0.006 85)",
+          "oklch(95% 0.006 85)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Quiet Gray",
+        "canonical": "#aaa9a6",
+        "tonalRamp": [
+          "oklch(15% 0.004 85)",
+          "oklch(26% 0.004 85)",
+          "oklch(38% 0.004 85)",
+          "oklch(49% 0.004 85)",
+          "oklch(60% 0.004 85)",
+          "oklch(72% 0.004 85)",
+          "oklch(84% 0.004 85)",
+          "oklch(95% 0.004 85)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline Gray",
+        "canonical": "#383838",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "action": {
+        "role": "neutral",
+        "displayName": "Action White",
+        "canonical": "#f0efeb",
+        "tonalRamp": [
+          "oklch(15% 0.008 85)",
+          "oklch(26% 0.008 85)",
+          "oklch(38% 0.008 85)",
+          "oklch(49% 0.008 85)",
+          "oklch(60% 0.008 85)",
+          "oklch(72% 0.008 85)",
+          "oklch(84% 0.008 85)",
+          "oklch(95% 0.008 85)"
+        ]
+      },
+      "action-hover": {
+        "role": "neutral",
+        "displayName": "Mint-Tinted Action",
+        "canonical": "#d0e4df",
+        "tonalRamp": [
+          "oklch(15% 0.023 169)",
+          "oklch(26% 0.023 169)",
+          "oklch(38% 0.023 169)",
+          "oklch(49% 0.023 169)",
+          "oklch(60% 0.023 169)",
+          "oklch(72% 0.023 169)",
+          "oklch(84% 0.023 169)",
+          "oklch(95% 0.023 169)"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Soft Coral",
+        "canonical": "#f0a7a0",
+        "tonalRamp": [
+          "oklch(15% 0.070 25)",
+          "oklch(26% 0.070 25)",
+          "oklch(38% 0.070 25)",
+          "oklch(49% 0.070 25)",
+          "oklch(60% 0.070 25)",
+          "oklch(72% 0.070 25)",
+          "oklch(84% 0.070 25)",
+          "oklch(95% 0.070 25)"
+        ]
+      },
+      "danger-soft": {
+        "role": "tertiary",
+        "displayName": "Deep Red Charcoal",
+        "canonical": "#392522",
+        "tonalRamp": [
+          "oklch(15% 0.028 25)",
+          "oklch(26% 0.028 25)",
+          "oklch(38% 0.028 25)",
+          "oklch(49% 0.028 25)",
+          "oklch(60% 0.028 25)",
+          "oklch(72% 0.028 25)",
+          "oklch(84% 0.028 25)",
+          "oklch(95% 0.028 25)"
+        ]
+      },
+      "field-surface": {
+        "role": "neutral",
+        "displayName": "Field Charcoal",
+        "canonical": "#303030",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "status-surface": {
+        "role": "primary",
+        "displayName": "Status Charcoal",
+        "canonical": "#27332f",
+        "tonalRamp": [
+          "oklch(15% 0.023 169)",
+          "oklch(26% 0.023 169)",
+          "oklch(38% 0.023 169)",
+          "oklch(49% 0.023 169)",
+          "oklch(60% 0.023 169)",
+          "oklch(72% 0.023 169)",
+          "oklch(84% 0.023 169)",
+          "oklch(95% 0.023 169)"
+        ]
+      },
+      "status-ink": {
+        "role": "primary",
+        "displayName": "Status Mint",
+        "canonical": "#c0dcd1",
+        "tonalRamp": [
+          "oklch(15% 0.037 169)",
+          "oklch(26% 0.037 169)",
+          "oklch(38% 0.037 169)",
+          "oklch(49% 0.037 169)",
+          "oklch(60% 0.037 169)",
+          "oklch(72% 0.037 169)",
+          "oklch(84% 0.037 169)",
+          "oklch(95% 0.037 169)"
+        ]
+      },
+      "action-ink": {
+        "role": "neutral",
+        "displayName": "Action Ink",
+        "canonical": "#191919",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "action-hover-ink": {
+        "role": "neutral",
+        "displayName": "Action Hover Ink",
+        "canonical": "#171b1a",
+        "tonalRamp": [
+          "oklch(15% 0.010 169)",
+          "oklch(26% 0.010 169)",
+          "oklch(38% 0.010 169)",
+          "oklch(49% 0.010 169)",
+          "oklch(60% 0.010 169)",
+          "oklch(72% 0.010 169)",
+          "oklch(84% 0.010 169)",
+          "oklch(95% 0.010 169)"
+        ]
+      },
+      "collection-hover": {
+        "role": "neutral",
+        "displayName": "Collection Hover",
+        "canonical": "#262626",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "collection-line": {
+        "role": "neutral",
+        "displayName": "Collection Line",
+        "canonical": "#353535",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "panel-line": {
+        "role": "neutral",
+        "displayName": "Panel Line",
+        "canonical": "#3b3b3b",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "picker-popover": {
+        "role": "neutral",
+        "displayName": "Picker Popover",
+        "canonical": "#242424",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(26% 0.000 0)",
+          "oklch(38% 0.000 0)",
+          "oklch(49% 0.000 0)",
+          "oklch(60% 0.000 0)",
+          "oklch(72% 0.000 0)",
+          "oklch(84% 0.000 0)",
+          "oklch(95% 0.000 0)"
+        ]
+      },
+      "picker-selected": {
+        "role": "neutral",
+        "displayName": "Picker Selection",
+        "canonical": "#e9e9e5",
+        "tonalRamp": [
+          "oklch(15% 0.006 85)",
+          "oklch(26% 0.006 85)",
+          "oklch(38% 0.006 85)",
+          "oklch(49% 0.006 85)",
+          "oklch(60% 0.006 85)",
+          "oklch(72% 0.006 85)",
+          "oklch(84% 0.006 85)",
+          "oklch(95% 0.006 85)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing hero only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Collection introductions; nearby sizes serve Home and Season contexts."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Event and collection item titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and practical guidance."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Fields, states, dates, and technical cues."
+      }
+    },
+    "shadows": [
+      {
+        "name": "picker-popover",
+        "value": "0 16px 48px #0008",
+        "purpose": "The only raised control layer, separating custom date and time popovers from dark and cover-toned form surfaces."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state",
+        "value": "180ms",
+        "purpose": "Small hover and state changes; disabled for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-header",
+        "value": "1170px"
+      },
+      {
+        "name": "landing-values",
+        "value": "900px"
+      },
+      {
+        "name": "mobile",
+        "value": "760px"
+      },
+      {
+        "name": "small-mobile",
+        "value": "540px"
+      },
+      {
+        "name": "landing-small-mobile",
+        "value": "480px"
+      },
+      {
+        "name": "very-small",
+        "value": "380px"
+      }
+    ],
+    "coverThemes": {
+      "teal": {
+        "asset": "/covers/event-ribbon.jpg",
+        "paper": "#073332",
+        "card": "#164b49",
+        "cardHover": "#1d5552",
+        "line": "#315e5b",
+        "muted": "#b7cfca",
+        "accent": "#d5f1ea",
+        "accentSoft": "#174d48"
+      },
+      "plum": {
+        "asset": "/covers/event-chrome.jpg",
+        "paper": "#43172f",
+        "card": "#5a2a43",
+        "cardHover": "#65334c",
+        "line": "#74415b",
+        "muted": "#d5b7c5",
+        "accent": "#f5d5e4",
+        "accentSoft": "#613047"
+      },
+      "slate": {
+        "asset": "/covers/event-glass.jpg",
+        "paper": "#122c2e",
+        "card": "#264345",
+        "cardHover": "#2e4b4d",
+        "line": "#426062",
+        "muted": "#bacfcb",
+        "accent": "#d4e9e1",
+        "accentSoft": "#2b4a46"
+      },
+      "blue": {
+        "asset": "/covers/project-paper.jpg",
+        "paper": "#172857",
+        "card": "#293d70",
+        "cardHover": "#30477e",
+        "line": "#4c6290",
+        "muted": "#bdc9e2",
+        "accent": "#dfe8ff",
+        "accentSoft": "#304678"
+      },
+      "amber": {
+        "asset": "/covers/project-amber.jpg",
+        "paper": "#472719",
+        "card": "#603c29",
+        "cardHover": "#6b4632",
+        "line": "#81553c",
+        "muted": "#dfc8b7",
+        "accent": "#f8e5ce",
+        "accentSoft": "#704834"
+      },
+      "graphite": {
+        "asset": "/covers/project-structure.jpg",
+        "paper": "#1b2020",
+        "card": "#303839",
+        "cardHover": "#3b4344",
+        "line": "#4c5756",
+        "muted": "#bdc7c2",
+        "accent": "#d5eac3",
+        "accentSoft": "#3d4a3a"
+      }
+    },
+    "coverSelection": {
+      "source": "apps/web/src/activity-covers.ts",
+      "rule": "Content kind and trimmed lowercase title select one of the six covers deterministically. The same unchanged title and kind keep the same cover; a title edit may select another.",
+      "eventOrder": [
+        "teal",
+        "plum",
+        "slate",
+        "blue",
+        "amber",
+        "graphite"
+      ],
+      "projectOrder": [
+        "blue",
+        "amber",
+        "graphite",
+        "teal",
+        "plum",
+        "slate"
+      ],
+      "scope": "Idea, Event, and Project creation pages apply the selected tone to the full page, header states, and form controls; listing and detail pages retain the default charcoal theme.",
+      "ideaOrder": [
+        "slate",
+        "teal",
+        "amber",
+        "graphite",
+        "plum",
+        "blue"
+      ]
+    },
+    "iconography": {
+      "source": "apps/web/src/shared/icon.tsx",
+      "viewBox": "0 0 24 24",
+      "defaultSize": "18px",
+      "strokeWidth": "1.75",
+      "strokeLinecap": "round",
+      "strokeLinejoin": "round",
+      "fill": "none",
+      "color": "currentColor",
+      "names": [
+        "home",
+        "calendar",
+        "event",
+        "project",
+        "idea",
+        "season",
+        "user",
+        "plus",
+        "arrow-left",
+        "arrow-right",
+        "chevron-left",
+        "chevron-right",
+        "chevron-down",
+        "clock",
+        "pin",
+        "check",
+        "compass",
+        "people",
+        "settings",
+        "link",
+        "spark",
+        "list",
+        "close"
+      ],
+      "accessibility": "Decorative aria-hidden SVG accompanies visible text labels."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The strongest action, rendered in warm white with dark text.",
+      "html": "<button class=\"ds-button-primary\" type=\"button\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>Idee teilen</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 18px;border:1px solid var(--action,#f0efeb);border-radius:10px;background:var(--action,#f0efeb);color:#191919;font:700 14px/1.4 \"Space Grotesk\",Arial,sans-serif;cursor:pointer;transition:background 180ms,border-color 180ms}.ds-button-primary svg{flex:none}.ds-button-primary:hover,.ds-button-primary:active{border-color:var(--action-hover,#d0e4df);background:var(--action-hover,#d0e4df);color:#171b1a}.ds-button-primary:focus-visible{outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}.ds-button-primary:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none}}"
+    },
+    {
+      "name": "Standard Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "A labeled, neutral field with a mint focus state.",
+      "html": "<label class=\"ds-field\">Titel<input type=\"text\" placeholder=\"Titel eingeben\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;color:#d2d2d0;font:500 15px/1.45 \"Space Grotesk\",Arial,sans-serif}.ds-field input{min-height:52px;padding:11px 14px;border:1px solid #4b4b4b;border-radius:10px;background:#303030;color:var(--ink,#f4f3f0);font:400 16px/1.4 \"Space Grotesk\",Arial,sans-serif;caret-color:var(--accent,#bdd8d2)}.ds-field input::placeholder{color:#858583}.ds-field input:hover{border-color:#707070}.ds-field input:focus-visible{border-color:var(--accent,#bdd8d2);outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}"
+    },
+    {
+      "name": "Primary Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "One-row desktop routes with semantic inline SVG icons and a charcoal current-page tile.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Hauptnavigation\"><a href=\"#home\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z\"/><path d=\"M9 21v-7h6v7\"/></svg>Home</a><a href=\"#events\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 5h16v4a3 3 0 0 0 0 6v4H4v-4a3 3 0 0 0 0-6V5Z\"/></svg>Events</a><a href=\"#projects\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><path d=\"M3 10h18M9 5V3h6v2\"/></svg>Projekte</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:2px;padding:8px;background:var(--paper,#151515);font-family:\"Space Grotesk\",Arial,sans-serif}.ds-nav a{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 11px;border-radius:9px;color:#a8a8a5;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;transition:background 180ms,color 180ms}.ds-nav svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;color:#878786}.ds-nav a:hover{background:var(--surface,#252525);color:var(--ink,#f4f3f0)}.ds-nav a:hover svg,.ds-nav a[aria-current=\"page\"] svg{color:var(--accent,#bdd8d2)}.ds-nav a[aria-current=\"page\"]{background:#2a2a2a;color:var(--ink,#f4f3f0);font-weight:600}.ds-nav a:focus-visible{outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}@media(prefers-reduced-motion:reduce){.ds-nav a{transition:none}}"
+    },
+    {
+      "name": "Status Label",
+      "kind": "chip",
+      "refersTo": "status",
+      "description": "A legible preparation state with subdued mint coloring.",
+      "html": "<span class=\"ds-status\">In Vorbereitung</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;min-height:28px;padding:4px 10px;border:1px solid #3c514a;border-radius:7px;background:#27332f;color:#c0dcd1;font:600 11px/1.3 \"Space Grotesk\",Arial,sans-serif}"
+    },
+    {
+      "name": "Collection Card",
+      "kind": "card",
+      "refersTo": "collection-card",
+      "description": "One linked Idea or Project in a single-column collection, with a trailing square abstract cover.",
+      "html": "<a class=\"ds-collection-card\" href=\"#idea\"><div class=\"ds-collection-content\"><small>IDEE</small><strong>Zusammen etwas bauen</strong><span>Eine Idee, aus der gemeinsame Arbeit entstehen kann.</span></div><img class=\"ds-collection-cover\" src=\"/covers/event-glass.jpg\" alt=\"\" width=\"148\" height=\"148\"></a>",
+      "css": ".ds-collection-card{display:flex;align-items:center;gap:22px;min-height:164px;padding:20px 22px;border:1px solid #353535;border-radius:15px;background:var(--card,#202020);color:var(--ink,#f4f3f0);font-family:\"Space Grotesk\",Arial,sans-serif;text-decoration:none;transition:background 180ms,border-color 180ms}.ds-collection-content{display:grid;gap:9px;flex:1;min-width:0}.ds-collection-content small{color:var(--accent,#bdd8d2);font-size:11px;font-weight:700;letter-spacing:.08em}.ds-collection-content strong{font-size:27px;font-weight:500;line-height:1.2;letter-spacing:-.025em;overflow-wrap:anywhere}.ds-collection-content span{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;color:var(--muted,#aaa9a6);font-size:15px;line-height:1.6}.ds-collection-cover{flex:0 0 148px;width:148px;height:148px;object-fit:cover;border-radius:11px}.ds-collection-card:hover{border-color:#60605f;background:#262626}.ds-collection-card:focus-visible{outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}@media(max-width:540px){.ds-collection-card{gap:14px;padding:16px}.ds-collection-cover{flex-basis:92px;width:92px;height:92px}.ds-collection-content strong{font-size:20px}}@media(prefers-reduced-motion:reduce){.ds-collection-card{transition:none}}"
+    },
+    {
+      "name": "Event Timeline Card",
+      "kind": "custom",
+      "refersTo": "event-timeline-card",
+      "description": "A date rail, linked Event content, and a persistent square abstract cover.",
+      "html": "<div class=\"ds-timeline\"><div class=\"ds-timeline-date\"><strong>2. Dez.</strong><span>Dienstag</span></div><span class=\"ds-timeline-rail\" aria-hidden=\"true\"></span><a class=\"ds-timeline-card\" href=\"#event\"><span class=\"ds-timeline-content\"><span class=\"ds-timeline-time\">12:00</span><strong>Hello World</strong><span class=\"ds-timeline-place\">GSO</span><span class=\"ds-timeline-state\">In Vorbereitung</span></span><img class=\"ds-timeline-cover\" src=\"/covers/event-ribbon.jpg\" alt=\"\" width=\"160\" height=\"160\"></a></div>",
+      "css": ".ds-timeline{display:grid;grid-template-columns:142px 24px minmax(0,1fr);gap:20px;color:var(--ink,#f4f3f0);font-family:\"Space Grotesk\",Arial,sans-serif}.ds-timeline-date{display:flex;flex-direction:column;gap:4px;padding-top:8px}.ds-timeline-date strong{font-size:23px;font-weight:600;letter-spacing:-.04em}.ds-timeline-date span{color:var(--muted,#aaa9a6);font-size:15px}.ds-timeline-rail{position:relative;width:1px;margin-inline:auto;background:#343434}.ds-timeline-rail:before{content:\"\";position:absolute;top:13px;left:-4px;width:9px;height:9px;border-radius:50%;background:#898986}.ds-timeline-card{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:20px;min-height:180px;padding:20px;border:1px solid #353535;border-radius:15px;background:var(--card,#202020);color:var(--ink,#f4f3f0);text-decoration:none;transition:background 180ms,border-color 180ms}.ds-timeline-content{display:flex;flex-direction:column;align-items:flex-start;min-width:0}.ds-timeline-card:hover{border-color:#60605f;background:#262626}.ds-timeline-card:focus-visible{outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}.ds-timeline-time,.ds-timeline-place{color:var(--muted,#aaa9a6);font-size:14px}.ds-timeline-content strong{margin:12px 0 10px;font-size:30px;font-weight:500;letter-spacing:-.035em;overflow-wrap:anywhere}.ds-timeline-state{margin-top:auto;padding-top:16px;color:var(--accent,#bdd8d2);font-size:13px;font-weight:600}.ds-timeline-cover{display:block;width:160px;height:160px;object-fit:cover;border-radius:11px}@media(max-width:760px){.ds-timeline{grid-template-columns:90px 12px minmax(0,1fr);gap:12px}.ds-timeline-card{grid-template-columns:minmax(0,1fr) 102px;gap:14px}.ds-timeline-cover{width:102px;height:102px}}@media(max-width:540px){.ds-timeline{grid-template-columns:1fr;gap:8px}.ds-timeline-date{flex-direction:row;align-items:baseline;gap:9px;padding:0}.ds-timeline-rail{display:none}.ds-timeline-card{grid-template-columns:minmax(0,1fr) 84px;gap:10px;padding:16px}.ds-timeline-cover{width:84px;height:84px}}@media(prefers-reduced-motion:reduce){.ds-timeline-card{transition:none}}"
+    },
+    {
+      "name": "Creation Cover",
+      "kind": "custom",
+      "refersTo": "creation-cover",
+      "description": "A square abstract cover paired with the large title; title first and short image second on mobile for Ideas, Events, and Projects.",
+      "html": "<div class=\"ds-creation-layout\"><label class=\"ds-creation-title\">Titel<input value=\"Dein Event\" aria-label=\"Titel\"></label><div class=\"ds-creation-cover\"><img src=\"/covers/event-ribbon.jpg\" alt=\"\" width=\"600\" height=\"600\"></div></div>",
+      "css": ".ds-creation-layout{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(0,1.25fr);gap:20px 34px;align-items:start;background:#073332;color:#f4f3f0;font-family:\"Space Grotesk\",Arial,sans-serif}.ds-creation-title{grid-column:2;grid-row:1;display:grid;gap:8px;color:#b7cfca;font-size:12px}.ds-creation-title input{min-height:78px;padding:10px 0;border:0;border-bottom:1px solid #315e5b;border-radius:0;background:transparent;color:#f4f3f0;font:500 40px/1.1 \"Space Grotesk\",Arial,sans-serif;letter-spacing:-.045em}.ds-creation-title input:focus-visible{outline:2px solid #d5f1ea;outline-offset:3px}.ds-creation-cover{grid-column:1;grid-row:1;overflow:hidden;aspect-ratio:1;border-radius:18px;background:#164b49}.ds-creation-cover img{display:block;width:100%;height:100%;object-fit:cover}@media(max-width:760px){.ds-creation-layout{grid-template-columns:1fr}.ds-creation-title{grid-column:1;grid-row:1}.ds-creation-cover{grid-column:1;grid-row:2;width:100%;height:220px;aspect-ratio:auto}}@media(max-width:540px){.ds-creation-cover{height:180px}}"
+    },
+    {
+      "name": "Date Picker",
+      "kind": "input",
+      "refersTo": "schedule-trigger",
+      "description": "Localized date trigger and calendar popover with explicit month, selected day, today, and clear controls.",
+      "html": "<div class=\"ds-schedule-field\"><span class=\"ds-schedule-label\">Datum</span><button class=\"ds-schedule-trigger\" type=\"button\" aria-haspopup=\"dialog\" aria-expanded=\"true\"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4M17 3v4M3 10h18\"/></svg>Datum wählen<span class=\"ds-schedule-chevron\">⌄</span></button><div class=\"ds-calendar\" role=\"dialog\" aria-label=\"Datum\"><div class=\"ds-calendar-head\"><strong>September 2026</strong><span>‹ &nbsp; ›</span></div><div class=\"ds-calendar-grid\"><small>MO</small><small>DI</small><small>MI</small><small>DO</small><small>FR</small><small>SA</small><small>SO</small><button type=\"button\">21</button><button type=\"button\">22</button><button type=\"button\">23</button><button type=\"button\">24</button><button type=\"button\">25</button><button type=\"button\" aria-pressed=\"true\">26</button><button type=\"button\">27</button></div><div class=\"ds-calendar-foot\"><button type=\"button\">Heute</button><button type=\"button\">Entfernen</button></div></div></div>",
+      "css": ".ds-schedule-field{position:relative;display:grid;gap:7px;width:300px;color:var(--ink,#f4f3f0);font-family:\"Space Grotesk\",Arial,sans-serif}.ds-schedule-label{color:var(--muted,#aaa9a6);font-size:12px;font-weight:500}.ds-schedule-trigger{display:flex;align-items:center;gap:9px;min-height:50px;padding:10px 12px;border:1px solid var(--line,#383838);border-radius:9px;background:var(--card,#202020);color:var(--ink,#f4f3f0);font:500 14px/1.4 \"Space Grotesk\",Arial,sans-serif;text-align:left}.ds-schedule-trigger svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;color:var(--muted,#aaa9a6)}.ds-schedule-chevron{margin-left:auto;color:var(--muted,#aaa9a6)}.ds-schedule-trigger:hover,.ds-schedule-trigger[aria-expanded=\"true\"]{border-color:var(--accent,#bdd8d2);background:var(--card-hover,#292929)}.ds-schedule-trigger:focus-visible,.ds-calendar button:focus-visible{outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}.ds-calendar{padding:16px;border:1px solid #555;border-radius:13px;background:#242424;color:#f4f3f0;box-shadow:0 16px 48px #0008}.ds-calendar-head,.ds-calendar-foot{display:flex;justify-content:space-between;align-items:center}.ds-calendar-head strong{font-size:15px}.ds-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:12px}.ds-calendar-grid small,.ds-calendar-grid button{display:grid;place-items:center;min-height:35px;font-size:12px}.ds-calendar-grid small{color:#a8a8a4}.ds-calendar-grid button{border:0;border-radius:7px;background:transparent;color:#ededeb}.ds-calendar-grid button:hover{background:#3c3c3c}.ds-calendar-grid button[aria-pressed=\"true\"]{background:#e9e9e5;color:#171717;font-weight:700}.ds-calendar-foot{margin-top:12px;padding-top:10px;border-top:1px solid #454545}.ds-calendar-foot button{border:0;background:transparent;color:#c7dcd5;font-size:12px;font-weight:600}"
+    },
+    {
+      "name": "Time Picker",
+      "kind": "input",
+      "refersTo": "schedule-popover",
+      "description": "Localized half-hour suggestions with an explicit custom-time input and clear action.",
+      "html": "<div class=\"ds-time-field\"><span class=\"ds-time-label\">Beginn</span><button class=\"ds-time-trigger\" type=\"button\" aria-haspopup=\"dialog\" aria-expanded=\"true\">10:00<span>⌄</span></button><div class=\"ds-time-panel\" role=\"dialog\" aria-label=\"Beginn\"><div class=\"ds-time-head\"><strong>Beginn</strong><small>Europe/Berlin</small></div><div class=\"ds-time-options\"><button type=\"button\">09:00</button><button type=\"button\">09:30</button><button type=\"button\" aria-pressed=\"true\">10:00</button><button type=\"button\">10:30</button><button type=\"button\">11:00</button><button type=\"button\">11:30</button></div><div class=\"ds-time-custom\"><label>Andere Uhrzeit<input type=\"time\" value=\"10:00\"></label><button type=\"button\">Fertig</button></div><button class=\"ds-time-clear\" type=\"button\">Zeit entfernen</button></div></div>",
+      "css": ".ds-time-field{display:grid;gap:7px;width:255px;color:var(--ink,#f4f3f0);font-family:\"Space Grotesk\",Arial,sans-serif}.ds-time-label{color:var(--muted,#aaa9a6);font-size:12px}.ds-time-trigger{display:flex;justify-content:space-between;align-items:center;min-height:50px;padding:10px 12px;border:1px solid var(--line,#383838);border-radius:9px;background:var(--card,#202020);color:var(--ink,#f4f3f0);font:500 14px/1.4 \"Space Grotesk\",Arial,sans-serif}.ds-time-trigger:hover,.ds-time-trigger[aria-expanded=\"true\"]{border-color:var(--accent,#bdd8d2);background:var(--card-hover,#292929)}.ds-time-panel{padding:16px;border:1px solid #555;border-radius:13px;background:#242424;color:#f4f3f0;box-shadow:0 16px 48px #0008}.ds-time-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}.ds-time-head strong{font-size:14px}.ds-time-head small{color:#a5a5a2;font-size:11px}.ds-time-options{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.ds-time-options button{min-height:36px;border:0;border-radius:6px;background:#333;color:#e7e7e5;font-size:12px}.ds-time-options button:hover{background:#494949}.ds-time-options button[aria-pressed=\"true\"]{background:#e9e9e5;color:#171717;font-weight:700}.ds-time-custom{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:11px;padding-top:11px;border-top:1px solid #454545}.ds-time-custom label{display:grid;gap:5px;color:#bbb;font-size:11px}.ds-time-custom input{width:100%;min-height:36px;padding:5px 7px;border:1px solid #565656;border-radius:7px;background:#333;color:white}.ds-time-custom>button{min-height:36px;padding:0 9px;border:0;border-radius:7px;background:#e9e9e5;color:#161616;font-size:12px;font-weight:700}.ds-time-clear{margin-top:6px;border:0;background:transparent;color:#c7dcd5;font-size:12px;font-weight:600}.ds-time-trigger:focus-visible,.ds-time-panel button:focus-visible,.ds-time-custom input:focus-visible{outline:2px solid var(--accent,#bdd8d2);outline-offset:3px}"
+    },
+    {
+      "name": "Semantic Icons",
+      "kind": "custom",
+      "refersTo": "icon",
+      "description": "A consistent inline SVG set, always beside visible text on actions and routes.",
+      "html": "<div class=\"ds-icon-row\"><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 5h16v4a3 3 0 0 0 0 6v4H4v-4a3 3 0 0 0 0-6V5Z\"/></svg>Events</span><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"15\" rx=\"2\"/><path d=\"M3 10h18M9 5V3h6v2\"/></svg>Projekte</span><span><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M9 18h6M10 21h4M8.5 15.5C7 14.4 6 12.8 6 10.5a6 6 0 1 1 12 0c0 2.3-1 3.9-2.5 5l-.5 2.5h-6l-.5-2.5Z\"/></svg>Ideen</span></div>",
+      "css": ".ds-icon-row{display:flex;flex-wrap:wrap;gap:14px;padding:16px;background:var(--paper,#151515);color:var(--ink,#f4f3f0);font:500 13px/1.4 \"Space Grotesk\",Arial,sans-serif}.ds-icon-row span{display:inline-flex;align-items:center;gap:8px}.ds-icon-row svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;color:var(--accent,#bdd8d2)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Open Workshop",
+    "overview": "**Creative North Star: \"The Open Workshop\"**\n\nThe Lab feels like a place where people can arrive, understand what is happening, and take a concrete next step. Near-black working surfaces, pale text, and a restrained mint signal give technical character without making the community look like an official school service. The GSO name remains a quiet context cue; the visual emphasis belongs to the work and the people who start it.\n\nThe public entrance has room to breathe and a clear path into Events, Projects, and Ideas. Home, Seasons, profile, Ops, and operational routes share the same charcoal panels, borders, icons, and interaction states at a denser rhythm. Luma's legible event cadence informs the date rail and generous cards, while the Lab keeps its own compact mark and Discover → Join → Own story. Six original abstract covers give Ideas, Events, and Projects visual identity without implying a real speaker, attendee, room, or confirmed schedule.",
+    "keyCharacteristics": [
+      "A charcoal canvas and subtly lighter, stroked surfaces instead of floating shadows; creation pages shift into a cover-matched deep palette.",
+      "Large, calm Space Grotesk headings with compact labels and generous line spacing for explanation.",
+      "Off-white primary actions; mint marks state, focus, and technical details on default pages, with cover-matched accents in creation.",
+      "One-column collections with square abstract covers, an event date rail, and focused two-column creation flows on wide screens.",
+      "One coherent SVG icon set and localized date/time controls across navigation, actions, detail facts, and forms."
+    ],
+    "rules": [
+      {
+        "name": "The Mint Signal Rule",
+        "body": "Use mint for orientation, state, and focus on default pages; use the selected cover's pale accent in creation, while off-white carries the primary action.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cover Tone Rule",
+        "body": "Apply a cover's palette only to Idea, Event, and Project creation; change the surrounding chrome and form surfaces as one coordinated set.",
+        "section": "colors"
+      },
+      {
+        "name": "The Clear First Read Rule",
+        "body": "A large heading names the purpose; the next line explains it before a person must decide what to click.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Path Rule",
+        "body": "Give each collection one dominant reading direction and each form one obvious next action.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "A surface earns separation through tone and a hairline before any shadow is considered.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use the charcoal tonal ladder and thin borders to structure content.",
+      "**Do** reserve mint for state, focus, technical detail, and small accents.",
+      "**Do** keep collections in a single reading column and Events in an honest date timeline.",
+      "**Do** use the stable, title-derived abstract cover consistently across an Activity's views.",
+      "**Do** pair semantic SVG icons with readable labels and keep picker dates and times localized.",
+      "**Do** preserve visible focus, readable contrast, reduced-motion behavior, and usable German and English layouts."
+    ],
+    "donts": [
+      "**Don't** imply official school endorsement with a dominant GSO crest or institutional palette.",
+      "**Don't** fill pages with invented attendee photos, speakers, confirmed rooms, or schedules.",
+      "**Don't** use a cover palette as a global category color outside Idea, Event, and Project creation.",
+      "**Don't** make a date or time icon the only cue to operate a picker.",
+      "**Don't** make “Interested” look like registration or Project membership.",
+      "**Don't** replace the white primary action with mint everywhere or build a bright multicolor card wall."
+    ]
+  }
+}

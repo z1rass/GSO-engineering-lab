@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import type { Language } from '../i18n';
 import { authCopy } from './copy';
+import { Icon } from '../shared/icon';
 
 const profileResponse = z.object({ user: z.object({
   id: z.string(), name: z.string(), email: z.email(), affiliation: z.literal('MEMBER'), role: z.enum(['MEMBER', 'OPS']),
@@ -27,7 +28,7 @@ export function LoginPage({ language }: { language: Language }) {
     setBusy(true); setError(null); setSent(false);
     try {
       const next = params.get('next');
-      const safeNext = /^\/ownership\/accept\?token=[a-f0-9]{64}$/.test(next ?? '') ? next : '/profile';
+      const safeNext = /^\/(?:ownership\/accept\?token=[a-f0-9]{64}|ideas\/(?:new|\d+\/edit)|(?:projects|events)\/(?:new(?:\?idea=\d+)?|\d+\/edit))$/.test(next ?? '') ? next! : '/profile';
       const callbackURL = `${window.location.origin}${safeNext}`;
       const response = await send('/api/auth/sign-in/magic-link', { name: data.get('name'), email: String(data.get('email')).trim().toLowerCase(),
         callbackURL, newUserCallbackURL: callbackURL, errorCallbackURL: `${window.location.origin}/login` });
@@ -35,14 +36,14 @@ export function LoginPage({ language }: { language: Language }) {
       setSent(true);
     } catch { setError('error'); } finally { setBusy(false); }
   }
-  return <section className="account-page"><div className="account-heading"><p className="eyebrow">GSO engineering lab</p><h1>{t.title}</h1><p>{t.intro}</p></div>
+  return <section className="account-page"><div className="account-heading"><h1>{t.title}</h1><p>{t.intro}</p></div>
     <form className="account-form" onSubmit={submit} aria-busy={busy}>
       <label>{t.name}<input name="name" autoComplete="name" required maxLength={100} /></label>
       <label>{t.email}<input name="email" type="email" autoComplete="email" required pattern="[^@\s]+@gso\.schule\.koeln" aria-describedby="email-hint" /></label>
       <p id="email-hint" className="field-hint">{t.emailHint}</p>
       {error && <p role="alert" className="form-error">{t[error]}</p>}
       {sent && <p role="status" className="form-success">{t.sent}</p>}
-      <button className="button-primary" disabled={busy}>{busy ? t.sending : sent ? t.resend : t.send}<span aria-hidden="true">↗</span></button>
+      <button className="button-primary" disabled={busy}>{busy ? t.sending : sent ? t.resend : t.send}</button>
     </form>
   </section>;
 }
@@ -91,8 +92,8 @@ export function ProfilePage({ language }: { language: Language }) {
   if (state === 'loading') return <section className="account-page"><p role="status">{t.loading}</p></section>;
   if (state === 'error' || !profile) return <section className="account-page"><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></section>;
   if (profile.blocked) return <section className="account-page"><div><h1>{t.profileTitle}</h1><p role="alert">{language === 'de' ? 'Änderungen für deinen Account sind gesperrt.' : 'Changes are blocked for your account.'} {profile.blockReason}</p><p>{language === 'de' ? 'Zur Klärung schreibe dem Ops-Team im Discord. Deine Aufgaben und deine Verantwortung bleiben bestehen.' : 'Contact the Ops team in Discord to resolve this. Your tasks and responsibilities remain assigned.'}</p><Link className="text-link" to="/my-activity">{language === 'de' ? 'Meine Aktivitäten' : 'My Activity'}</Link>{feedback && <p role="alert">{t[feedback]}</p>}<button className="text-link" disabled={busy} onClick={() => void logout()}>{t.logout}</button></div></section>;
-  return <section className="account-page"><div className="account-heading"><p className="eyebrow">GSO engineering lab</p><h1>{t.profileTitle}</h1><p>{t.profileIntro}</p></div>
-    <div><Link className="text-link ops-profile-link" to="/my-activity">{language === 'de' ? 'Meine Aktivitäten' : 'My Activity'}</Link>{profile.role === 'OPS' && <Link className="text-link ops-profile-link" to="/ops">{language === 'de' ? 'Ops verwalten' : 'Manage Ops'} ↗</Link>}
+  return <section className="account-page profile-page"><div className="account-heading profile-heading"><span className="profile-avatar" aria-hidden="true">{profile.name.trim().charAt(0).toLocaleUpperCase(language === 'de' ? 'de-DE' : 'en-GB')}</span><h1>{profile.name}</h1><p>{t.profileIntro}</p></div>
+    <div><nav className="profile-shortcuts" aria-label={language === 'de' ? 'Profilnavigation' : 'Profile navigation'}><Link className="text-link ops-profile-link" to="/my-activity"><Icon name="list" />{language === 'de' ? 'Meine Aktivitäten' : 'My Activity'}</Link>{profile.role === 'OPS' && <Link className="text-link ops-profile-link" to="/ops"><Icon name="settings" />{language === 'de' ? 'Ops verwalten' : 'Manage Ops'}</Link>}</nav>
     <form className="account-form" onSubmit={save} aria-busy={busy} onChange={() => setFeedback(null)}>
       <label>{t.name}<input name="name" autoComplete="name" required maxLength={100} defaultValue={profile.name} /></label>
       <label>{t.email}<input type="email" readOnly value={profile.email} aria-describedby="private-email" /></label>

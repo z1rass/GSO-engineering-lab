@@ -32,7 +32,7 @@ export function InterestedControl({ target, language }: { target: string; langua
   return <section className="interested-control" aria-label={t.label} aria-busy={busy || resource.loading}>
     {!data ? resource.loading ? <p role="status">{t.loading}</p> : <p role="alert">{t.loadError} <button className="text-link" onClick={resource.retry}>{t.retry}</button></p>
       : <><div className="interested-row"><p className="interested-count" role="status" aria-live="polite" aria-atomic="true">{t.count(data.count)}</p>
-        {data.interested === null ? <Link className="text-link" to="/login">{t.login} ↗</Link>
+        {data.interested === null ? <Link className="text-link" to="/login">{t.login}</Link>
           : <button type="button" className="interested-button" aria-pressed={data.interested} disabled={busy} onClick={() => void toggle()}>{data.interested ? t.withdraw : t.label}</button>}
         {busy && <span role="status">{t.saving}</span>}
       </div></>}

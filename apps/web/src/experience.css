@@ -76,7 +76,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .idea-list h2, .idea-list h3, .idea-list h4 { font-size: clamp(21px, 2.4vw, 27px); line-height: 1.25; letter-spacing: -.03em; font-weight: 600; margin: 14px 0 8px; overflow-wrap: anywhere; }
 .idea-list .idea-preview { font-size: 15px; line-height: 1.6; }
 .idea-list .field-hint, .idea-list .project-stack { margin-top: 14px; }
-.idea-arrow, .idea-list a > span:last-child { flex: 0 0 34px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--surface); color: var(--accent); font-size: 20px; line-height: 1; }
 .ideas-empty { margin-top: 28px; padding: 36px; border: 1px dashed var(--line); border-radius: var(--radius); background: var(--card); }
 .ideas-empty h2 { font-size: 24px; }
 .archive-tabs { display: inline-flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
@@ -192,8 +191,7 @@ button.text-link, .account-actions a.text-link, .idea-detail article > a.text-li
 .project-form-section summary { min-height: 52px; padding: 14px 18px; font-weight: 600; }
 .project-form-section summary:hover { background: var(--card-hover); }
 .project-form-section > div, .project-form-section > form { padding: 18px; border-top: 1px solid var(--line); }
-.event-schedule { padding: 24px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
-.event-schedule legend { padding: 0 8px; font-size: 16px; }
+.event-schedule { padding: 0; border: 0; background: transparent; }
 .management-area { margin-top: 52px; padding-top: 36px; border-top: 2px solid var(--ink); }
 .management-heading { margin-bottom: 28px; }
 .management-heading .eyebrow { margin-bottom: 8px; }
@@ -319,7 +317,6 @@ button.text-link, .account-actions a.text-link, .idea-detail article > a.text-li
   .my-activity-section, .ops-grid > div, .network-contact, .moderation-entry { padding: 20px; }
   .home-section-heading { flex-wrap: wrap; }
   .landing-values > div { grid-template-columns: 1fr; }
-  .event-schedule { padding: 18px; }
   .account-page .account-form, .idea-editor > .account-form { padding: 20px; }
   .account-actions { gap: 10px; }
   .profile-columns, .event-form-grid { grid-template-columns: 1fr; }

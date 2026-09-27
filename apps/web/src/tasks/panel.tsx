@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import {z} from 'zod';
 import type {Language} from '../i18n';
 import {useResource} from '../shared/use-resource';
+import {DateField} from '../shared/date-time';
 const taskSchema=z.object({id:z.number(),title:z.string(),description:z.string(),dueDate:z.string().nullable(),status:z.enum(['OPEN','IN_PROGRESS','DONE','CANCELLED']),owner:z.object({id:z.string(),name:z.string()}).nullable().optional(),canTake:z.boolean().optional(),canComplete:z.boolean().optional(),canEdit:z.boolean().optional(),canCancel:z.boolean().optional()});
 const schema=z.object({tasks:z.array(taskSchema),canCreate:z.boolean().optional()});
 type Task=z.infer<typeof taskSchema>;
@@ -24,7 +25,7 @@ function TaskForm({id,task,language,done}:{id:number;task?:Task;language:Languag
  return <form className="account-form idea-form" onSubmit={submit} aria-busy={state.busy}>
   <label>{t.titleField}<input name="title" required maxLength={120} defaultValue={task?.title}/></label>
   <label><span id={label}>{t.description}</span><textarea name="description" aria-labelledby={label} maxLength={5000} rows={3} defaultValue={task?.description}/></label>
-  <label>{t.due}<input name="dueDate" type="date" defaultValue={task?.dueDate??''}/></label>
+  <DateField name="dueDate" label={t.due} language={language} defaultValue={task?.dueDate??''}/>
   {state.error&&<p role="alert" className="form-error">{t[state.error]} <button type="button" className="text-link" onClick={done}>{t.retry}</button></p>}
   <button className="button-primary" disabled={state.busy}>{state.busy?t.busy:t.save}</button>
  </form>;
@@ -48,7 +49,7 @@ export function TaskPanel({id,language,closed=false,manage=false}:{id:number;lan
  return <section className="task-panel" aria-label={t.title}><h2>{t.title}</h2>{!closed&&<p className="ideas-note">{t.hint}</p>}
   {!resource.data?resource.loading?<p role="status">{t.loading}</p>:<p role="alert">{t.error} <button className="text-link" onClick={resource.retry}>{t.retry}</button></p>
    :<>{manage&&resource.data.canCreate&&<details className="project-form-section"><summary>{t.create}</summary><TaskForm id={id} language={language} done={resource.retry}/></details>}
-    {!closed&&resource.data.canCreate===undefined&&<Link className="text-link" to="/login">{t.login} ↗</Link>}
+    {!closed&&resource.data.canCreate===undefined&&<Link className="text-link" to="/login">{t.login}</Link>}
     {!resource.data.tasks.length?<p>{t.empty}</p>:resource.data.tasks.map(task=><TaskCard key={task.id} task={task} id={id} language={language} done={resource.retry} manage={manage}/>)}
    </>}
  </section>;

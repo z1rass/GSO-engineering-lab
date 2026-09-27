@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { z } from 'zod';
 import type { Language } from '../i18n';
+import { Icon } from '../shared/icon';
 
 const copy = {
   de: { title: 'Ops-Team', intro: 'Menschen, die das Lab am Laufen halten.', back: 'Mein Profil', appoint: 'Ops ernennen',
@@ -57,9 +58,9 @@ export function OpsPage({ language }: { language: Language }) {
   }
   if (state === 'anonymous') return <Navigate to="/login" replace />;
   const candidates = data?.members.filter(member => member.role === 'MEMBER') ?? [];
-  return <section className="ops-page"><Link className="text-link" to="/profile">← {t.back}</Link>
-    <div className="account-heading"><p className="eyebrow">GSO engineering lab / Ops</p><h1>{t.title}</h1><p>{t.intro}</p></div>
-    {state === 'ready' && <div className="ops-shortcuts"><h2>{language === 'de' ? 'Bereiche' : 'Areas'}</h2><div className="account-actions"><Link className="text-link" to="/ops/rooms">{language === 'de' ? 'Raumanfragen' : 'Room requests'}</Link><Link className="text-link" to="/ops/seasons">{language==='de'?'Seasons verwalten':'Manage seasons'}</Link><Link className="text-link" to="/network">Club Network</Link><Link className="text-link" to="/ops/moderation">Moderation</Link></div></div>}
+  return <section className="ops-page"><Link className="text-link back-link" to="/profile"><Icon name="arrow-left" />{t.back}</Link>
+    <div className="account-heading"><h1>{t.title}</h1><p>{t.intro}</p></div>
+    {state === 'ready' && <div className="ops-shortcuts"><h2>{language === 'de' ? 'Bereiche' : 'Areas'}</h2><div className="account-actions"><Link className="text-link" to="/ops/rooms"><Icon name="calendar" />{language === 'de' ? 'Raumanfragen' : 'Room requests'}</Link><Link className="text-link" to="/ops/seasons"><Icon name="season" />{language==='de'?'Seasons verwalten':'Manage seasons'}</Link><Link className="text-link" to="/network"><Icon name="people" />Club Network</Link><Link className="text-link" to="/ops/moderation"><Icon name="settings" />Moderation</Link></div></div>}
     {state === 'loading' ? <p role="status">{t.loading}</p>
       : state === 'denied' ? <p role="alert">{t.denied}</p>
       : state === 'error' ? <div><p role="alert">{t.error}</p><button className="text-link" onClick={() => setAttempt(n => n + 1)}>{t.retry}</button></div>

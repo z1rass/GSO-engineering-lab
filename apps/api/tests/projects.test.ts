@@ -45,6 +45,14 @@ test('Creator becomes the Project owner immediately; public reads exclude identi
   expect(list.projects).toContainEqual(publicView.project);
 });
 
+test('A Project can start with a title and goal while its description is still empty', async () => {
+  const author = await member();
+  const response = await write('/api/projects', author.cookie, { title: 'Workshop tools', goal: 'Build a shared tool kit', description: '' });
+  expect(response.status).toBe(201);
+  const { project } = await response.json();
+  expect(project).toMatchObject({ goal: 'Build a shared tool kit', description: '', status: 'PLANNING' });
+});
+
 test('One Idea can inspire several Projects without changing its author or assigning its author ownership', async () => {
   const first = await member();
   const second = await member();

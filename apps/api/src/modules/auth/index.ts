@@ -17,8 +17,17 @@ export function mountAuth(app: Express, pool: Pool) {
   const baseURL = process.env.AUTH_BASE_URL ?? 'http://localhost:5173';
   const production = process.env.NODE_ENV === 'production';
   const baseOrigin = new URL(baseURL).origin;
+  const basePort = new URL(baseURL).port;
   const additionalOrigins = (process.env.AUTH_ADDITIONAL_ORIGINS ?? '')
     .split(',').map(origin => origin.trim()).filter(Boolean);
+  const isDevelopmentLoopbackOrigin = (origin: string) => {
+    try {
+      const url = new URL(origin);
+      return !production && url.protocol === 'http:' && url.port === basePort && ['localhost', '127.0.0.1'].includes(url.hostname);
+    } catch {
+      return false;
+    }
+  };
   const isDevelopmentTunnelOrigin = (origin: string) => {
     try {
       const url = new URL(origin);
@@ -28,7 +37,7 @@ export function mountAuth(app: Express, pool: Pool) {
     }
   };
   const isTrustedRequestOrigin = (origin: string | undefined) => Boolean(origin && (
-    origin === baseOrigin || additionalOrigins.includes(origin) || isDevelopmentTunnelOrigin(origin)
+    origin === baseOrigin || additionalOrigins.includes(origin) || isDevelopmentLoopbackOrigin(origin) || isDevelopmentTunnelOrigin(origin)
   ));
   const requestTunnelOrigin = (request: globalThis.Request | undefined) => {
     const origin = request?.headers.get('origin');
@@ -50,7 +59,7 @@ export function mountAuth(app: Express, pool: Pool) {
     trustedOrigins: async request => {
       const origin = request?.headers.get('origin');
       const tunnelOrigin = requestTunnelOrigin(request);
-      return [baseOrigin, ...additionalOrigins, ...(origin && isDevelopmentTunnelOrigin(origin) ? [origin] : []), ...(tunnelOrigin ? [tunnelOrigin] : [])];
+      return [baseOrigin, ...additionalOrigins, ...(origin && (isDevelopmentLoopbackOrigin(origin) || isDevelopmentTunnelOrigin(origin)) ? [origin] : []), ...(tunnelOrigin ? [tunnelOrigin] : [])];
     },
     session: { expiresIn: 60 * 60 * 24 * 7, disableSessionRefresh: true, cookieCache: { enabled: false } },
     user: { additionalFields: { affiliation: { type: 'string', defaultValue: 'MEMBER', input: false } } },
@@ -70,7 +79,8 @@ export function mountAuth(app: Express, pool: Pool) {
       return { data: session };
     } } } },
     plugins: [magicLink({ expiresIn: 900, storeToken: 'hashed', sendMagicLink: async ({ email, url }, context) => {
-      const publicOrigin = requestTunnelOrigin(context?.request);
+      const requestOrigin = context?.request?.headers.get('origin');
+      const publicOrigin = requestTunnelOrigin(context?.request) ?? (requestOrigin && isDevelopmentLoopbackOrigin(requestOrigin) ? requestOrigin : undefined);
       const publicURL = publicOrigin ? new URL(url).toString().replace(new URL(url).origin, publicOrigin) : url;
       await mail.sendMail({ from: process.env.SMTP_FROM ?? 'GSO engineering lab <lab@localhost>', to: email,
         subject: 'Dein Login / Your login — GSO engineering lab', text: `Anmelden / Sign in (15 min):\n${publicURL}\n\nNicht angefordert? Ignoriere diese E-Mail. / Not requested? Ignore this email.` });

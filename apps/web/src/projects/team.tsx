@@ -35,7 +35,7 @@ export function ProjectTeam({ id, language, closed=false }: {id:number;language:
     <h2>{t.title}</h2>
     {!data ? resource.loading ? <p role="status">{t.loading}</p> : <p role="alert">{t.loadError} <button className="text-link" onClick={reload}>{t.retry}</button></p>
       : <><div className="interested-row"><p role="status" aria-live="polite" aria-atomic="true">{t.count(data.count)}</p>
-        {!closed&&(!data.members ? <Link className="text-link" to="/login">{t.login} ↗</Link>
+        {!closed&&(!data.members ? <Link className="text-link" to="/login">{t.login}</Link>
           : data.joined ? !data.isOwner && <button className="text-link" disabled={busy} onClick={()=>void change()}>{busy?t.saving:t.leave}</button>
           : data.canJoin && <button className="button-primary" disabled={busy} onClick={()=>void change()}>{busy?t.saving:t.join}</button>)}
       </div>
