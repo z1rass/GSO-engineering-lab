@@ -15,6 +15,7 @@ import { mountProjects } from './modules/projects/index.js';
 import { mountIdeas } from './modules/ideas/index.js';
 import { mountOps } from './modules/ops/index.js';
 import { mountAuth } from './modules/auth/index.js';
+import { mountSiteAdmin } from './modules/site-admin/index.js';
 import express, { type ErrorRequestHandler } from 'express';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -26,6 +27,7 @@ export function createApp(pool: Pool) {
   const db = drizzle(pool);
   app.disable('x-powered-by');
   const { requireMember, getMember } = mountAuth(app, pool);
+  mountSiteAdmin(app, pool);
   mountContentVisibility(app, pool, getMember);
   mountOps(app, pool, requireMember);
   mountModeration(app, pool);

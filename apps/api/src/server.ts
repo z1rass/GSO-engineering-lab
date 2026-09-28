@@ -1,6 +1,13 @@
 import { Pool } from 'pg';
 import { z } from 'zod';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { createApp } from './app.js';
+
+if (process.env.NODE_ENV !== 'production') {
+  const localEnv = fileURLToPath(new URL('../../../.env.local', import.meta.url));
+  if (existsSync(localEnv)) process.loadEnvFile(localEnv);
+}
 
 const config = z.object({
   DATABASE_URL: z.string().url().default('postgres://lab:lab_local@127.0.0.1:55432/lab'),

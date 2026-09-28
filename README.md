@@ -11,7 +11,7 @@ The interface is German-first with English available. Community-authored content
 
 ## Project status
 
-The repository contains a working MVP foundation for Season 0: Season management and Project continuation, magic-link Member access, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with past Activity pages, the personal My Activity overview, private Club Network contacts, moderation and Ops profile deletion. Production hosting, backups, alumni access and the remaining Ops workflows are intentionally still planned.
+The current website presents public Events and Ideas without an account. A separate password-protected `/admin` publishes and edits both. Earlier Member, Project and Ops workflows remain in the API and repository, but their pages are not mounted in this public launch. Production hosting, backups, alumni access and the remaining Ops workflows are still planned.
 
 Product decisions live in the [MVP specification](docs/mvp-product-spec.md), domain vocabulary in [CONTEXT.md](CONTEXT.md), and implementation slices in [ticket drafts](docs/ticket-drafts). The [contribution guide](CONTRIBUTING.md) explains how to work on the project.
 
@@ -62,7 +62,9 @@ npm run dev:web
 
 Do not run the host servers and Compose web/API simultaneously: they use the same ports. `docker compose stop web api` frees the ports while keeping local data. `docker compose down` stops the stack and preserves the named development volume.
 
-## Local login and profile
+## Legacy Member workflows
+
+The sections through **Event registration (Going)** document retained MVP backend behavior. Their Member, Project and Ops pages are not exposed by the current public frontend. The current publishing flow is `/admin`; visitors use `/events` and `/ideas` without signing in.
 
 Open `/login`, enter a name and any **fictional** address on the exact `@gso.schule.koeln` domain, for example `local-demo@gso.schule.koeln`. Open Mailpit at **http://localhost:8025** and follow the delivered link. Mailpit captures SMTP locally; it does not deliver to the school. Never expose Mailpit publicly or use it for production. No seed account bypasses email verification.
 
@@ -157,6 +159,8 @@ All local defaults work without a configuration file. `.env.example` documents t
 | `AUTH_BASE_URL` | Exact public origin used in email links and CSRF checks | `http://localhost:5173` |
 | `AUTH_ADDITIONAL_ORIGINS` | Optional comma-separated fixed frontend origins accepted by CSRF checks | Unset |
 | `AUTH_SECRET` | Auth signing secret; production requires 32+ random characters | Disposable local secret |
+| `ADMIN_PASSWORD` | Password for the separate publishing admin at `/admin`; 16+ characters | Unset; admin login disabled |
+| `ADMIN_SESSION_SECRET` | Signing secret for admin sessions; 32+ characters | Unset; admin login disabled |
 | `SMTP_HOST` / `SMTP_PORT` | SMTP delivery | `127.0.0.1` / `1025` |
 | `SMTP_FROM` | Sender address | `GSO engineering lab <lab@localhost>` |
 | `SMTP_SECURE` | Implicit TLS (usually port 465) | `false` |
@@ -167,6 +171,8 @@ All local defaults work without a configuration file. `.env.example` documents t
 Production refuses to start without an explicit HTTPS origin, signing secret, SMTP host and sender; SMTP requires TLS in production. This is not a complete production deployment.
 
 Compose supplies container-specific addresses. Keep deployment credentials outside version control.
+
+For local admin access, put both admin values in a root `.env.local` file. This ignored file is loaded by the host API in development and by the optional Compose `env_file`. Restart the API after changing either value. Password rotation invalidates existing admin sessions. Public Events and Ideas remain readable without login; `/admin` is the publishing interface.
 
 ## Database migrations
 

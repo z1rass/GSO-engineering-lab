@@ -9,6 +9,9 @@ services:
     command: ["sh", "-c", "npm run db:migrate && npm run db:seed"]
   api:
     build: .
+    env_file:
+      - path: .env.local
+        required: false
     environment:
       DATABASE_URL: postgres://lab:lab_local@db:5432/lab
       PORT: 3001

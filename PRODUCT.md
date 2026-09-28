@@ -4,6 +4,10 @@
 
 Shared product context for the web frontend and API. This record summarizes confirmed decisions; terminology lives in [CONTEXT.md](CONTEXT.md), and detailed approved behavior lives in [docs/mvp-product-spec.md](docs/mvp-product-spec.md). Earlier proposals do not override the approved model.
 
+## Current public launch (2026-09-27)
+
+The product owner has narrowed the current website to public Events and Ideas, with creation and editing through a separate password-protected admin. Visitors do not need an account to browse. Projects, Seasons, member participation and Ops workflows remain implemented in the underlying code, but do not lead the current public navigation. See [ADR 0002](docs/adr/0002-curated-public-launch.md). This launch scope supersedes the older member-led frontend flow below while retaining its domain vocabulary and data for future use.
+
 ## Platform
 
 web
