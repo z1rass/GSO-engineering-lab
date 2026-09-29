@@ -7,18 +7,10 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json",
-    "test": "vitest run",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx src/seed.ts",
-    "ops:bootstrap": "tsx src/modules/ops/bootstrap.ts"
+    "test": "vitest run"
   },
   "dependencies": {
-    "better-auth": "^1.7.5",
-    "drizzle-orm": "0.45.3",
     "express": "5.2.1",
-    "nodemailer": "^10.0.10",
-    "pg": "8.23.0",
     "zod": "4.6.5"
   }
 }

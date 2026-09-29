@@ -1,5 +1,7 @@
 # Ops appointments
 
+> Archived workflow. The current public launch removed member authentication and Ops routes; these commands no longer run. See [ADR 0003](../adr/0003-open-ideas-and-direct-event-publishing.md).
+
 Ops is a global Lab management role, separate from ownership of any Activity. The role is active only while the person has a confirmed current Member affiliation. An Alumni account that retains the role does not receive access.
 
 ## First appointment (bootstrap)

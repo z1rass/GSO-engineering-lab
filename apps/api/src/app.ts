@@ -1,65 +1,24 @@
-import { mountSeasons } from './modules/seasons/index.js';
-import { mountMyActivity } from './modules/my-activity/index.js';
-import { mountNetwork } from './modules/network/index.js';
-import { mountContentVisibility, mountModeration } from './modules/moderation/index.js';
-import { mountProfileDeletion } from './modules/profile-deletion/index.js';
-import { mountLifecycle } from './modules/lifecycle/index.js';
-import { mountOwnership } from './modules/ownership/index.js';
-import { mountTasks } from './modules/tasks/index.js';
-import { mountGoing } from './modules/going/index.js';
-import { mountRooms } from './modules/rooms/index.js';
-import { mountMembership } from './modules/membership/index.js';
-import { mountInterested } from './modules/interested/index.js';
-import { mountEvents } from './modules/events/index.js';
-import { mountProjects } from './modules/projects/index.js';
-import { mountIdeas } from './modules/ideas/index.js';
-import { mountOps } from './modules/ops/index.js';
-import { mountAuth } from './modules/auth/index.js';
-import { mountSiteAdmin } from './modules/site-admin/index.js';
 import express, { type ErrorRequestHandler } from 'express';
-import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import type { Pool } from 'pg';
-import { seasons } from './database/schema.js';
+import type { Database } from './database/index.js';
+import { mountSiteAdmin } from './modules/site-admin/index.js';
+import { mountIdeas } from './modules/ideas/index.js';
+import { mountPublicEvents } from './modules/public-events/index.js';
 
-export function createApp(pool: Pool) {
+export function createApp(db: Database) {
   const app = express();
-  const db = drizzle(pool);
   app.disable('x-powered-by');
-  const { requireMember, getMember } = mountAuth(app, pool);
-  mountSiteAdmin(app, pool);
-  mountContentVisibility(app, pool, getMember);
-  mountOps(app, pool, requireMember);
-  mountModeration(app, pool);
-  mountProfileDeletion(app, pool);
-  mountNetwork(app, pool);
-  mountIdeas(app, pool, requireMember);
-  mountProjects(app, pool, requireMember, getMember);
-  mountEvents(app, pool, requireMember, getMember);
-  mountInterested(app, pool, requireMember, getMember);
-  mountMembership(app, pool, requireMember, getMember);
-  mountRooms(app, pool, requireMember, getMember);
-  mountGoing(app, pool, requireMember, getMember);
-  mountTasks(app, pool, requireMember, getMember);
-  mountOwnership(app, pool, requireMember);
-  mountLifecycle(app, pool, requireMember);
-  mountMyActivity(app, pool, requireMember);
-  app.get('/api/health', (_request, response) => { response.json({ status: 'ok' }); });
-  app.get('/api/seasons/current', async (_request, response) => {
-    response.set('Cache-Control', 'no-store');
-    try {
-      const [season] = await db.select().from(seasons).where(eq(seasons.status, 'ACTIVE')).limit(1);
-      response.json({ season: season ?? null });
-    } catch {
-      console.error('Current Season database query failed');
-      response.status(503).json({ error: 'Season temporarily unavailable' });
-    }
-  });
-  mountSeasons(app, pool);
+  app.set('trust proxy', 'loopback, linklocal, uniquelocal');
+  app.use('/api/admin/covers', express.json({ limit: '3mb' }));
+  app.use(express.json({ limit: '128kb' }));
+  mountSiteAdmin(app, db);
+  mountIdeas(app, db);
+  mountPublicEvents(app, db);
+  app.get('/api/health', (_request, response) => response.json({ status: 'ok' }));
   const handleError: ErrorRequestHandler = (error, _request, response, _next) => {
     void _next;
-    const badJson = error instanceof SyntaxError;
-    response.status(badJson ? 400 : 503).json({ error: badJson ? 'INVALID_JSON' : 'SERVICE_UNAVAILABLE' });
+    if (response.headersSent) return;
+    response.status(error?.type === 'entity.too.large' ? 413 : error instanceof SyntaxError ? 400 : 503)
+      .json({ error: error?.type === 'entity.too.large' ? 'PAYLOAD_TOO_LARGE' : error instanceof SyntaxError ? 'INVALID_JSON' : 'SERVICE_UNAVAILABLE' });
   };
   app.use(handleError);
   return app;

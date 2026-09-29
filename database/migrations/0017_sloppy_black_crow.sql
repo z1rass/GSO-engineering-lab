@@ -1,1 +1,0 @@
-ALTER TABLE "role_changes" ADD COLUMN "handover_checklist" text;

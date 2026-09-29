@@ -6,19 +6,18 @@ export const eventSchema = z.object({
   plannedDate: z.string().nullable(), endDate: z.string().nullable(), startTime: z.string().nullable(), endTime: z.string().nullable(),
   generalLocation: z.string(), placeType: z.enum(['SCHOOL', 'ONLINE', 'OTHER']),
   status: z.enum(['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED']),
-  ideaId: z.number().nullable(), materials: z.string(), repositoryUrl: z.string().nullable(),
-  privateInstructions: z.string().optional(), discordUrl: z.string().nullable().optional(),
-  canEdit: z.boolean().optional(),
+  coverUrl: z.string().nullable(),
+  ideaId: z.number().nullable(), materials: z.string(),
 });
 export const ideaSchema = z.object({
   id: z.number().int(), title: z.string(), description: z.string(),
+  voteCount: z.number().int().nonnegative(), voted: z.boolean(),
   createdAt: z.iso.datetime(), updatedAt: z.iso.datetime(),
 });
 export const eventsSchema = z.object({ events: z.array(eventSchema) });
 export const ideasSchema = z.object({ ideas: z.array(ideaSchema) });
 export const eventDetailSchema = z.object({ event: eventSchema });
 export const ideaDetailSchema = z.object({ idea: ideaSchema });
-export const viewerSchema = z.object({ user: z.object({ id: z.string(), name: z.string(), role: z.enum(['MEMBER', 'OPS']) }) });
 export type Event = z.infer<typeof eventSchema>;
 export type Idea = z.infer<typeof ideaSchema>;
 

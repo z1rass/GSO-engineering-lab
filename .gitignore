@@ -6,6 +6,7 @@ dist/
 coverage/
 playwright-report/
 test-results/
+data/
 .DS_Store
 
 # Local agent and design-tool state

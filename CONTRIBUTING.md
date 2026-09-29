@@ -4,28 +4,28 @@ GSO Engineering Lab is a student-led technical community. Contributions should m
 
 ## Before you start
 
-Read the [product model](CONTEXT.md), the [MVP specification](docs/mvp-product-spec.md), and the relevant [ticket drafts](docs/ticket-drafts). Keep the domain vocabulary intact: an Activity is an Event or Project, Interested is not Going, and ownership belongs to a specific Activity rather than to a global role.
+Read the [current launch scope](PRODUCT.md#current-public-launch-2026-09-28), [product model](CONTEXT.md), and relevant decisions in [docs/adr](docs/adr). Older MVP specifications and ticket drafts describe retired workflows.
 
 ## Local development
 
-Requirements are Docker Engine, Docker Compose, Node.js 24.18.0, and npm.
+Requirements are Docker Engine, Docker Compose, Node.js 24.18.0, and npm. The current site stores content in SQLite at `data/lab.sqlite`.
 
 ```sh
 docker compose up --build
 ```
 
-For host-based development, start only the database and Mailpit with Compose, then run `npm ci`, migrations, and the API/web dev servers as described in [README.md](README.md#local-development).
+For host-based development, run `npm ci`, `npm run dev:api`, and `npm run dev:web` as described in [README.md](README.md#local-setup).
 
 ## Change flow
 
 1. Open or choose a focused issue.
-2. Create a branch such as `feature/task-history` or `fix/mobile-event-form`.
+2. Create a branch such as `feature/idea-search` or `fix/mobile-event-form`.
 3. Make the smallest coherent change and update German and English interface copy together.
-4. Add behavior tests at the agreed public seams: HTTP API with PostgreSQL and browser journeys where the UI changes.
+4. Add behavior tests through the HTTP API with isolated SQLite and browser journeys where the UI changes.
 5. Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`, and `npm run build` as appropriate.
 6. Open a pull request using the repository template and describe the user-visible behavior.
 
-Do not commit secrets, local `.env` files, Mailpit data, build output, or agent-tool state. Do not add chat, rankings, notifications, or other out-of-scope platform features without a product decision.
+Do not commit secrets, local `.env` files, SQLite data, build output, or agent-tool state. Do not add chat, rankings, notifications, or other out-of-scope platform features without a product decision.
 
 ## Pull requests
 

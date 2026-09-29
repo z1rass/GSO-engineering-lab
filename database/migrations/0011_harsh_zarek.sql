@@ -1,1 +1,0 @@
-ALTER TABLE "event_details" ADD COLUMN "school_room_required" boolean DEFAULT false NOT NULL;

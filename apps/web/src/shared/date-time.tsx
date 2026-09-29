@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type RefObject } from 'react';
-import type { Language } from '../i18n';
+type Language = 'de' | 'en';
 import { Icon } from './icon';
 
 type FieldProps = { name: string; label: string; language: Language; defaultValue?: string; readOnly?: boolean };

@@ -6,5 +6,4 @@ COPY apps/web/package.json apps/web/package.json
 RUN npm ci
 COPY tsconfig.base.json ./
 COPY apps ./apps
-COPY database ./database
 EXPOSE 3001 5173

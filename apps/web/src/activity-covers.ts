@@ -1,6 +1,6 @@
-type ActivityKind = 'event' | 'project' | 'idea';
+type ActivityKind = 'event' | 'idea';
 
-const gallery = [
+export const eventCoverGallery = [
   { src: '/covers/event-ribbon.jpg', tone: 'teal' },
   { src: '/covers/event-chrome.jpg', tone: 'plum' },
   { src: '/covers/event-glass.jpg', tone: 'slate' },
@@ -10,9 +10,8 @@ const gallery = [
 ] as const;
 
 const covers = {
-  event: gallery,
-  project: [gallery[3], gallery[4], gallery[5], gallery[0], gallery[1], gallery[2]],
-  idea: [gallery[2], gallery[0], gallery[4], gallery[5], gallery[1], gallery[3]],
+  event: eventCoverGallery,
+  idea: [eventCoverGallery[2], eventCoverGallery[0], eventCoverGallery[4], eventCoverGallery[5], eventCoverGallery[1], eventCoverGallery[3]],
 } as const;
 
 // A stable, locally chosen cover avoids flicker and needs no stored media or upload.
@@ -26,4 +25,9 @@ export function activityCover(kind: ActivityKind, title: string) {
   const options = covers[kind];
   const mixed = Math.imul(hash ^ key.length, 0x9e3779b1);
   return options[(mixed >>> 0) % options.length]!;
+}
+
+export function eventCover(event: { title: string; coverUrl?: string | null }) {
+  if (!event.coverUrl) return activityCover('event', event.title);
+  return eventCoverGallery.find(cover => cover.src === event.coverUrl) ?? { src: event.coverUrl, tone: 'slate' as const };
 }

@@ -4,9 +4,9 @@
 
 Shared product context for the web frontend and API. This record summarizes confirmed decisions; terminology lives in [CONTEXT.md](CONTEXT.md), and detailed approved behavior lives in [docs/mvp-product-spec.md](docs/mvp-product-spec.md). Earlier proposals do not override the approved model.
 
-## Current public launch (2026-09-27)
+## Current public launch (2026-09-28)
 
-The product owner has narrowed the current website to public Events and Ideas, with creation and editing through a separate password-protected admin. Visitors do not need an account to browse. Projects, Seasons, member participation and Ops workflows remain implemented in the underlying code, but do not lead the current public navigation. See [ADR 0002](docs/adr/0002-curated-public-launch.md). This launch scope supersedes the older member-led frontend flow below while retaining its domain vocabulary and data for future use.
+The public website shows Events and Ideas. Visitors browse, submit Ideas, and vote without accounts. Admin access is password-protected at a direct `/admin` URL and absent from navigation. Admins publish and remove Events, set a classroom and cover, and edit or remove Ideas. Events, Ideas, votes and covers use one SQLite file. Previous member and Ops workflows are retired from the running application; their old records are not part of the new database. See [ADR 0003](docs/adr/0003-open-ideas-and-direct-event-publishing.md) and [ADR 0004](docs/adr/0004-sqlite-for-public-launch.md). Older product rules below describe the original domain model, not the present public launch.
 
 ## Platform
 
@@ -42,7 +42,7 @@ The Lab is a community infrastructure, not a teacher-led sequence of lessons. It
 
 ### Implemented foundation
 
-The current code provides a public homepage and Season pages backed by PostgreSQL, German/English interface switching, responsive layouts and loading, empty and retry states. Local Compose supplies migrations and demonstration data. The shipped MVP slices include magic-link authentication/profile, Ideas, Events, Projects, Interested, Project membership, room requests, Going, Tasks, ownership transfer, completion/cancellation with Past Activity views, Ops Season management, Project continuation across Seasons, a private My Activity overview, Ops-only Club Network contacts, moderation with retained history and Ops profile deletion with anonymization. Remaining Ops workflows and production operations stay planned.
+The earlier MVP implemented magic-link membership, Projects, Seasons, room requests, Going, Tasks and Ops workflows. The current public launch serves Events and Ideas with a separate admin; earlier routes and screens have been retired. Current content is stored in SQLite; older records remain only in the legacy PostgreSQL volume. German/English switching, responsive layouts and loading/error states remain in use.
 
 ### Confirmed MVP behavior
 
@@ -82,8 +82,7 @@ German is the default interface language; English is available from the first re
 - Domain vocabulary: CONTEXT.md.
 - Decision history: docs/design-interview.md and docs/adr/0001-decentralized-activity-approval.md.
 - Actual shipped slice: apps/web/src/App.tsx and apps/api/src/app.ts; local setup in README.md.
-- Local demonstration Season: apps/api/src/seed.ts. Its explicit ACTIVE status enables preview before its example dates; it is not evidence of a confirmed public schedule.
-- Existing visual implementation: apps/web/src/styles.css; prior direction notes in design-system/gso-engineering-lab/MASTER.md. Their existence is not a new user approval of the design.
+- Existing visual implementation: apps/web/src/showcase/showcase.css; prior direction notes in design-system/gso-engineering-lab/MASTER.md. Their existence is not a new user approval of the design.
 
 No verified member counts, testimonials, partnerships, speakers or participation outcomes have been supplied. Do not invent them as social proof.
 
