@@ -82,3 +82,17 @@ test('idea flow and admin form fit a narrow phone viewport', async ({ page }) =>
   await expect(page.locator('input[name="generalLocation"]')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('idea preview cover stays stable while the title is typed', async ({ page }) => {
+  await page.goto('/ideas/new');
+  const title = page.getByRole('textbox', { name: 'Deine Idee in einem Satz' });
+  const cover = page.locator('.idea-form-preview img');
+  const initialCover = await cover.getAttribute('src');
+  expect(initialCover).not.toBeNull();
+  for (const letter of 'Robotik') {
+    await title.pressSequentially(letter);
+    await expect(cover).toHaveAttribute('src', initialCover!);
+  }
+  await title.blur();
+  await expect(cover).not.toHaveAttribute('src', initialCover!);
+});
