@@ -14,6 +14,7 @@ colors:
   muted: "#aaa9aa"
   focus-mint: "#b7d9d3"
   error: "#ffb0ab"
+  error-on-light: "#92283a"
   plum-page: "#321e3e"
   teal-page: "#123b3b"
   slate-page: "#1f2935"
@@ -120,7 +121,7 @@ The public site is an image-led showcase for Events and Ideas. A minimal charcoa
 
 The default public shell and admin use charcoal (`{colors.canvas}`), lighter cards (`{colors.card}`), fine borders (`{colors.border}`), off-white text (`{colors.ink}`), and gray metadata (`{colors.muted}`). The landing has a low-contrast light (`{colors.landing-glow}` through `{colors.landing-glow-mid}`) behind the introduction; its transparent header shares that canvas. Fine grain appears only within the light. Mint (`{colors.focus-mint}`) marks focus, selection, and small accents. Admin inputs use `{colors.admin-field}` and grouped schedule and place controls use `{colors.admin-panel}`. Error text uses `{colors.error}`.
 
-The ten preset covers use six surrounding public detail tones, including header and footer: plum (`{colors.plum-page}`), teal (`{colors.teal-page}`), slate (`{colors.slate-page}`), blue (`{colors.blue-page}`), amber (`{colors.amber-page}`), and graphite (`{colors.graphite-page}`). Blue and amber switch to dark ink (`{colors.blue-ink}`, `{colors.amber-ink}`) and a light color scheme. The other tones use pale ink. Custom uploaded covers are sampled after loading and mapped to a nearby page tone; red covers use deep oxblood (`{colors.red-page}`), while neutral covers use graphite. The landing introduction stays charcoal so the club purpose remains the focus.
+The ten preset covers use six surrounding public detail tones, including header and footer: plum (`{colors.plum-page}`), teal (`{colors.teal-page}`), slate (`{colors.slate-page}`), blue (`{colors.blue-page}`), amber (`{colors.amber-page}`), and graphite (`{colors.graphite-page}`). The public Idea form uses its randomly chosen cover's tone from the moment it opens, so the page already matches the published detail. Blue and amber switch to dark ink (`{colors.blue-ink}`, `{colors.amber-ink}`) and a light color scheme. The other tones use pale ink. Custom uploaded covers are sampled after loading and mapped to a nearby page tone; red covers use deep oxblood (`{colors.red-page}`), while neutral covers use graphite. The landing introduction stays charcoal so the club purpose remains the focus.
 
 **The Cover Context Rule.** Let the chosen cover color its public detail page; keep the landing, collections and admin controls charcoal.
 
@@ -132,7 +133,7 @@ Space Grotesk is the display and body face, with system sans-serif fallbacks. Bo
 
 ## Layout
 
-The header spans up to 1440px; the landing page uses 1320px, collections 1120px, detail pages 1240px, and admin 1200px. Wide layouts use a 64px total gutter; at 690px and below, most pages use 36px. The landing centers a factual club introduction among four decorative covers, with the lower covers clear of the actions and their shadows free to fade beyond the hero. It then pairs the community explanation with an editorial photograph of collaborative electronics work before showing the live Event timeline and Idea cards. Event collections retain one timeline card per row. Ideas use three columns, two below 900px, and one below 480px; each card includes a vote action.
+The header spans up to 1440px; the landing page uses 1320px, collections 1120px, detail pages 1240px, and admin 1200px. Wide layouts use a 64px total gutter; at 690px and below, most pages use 36px. The landing centers a factual club introduction among four decorative covers, with the lower covers kept outside the copy and actions at every width and their shadows free to fade beyond the hero. It then pairs the community explanation with an editorial photograph of collaborative electronics work before showing the live Event timeline and Idea cards. Event collections retain one timeline card per row. Ideas use three columns, two below 900px, and one below 480px; each card includes a vote action.
 
 The detail stage places a large square cover beside title and content. Event facts group date/time and place into icon-backed rows with 58px tiles; the long description follows. At 690px, detail content stacks title, cover, facts, actions, body, and source context. The date rail disappears at that width, but Event cards keep time and place in the card. Navigation collapses to a menu at 690px; language remains visible. The admin home uses two lists on wide screens. Its editor pairs a cover preview and form until 690px, then stacks them. Event scheduling and place controls stay grouped inside dark panels.
 

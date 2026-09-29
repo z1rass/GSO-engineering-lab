@@ -20,11 +20,15 @@ test('public ideas and direct admin event management', async ({ page }) => {
   await page.goto('/ideas');
   await page.getByRole('link', { name: 'Idee hinzufügen' }).click();
   const selectedIdeaCover = await page.locator('.idea-form-preview img').getAttribute('src');
+  const selectedIdeaTone = await page.locator('.public-idea-stage').getAttribute('data-tone');
+  const selectedIdeaBackground = await page.locator('.showcase-app').evaluate(element => getComputedStyle(element).getPropertyValue('--page-bg').trim());
   await page.getByRole('textbox', { name: 'Deine Idee in einem Satz' }).fill(`${marker} idea`);
   await page.getByRole('textbox', { name: 'Erzähl uns mehr' }).fill('Build something together.');
   await page.getByRole('button', { name: 'Idee veröffentlichen' }).click();
   await expect(page.getByRole('heading', { name: `${marker} idea` })).toBeVisible();
   await expect(page.locator('.idea-story .story-cover')).toHaveAttribute('src', selectedIdeaCover!);
+  await expect(page.locator('.idea-story')).toHaveAttribute('data-tone', selectedIdeaTone!);
+  expect(await page.locator('.showcase-app').evaluate(element => getComputedStyle(element).getPropertyValue('--page-bg').trim())).toBe(selectedIdeaBackground);
   await page.getByRole('button', { name: /Stimme geben/ }).click();
   await expect(page.getByRole('button', { name: /Stimme entfernen/ })).toContainText('1');
   await page.reload();
@@ -90,10 +94,12 @@ test('idea preview chooses one cover for the form', async ({ page }) => {
   const title = page.getByRole('textbox', { name: 'Deine Idee in einem Satz' });
   const cover = page.locator('.idea-form-preview img');
   const initialCover = await cover.getAttribute('src');
+  const initialTone = await page.locator('.public-idea-stage').getAttribute('data-tone');
   expect(initialCover).not.toBeNull();
   for (const letter of 'Robotik') {
     await title.pressSequentially(letter);
     await expect(cover).toHaveAttribute('src', initialCover!);
+    await expect(page.locator('.public-idea-stage')).toHaveAttribute('data-tone', initialTone!);
   }
   await title.blur();
   await expect(cover).toHaveAttribute('src', initialCover!);
