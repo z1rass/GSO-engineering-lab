@@ -1,6 +1,6 @@
 ---
 name: GSO Engineering Lab
-description: A cover-led public showcase for Events and Ideas, with a quiet charcoal admin.
+description: A club-first public showcase for Events and Ideas, with a quiet charcoal admin.
 colors:
   canvas: "#151515"
   card: "#202020"
@@ -15,6 +15,10 @@ colors:
   plum-page: "#321e3e"
   teal-page: "#123b3b"
   slate-page: "#1f2935"
+  red-page: "#321b1e"
+  red-ink: "#fff6f3"
+  red-muted: "#dfc4c2"
+  red-line: "#765054"
   blue-page: "#e2e7f8"
   amber-page: "#efe4cd"
   graphite-page: "#272627"
@@ -23,7 +27,7 @@ colors:
 typography:
   display:
     fontFamily: "Space Grotesk, -apple-system, BlinkMacSystemFont, sans-serif"
-    fontSize: "clamp(48px, 5.3vw, 86px)"
+    fontSize: "clamp(47px, 5.5vw, 76px)"
     fontWeight: 700
     lineHeight: 1.03
     letterSpacing: "-0.04em"
@@ -104,7 +108,7 @@ The public site is an image-led showcase for Events and Ideas. A minimal charcoa
 
 **Key Characteristics:**
 
-- A charcoal collection canvas, with a featured cover panel on the landing page.
+- A charcoal collection canvas, with a centered club introduction and a restrained collage of varied covers on the landing page.
 - A Luma-like Event cadence: date rail, one readable card per Event, and explicit time and place.
 - A three-column, image-first Idea grid on wide screens.
 - Full-page cover-matched detail themes, including light blue and amber with dark ink.
@@ -114,9 +118,9 @@ The public site is an image-led showcase for Events and Ideas. A minimal charcoa
 
 The default public shell and admin use charcoal (`{colors.canvas}`), lighter cards (`{colors.card}`), fine borders (`{colors.border}`), off-white text (`{colors.ink}`), and gray metadata (`{colors.muted}`). Mint (`{colors.focus-mint}`) marks focus, selection, and small accents. Admin inputs use `{colors.admin-field}` and grouped schedule and place controls use `{colors.admin-panel}`. Error text uses `{colors.error}`.
 
-The six preset cover tones set the surrounding public detail page, including header and footer: plum (`{colors.plum-page}`), teal (`{colors.teal-page}`), slate (`{colors.slate-page}`), blue (`{colors.blue-page}`), amber (`{colors.amber-page}`), and graphite (`{colors.graphite-page}`). Blue and amber switch to dark ink (`{colors.blue-ink}`, `{colors.amber-ink}`) and a light color scheme. The other tones use pale ink. Custom uploaded covers use the slate page tone. The landing feature matches its featured cover, while collections and the admin retain charcoal.
+The ten preset covers use six surrounding public detail tones, including header and footer: plum (`{colors.plum-page}`), teal (`{colors.teal-page}`), slate (`{colors.slate-page}`), blue (`{colors.blue-page}`), amber (`{colors.amber-page}`), and graphite (`{colors.graphite-page}`). Blue and amber switch to dark ink (`{colors.blue-ink}`, `{colors.amber-ink}`) and a light color scheme. The other tones use pale ink. Custom uploaded covers are sampled after loading and mapped to a nearby page tone; red covers use deep oxblood (`{colors.red-page}`), while neutral covers use graphite. The landing introduction stays charcoal so the club purpose remains the focus.
 
-**The Cover Context Rule.** Let the chosen cover color the landing feature and public detail page; keep collection pages and admin controls charcoal.
+**The Cover Context Rule.** Let the chosen cover color its public detail page; keep the landing, collections and admin controls charcoal.
 
 ## Typography
 
@@ -126,7 +130,7 @@ Space Grotesk is the display and body face, with system sans-serif fallbacks. Bo
 
 ## Layout
 
-The header spans up to 1440px; the landing page uses 1320px, collections 1120px, detail pages 1240px, and admin 1200px. Wide layouts use a 64px total gutter; at 690px and below, most pages use 36px. The landing feature pairs text and a square cover. Its follow-on sections show a vertical Event timeline and Idea cards, with generous space between sections. Event collections retain one timeline card per row. Ideas use three columns, two below 900px, and one below 480px; each card includes a vote action.
+The header spans up to 1440px; the landing page uses 1320px, collections 1120px, detail pages 1240px, and admin 1200px. Wide layouts use a 64px total gutter; at 690px and below, most pages use 36px. The landing centers a factual club introduction among four decorative covers, then explains the community before showing the live Event timeline and Idea cards. Event collections retain one timeline card per row. Ideas use three columns, two below 900px, and one below 480px; each card includes a vote action.
 
 The detail stage places a large square cover beside title and content. Event facts group date/time and place into icon-backed rows with 58px tiles; the long description follows. At 690px, detail content stacks title, cover, facts, actions, body, and source context. The date rail disappears at that width, but Event cards keep time and place in the card. Navigation collapses to a menu at 690px; language remains visible. The admin home uses two lists on wide screens. Its editor pairs a cover preview and form until 690px, then stacks them. Event scheduling and place controls stay grouped inside dark panels.
 
@@ -134,7 +138,7 @@ The detail stage places a large square cover beside title and content. Event fac
 
 ## Elevation & Depth
 
-The collections and admin are mostly flat: neighboring charcoal tones, hairline borders, and spacing distinguish regions. Event and Idea cards lift 2px on hover. The featured and detail covers have restrained shadows; a low-opacity blurred cover sits behind public detail content. Admin date and time popovers use a stronger shadow to separate the active control.
+The collections and admin are mostly flat: neighboring charcoal tones, hairline borders, and spacing distinguish regions. Event and Idea cards lift 2px on hover. The featured and detail covers have restrained shadows; a low-opacity blurred preset cover sits behind public detail content. Uploaded covers use a flat matched background so pale parts of an image do not wash across the text. Admin date and time popovers use a stronger shadow to separate the active control.
 
 ## Shapes
 
@@ -144,11 +148,11 @@ Cards and square cover crops use softly rounded corners (`{rounded.cover}`), the
 
 ### Public navigation and actions
 
-The centered desktop navigation holds only Events and Ideas. Current and hovered links gain a translucent tile. The DE/EN switch exposes its pressed state. The admin has no public navigation link and opens by direct URL. The landing feature uses a high-contrast solid action whose foreground and background invert with the feature tone; detail actions are small outlined or translucent controls with icons and text. All keyboard focus is visible with a 2px mint outline and 3px offset.
+The centered desktop navigation holds only Events and Ideas. Current and hovered links gain a translucent tile. The DE/EN switch exposes its pressed state. The admin has no public navigation link and opens by direct URL. The landing uses a high-contrast white action; detail actions are small outlined or translucent controls with icons and text. All keyboard focus is visible with a 2px mint outline and 3px offset.
 
 ### Collections and details
 
-Event rows pair a date rail with a bordered charcoal card, square cover, time, title, and classroom; Past/Upcoming is a segmented control. Idea cards put the cover above published date, title, short description and vote action. The Event detail shows clear date and classroom rows, with calendar and map actions only when their information exists. Idea detail uses the same cover-led stage, shows its publication date and includes a vote action. Cover images are decorative beside real text.
+Event rows pair a date rail with a bordered charcoal card, square cover, time, title, classroom, and Going count when present; Past/Upcoming is a segmented control. Idea cards put the cover above published date, title, short description and vote action. The Event detail shows clear date and classroom rows, an anonymous Going action for scheduled events, and calendar and map actions only when their information exists. Idea detail uses the same cover-led stage, shows its publication date and includes a vote action. The public Idea form has labeled fields, a visibility note, and a live preview. Cover images are decorative beside real text.
 
 ### Admin
 

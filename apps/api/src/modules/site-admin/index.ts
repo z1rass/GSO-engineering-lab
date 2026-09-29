@@ -8,7 +8,7 @@ const cookieName = 'gso_site_admin';
 const durationSeconds = 60 * 60 * 24 * 7;
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 const id = z.coerce.number().int().positive().max(2147483647);
-const gallery = ['/covers/event-ribbon.jpg', '/covers/event-chrome.jpg', '/covers/event-glass.jpg', '/covers/project-paper.jpg', '/covers/project-amber.jpg', '/covers/project-structure.jpg'];
+const gallery = ['/covers/event-ribbon.jpg', '/covers/event-chrome.jpg', '/covers/event-glass.jpg', '/covers/project-paper.jpg', '/covers/project-amber.jpg', '/covers/project-structure.jpg', '/covers/cover-robotics.webp', '/covers/cover-circuit-riso.webp', '/covers/cover-glass-loop.webp', '/covers/cover-ideas-paper.webp'];
 const coverInput = z.string().refine(value => gallery.includes(value) || /^\/api\/covers\/[a-f0-9-]{36}$/.test(value));
 const ideaInput = z.object({ title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(5000) }).strict();
 const eventInput = z.object({
@@ -131,11 +131,21 @@ export function mountSiteAdmin(app: Express, db: Database) {
     const parsedId = id.safeParse(request.params.id); const parsed = eventInput.safeParse(request.body);
     if (!parsedId.success || !parsed.success) { response.status(400).json({ error: 'INVALID_EVENT' }); return; }
     const input = parsed.data;
-    const result = db.prepare(`UPDATE events SET title=?,description=?,cover_url=?,category=?,planned_date=?,end_date=?,start_time=?,end_time=?,
-      general_location=?,place_type=?,updated_at=? WHERE id=? AND hidden=0`).run(input.title, input.description, input.coverUrl,
-      input.category, input.plannedDate, input.endDate, input.startTime, input.endTime, input.generalLocation, input.placeType,
-      new Date().toISOString(), parsedId.data);
-    if (!result.changes) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
+    const previous = db.prepare('SELECT planned_date AS "plannedDate",end_date AS "endDate",start_time AS "startTime",end_time AS "endTime" FROM events WHERE id=? AND hidden=0')
+      .get(parsedId.data) as { plannedDate: string | null; endDate: string | null; startTime: string | null; endTime: string | null } | undefined;
+    if (!previous) { response.status(404).json({ error: 'NOT_FOUND' }); return; }
+    const scheduleChanged = previous.plannedDate !== input.plannedDate || previous.endDate !== input.endDate
+      || previous.startTime !== input.startTime || previous.endTime !== input.endTime;
+    db.exec('BEGIN');
+    try {
+      const result = db.prepare(`UPDATE events SET title=?,description=?,cover_url=?,category=?,planned_date=?,end_date=?,start_time=?,end_time=?,
+        general_location=?,place_type=?,updated_at=? WHERE id=? AND hidden=0`).run(input.title, input.description, input.coverUrl,
+        input.category, input.plannedDate, input.endDate, input.startTime, input.endTime, input.generalLocation, input.placeType,
+        new Date().toISOString(), parsedId.data);
+      if (!result.changes) { db.exec('ROLLBACK'); response.status(404).json({ error: 'NOT_FOUND' }); return; }
+      if (scheduleChanged) db.prepare('DELETE FROM event_going WHERE event_id=?').run(parsedId.data);
+      db.exec('COMMIT');
+    } catch (error) { db.exec('ROLLBACK'); throw error; }
     response.json({ id: parsedId.data });
   });
   app.delete('/api/admin/events/:id', trustedOrigin, requireAdmin, (request, response) => {

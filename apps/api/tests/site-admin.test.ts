@@ -86,3 +86,29 @@ test('any visitor can suggest an idea and vote once per browser; admin can remov
   expect((await write(`/api/admin/ideas/${id}`, 'DELETE', undefined, admin)).status).toBe(200);
   expect((await fetch(`${base}/api/ideas/${id}`)).status).toBe(404);
 });
+
+test('visitors can join and leave a scheduled event; rescheduling clears commitments', async () => {
+  const admin = await adminCookie();
+  const plan = { title: 'Robot night', description: 'Build together.', category: 'BUILD_NIGHT', plannedDate: '2027-10-22', endDate: null,
+    startTime: '18:00', endTime: '20:00', placeType: 'SCHOOL', generalLocation: 'C001', coverUrl: '/covers/cover-robotics.webp' };
+  const created = await write('/api/admin/events', 'POST', plan, admin);
+  expect(created.status).toBe(201);
+  const id = (await created.json()).id as number;
+  const firstView = await fetch(`${base}/api/events/${id}`);
+  const visitorOne = firstView.headers.get('set-cookie')!.split(';')[0]!;
+  expect((await firstView.json()).event).toMatchObject({ goingCount: 0, going: false, coverUrl: plan.coverUrl });
+  expect((await write(`/api/events/${id}/going`, 'POST', undefined, visitorOne, 'https://other.example')).status).toBe(403);
+  expect((await write(`/api/events/${id}/going`, 'POST', undefined, visitorOne).then(response => response.json()))).toEqual({ going: true, goingCount: 1 });
+  expect((await write(`/api/events/${id}/going`, 'POST', undefined, visitorOne).then(response => response.json()))).toEqual({ going: true, goingCount: 1 });
+  const visitorTwo = (await fetch(`${base}/api/events/${id}`)).headers.get('set-cookie')!.split(';')[0]!;
+  expect((await write(`/api/events/${id}/going`, 'POST', undefined, visitorTwo).then(response => response.json()))).toEqual({ going: true, goingCount: 2 });
+  expect((await fetch(`${base}/api/events/${id}`, { headers: { cookie: visitorOne } }).then(response => response.json())).event)
+    .toMatchObject({ goingCount: 2, going: true });
+  expect((await write(`/api/events/${id}/going`, 'DELETE', undefined, visitorOne).then(response => response.json()))).toEqual({ going: false, goingCount: 1 });
+  expect((await write(`/api/admin/events/${id}`, 'PATCH', { ...plan, title: 'Robot night updated' }, admin)).status).toBe(200);
+  expect((await fetch(`${base}/api/events/${id}`).then(response => response.json())).event.goingCount).toBe(1);
+  expect((await write(`/api/admin/events/${id}`, 'PATCH', { ...plan, plannedDate: '2027-10-23' }, admin)).status).toBe(200);
+  expect((await fetch(`${base}/api/events/${id}`).then(response => response.json())).event.goingCount).toBe(0);
+  expect((await write(`/api/admin/events/${id}`, 'PATCH', { ...plan, plannedDate: null, startTime: null, endTime: null }, admin)).status).toBe(200);
+  expect((await write(`/api/events/${id}/going`, 'POST', undefined, visitorTwo)).status).toBe(409);
+});

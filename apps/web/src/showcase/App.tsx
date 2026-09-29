@@ -1,16 +1,27 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { activityCover, eventCover } from '../activity-covers';
+import { activityCover, eventCover, uploadedCoverTone, type CoverTone } from '../activity-covers';
 import { Icon } from '../shared/icon';
 import { useResource } from '../shared/use-resource';
 import { eventDate, eventDetailSchema, eventIsPast, eventsSchema, ideaDate, ideaDetailSchema, ideasSchema, type Event, type Idea } from './data';
 import { NewIdea, VoteButton } from './PublicIdeas';
+import { GoingButton } from './GoingButton';
 
 const Admin = lazy(() => import('./Admin'));
 type Language = 'de' | 'en';
 
+function useEventCoverTone(cover: ReturnType<typeof eventCover>) {
+  const [sampled, setSampled] = useState<{ src: string; tone: CoverTone } | null>(null);
+  return {
+    tone: cover.custom && sampled?.src === cover.src ? sampled.tone : cover.tone,
+    onLoad: (image: HTMLImageElement) => {
+      if (cover.custom) setSampled({ src: cover.src, tone: uploadedCoverTone(image) });
+    },
+  };
+}
+
 const words = {
-  de: { events: 'Events', ideas: 'Ideen', addIdea: 'Idee hinzufügen', intro: 'Ein Ort für Menschen, die Ideen in die Tat umsetzen.',
+  de: { events: 'Events', ideas: 'Ideen', addIdea: 'Idee hinzufügen',
     discover: 'Events entdecken', browseIdeas: 'Ideen ansehen', next: 'Als Nächstes', allEvents: 'Alle Events', allIdeas: 'Alle Ideen',
     eventIntro: 'Workshops, Talks und Abende zum gemeinsamen Bauen.', ideaIntro: 'Gedanken, aus denen etwas entstehen kann.',
     upcoming: 'Anstehend', past: 'Vergangen', noEvents: 'Noch keine Events.', noIdeas: 'Noch keine Ideen.',
@@ -20,10 +31,12 @@ const words = {
     maps: 'Ort in Maps öffnen', relatedIdea: 'Entstanden aus einer Idee', moreEvents: 'Weitere Events', moreIdeas: 'Weitere Ideen',
     completed: 'Vergangen', cancelled: 'Abgesagt',
     error: 'Inhalte konnten nicht geladen werden.', retry: 'Erneut versuchen', notFound: 'Diese Seite gibt es nicht.',
-    tagline: 'Ideen teilen. Zusammen etwas bauen.', aboutLab: 'Ein offenes technisches Community-Lab am GSO Berufskolleg in Köln.',
-    readMore: 'Ansehen', today: 'Heute', online: 'Online', schedule: 'Datum & Zeit', location: 'Ort',
+    tagline: 'Ideen teilen. Zusammen etwas bauen.', online: 'Online',
+    labLead: 'Technik ist besser, wenn wir sie gemeinsam machen.', labDescription: 'Eine Tech-Community an der GSO für gemeinsame Projekte, Events, Lernen und Austausch rund um moderne Technologien.',
+    labIntro: 'Was ist das Lab?', labIntroBody: 'Im GSO Engineering Lab kommen Schüler:innen zusammen, um sich weiterzuentwickeln, eigene Projekte zu starten, Veranstaltungen zu gestalten und Wissen zu teilen – zu Themen, die sie wirklich interessieren.',
+    labPillars: ['Projekte starten', 'Events gestalten', 'Wissen teilen'], shareIdea: 'Idee teilen',
   },
-  en: { events: 'Events', ideas: 'Ideas', addIdea: 'Add idea', intro: 'A place for people who turn ideas into things.',
+  en: { events: 'Events', ideas: 'Ideas', addIdea: 'Add idea',
     discover: 'Explore events', browseIdeas: 'Browse ideas', next: 'Up next', allEvents: 'All events', allIdeas: 'All ideas',
     eventIntro: 'Workshops, talks and evenings spent building together.', ideaIntro: 'Thoughts that might become something real.',
     upcoming: 'Upcoming', past: 'Past', noEvents: 'No events yet.', noIdeas: 'No ideas yet.',
@@ -33,8 +46,10 @@ const words = {
     maps: 'Open location in Maps', relatedIdea: 'Started as an idea', moreEvents: 'More events', moreIdeas: 'More ideas',
     completed: 'Past', cancelled: 'Cancelled',
     error: 'Could not load the content.', retry: 'Try again', notFound: 'This page does not exist.',
-    tagline: 'Share ideas. Build things together.', aboutLab: 'An open technical community lab at GSO Berufskolleg in Cologne.',
-    readMore: 'View', today: 'Today', online: 'Online', schedule: 'Date & time', location: 'Location',
+    tagline: 'Share ideas. Build things together.', online: 'Online',
+    labLead: 'Technology is better when we build it together.', labDescription: 'A tech community at GSO for shared projects, events, learning and exchange around modern technology.',
+    labIntro: 'What is the Lab?', labIntroBody: 'GSO Engineering Lab brings students together to grow their skills, start projects, host events and share what they know about the topics they actually care about.',
+    labPillars: ['Start projects', 'Shape events', 'Share knowledge'], shareIdea: 'Share an idea',
   },
 } as const;
 
@@ -61,7 +76,7 @@ function EventPlace({ event, language }: { event: Event; language: Language }) {
 
 function EventCard({ event, language, priority = false }: { event: Event; language: Language; priority?: boolean }) {
   const cover = eventCover(event);
-  return <li className="event-row"><div className="event-row-date" aria-hidden="true">{event.plannedDate ? <><strong>{eventDate(event.plannedDate, language, { day: 'numeric', month: 'short' })}</strong><span>{eventDate(event.plannedDate, language, { weekday: 'long', year: 'numeric' })}</span></> : <><strong>—</strong><span>{words[language].dateOpen}</span></>}</div><span className="event-row-node" aria-hidden="true" /><Link to={`/events/${event.id}`} className="event-row-card"><div className="event-row-copy"><span className="event-row-mobile-date">{event.plannedDate ? eventDate(event.plannedDate, language, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : words[language].dateOpen}</span><span className="event-row-time">{event.startTime?.slice(0, 5) ?? words[language].dateOpen}</span><h2>{event.title}</h2><p><Icon name="pin" size={16} />{event.placeType === 'ONLINE' ? words[language].online : event.generalLocation === 'GSO' ? language === 'de' ? 'Raum folgt' : 'Room to be announced' : event.generalLocation || words[language].locationOpen}</p></div><img src={cover.src} alt="" width="190" height="190" loading={priority ? 'eager' : 'lazy'} decoding="async" /></Link></li>;
+  return <li className="event-row"><div className="event-row-date" aria-hidden="true">{event.plannedDate ? <><strong>{eventDate(event.plannedDate, language, { day: 'numeric', month: 'short' })}</strong><span>{eventDate(event.plannedDate, language, { weekday: 'long', year: 'numeric' })}</span></> : <><strong>—</strong><span>{words[language].dateOpen}</span></>}</div><span className="event-row-node" aria-hidden="true" /><Link to={`/events/${event.id}`} className="event-row-card"><div className="event-row-copy"><span className="event-row-mobile-date">{event.plannedDate ? eventDate(event.plannedDate, language, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : words[language].dateOpen}</span><span className="event-row-time">{event.startTime?.slice(0, 5) ?? words[language].dateOpen}</span><h2>{event.title}</h2><p><Icon name="pin" size={16} />{event.placeType === 'ONLINE' ? words[language].online : event.generalLocation === 'GSO' ? language === 'de' ? 'Raum folgt' : 'Room to be announced' : event.generalLocation || words[language].locationOpen}</p>{event.goingCount > 0 && <span className="event-row-going"><Icon name="people" size={14} />{event.goingCount} {language === 'de' ? 'dabei' : 'going'}</span>}</div><img src={cover.src} alt="" width="190" height="190" loading={priority ? 'eager' : 'lazy'} decoding="async" /></Link></li>;
 }
 
 function IdeaCard({ idea, language, priority = false }: { idea: Idea; language: Language; priority?: boolean }) {
@@ -73,13 +88,12 @@ function Landing({ language }: { language: Language }) {
   const t = words[language];
   const events = useResource('/api/events', eventsSchema);
   const ideas = useResource('/api/ideas', ideasSchema);
-  const featured = events.data?.events.find(event => event.plannedDate && !eventIsPast(event)) ?? null;
-  const cover = featured ? eventCover(featured) : activityCover('event', 'GSO Engineering Lab');
   return <div className="showcase-landing">
-    <section className="landing-feature" data-tone={cover.tone}><div className="landing-feature-copy"><span className="landing-identity"><Icon name="spark" size={18} /> GSO Engineering Lab</span><h1>{featured ? featured.title : t.intro}</h1><p>{featured ? featured.description : t.aboutLab}</p><div className="landing-feature-actions"><Link className="solid-action" to={featured ? `/events/${featured.id}` : '/events'}>{featured ? t.readMore : t.discover}<Icon name="arrow-right" size={18} /></Link><Link className="quiet-action" to="/ideas">{t.browseIdeas}</Link></div></div><div className="landing-feature-art"><img src={cover.src} alt="" width="620" height="620" decoding="async" /></div></section>
+    <section className="landing-feature"><div className="landing-collage" aria-hidden="true"><img className="collage-card collage-one" src="/covers/cover-circuit-riso.webp" alt="" /><img className="collage-card collage-two" src="/covers/cover-glass-loop.webp" alt="" /><img className="collage-card collage-three" src="/covers/cover-robotics.webp" alt="" /><img className="collage-card collage-four" src="/covers/cover-ideas-paper.webp" alt="" /></div><div className="landing-feature-copy"><span className="landing-identity"><Icon name="spark" size={18} /> GSO Engineering Lab · GSO Berufskolleg</span><h1>{t.labLead}</h1><p>{t.labDescription}</p><div className="landing-feature-actions"><Link className="solid-action" to="/events">{t.discover}<Icon name="arrow-right" size={18} /></Link><Link className="quiet-action" to="/ideas/new">{t.shareIdea}<Icon name="arrow-right" size={16} /></Link></div></div><span className="landing-feature-index">GSO / ENGINEERING LAB / 01</span></section>
+    <section className="landing-intro"><span className="landing-intro-label">01 / {t.labIntro}</span><div><h2>{t.labIntroBody}</h2><div className="landing-pillars">{t.labPillars.map((pillar, index) => <span key={pillar}><small>0{index + 1}</small>{pillar}</span>)}</div></div></section>
     <section className="landing-collection"><div className="section-heading"><div><h2>{t.next}</h2><p>{t.eventIntro}</p></div><Link to="/events">{t.allEvents}<Icon name="arrow-right" size={17} /></Link></div>{events.data ? <>{events.data.events.filter(event => !eventIsPast(event)).length ? <ul className="event-timeline landing-events">{events.data.events.filter(event => !eventIsPast(event)).sort((a, b) => (a.plannedDate ?? '9999').localeCompare(b.plannedDate ?? '9999')).slice(0, 3).map(event => <EventCard key={event.id} event={event} language={language} priority />)}</ul> : <p className="collection-empty">{t.noEventsBody}</p>}</> : <LoadState language={language} {...events} />}</section>
     <section className="landing-collection landing-ideas"><div className="section-heading"><div><h2>{t.ideas}</h2><p>{t.ideaIntro}</p></div><Link to="/ideas">{t.allIdeas}<Icon name="arrow-right" size={17} /></Link></div>{ideas.data ? ideas.data.ideas.length ? <ul className="idea-grid">{ideas.data.ideas.slice(0, 3).map(idea => <IdeaCard key={idea.id} idea={idea} language={language} priority />)}</ul> : <p className="collection-empty">{t.noIdeasBody}</p> : <LoadState language={language} {...ideas} />}</section>
-    <section className="landing-close"><Icon name="spark" size={26} /><h2>{t.tagline}</h2><p>{t.aboutLab}</p><Link to="/events">{t.discover}<Icon name="arrow-right" size={18} /></Link></section>
+    <section className="landing-close"><Icon name="spark" size={26} /><h2>{t.tagline}</h2><p>{t.labDescription}</p><Link to="/ideas/new">{t.shareIdea}<Icon name="arrow-right" size={18} /></Link></section>
   </div>;
 }
 
@@ -117,9 +131,10 @@ function EventDetail({ language }: { language: Language }) {
   const { id } = useParams();
   const resource = useResource(`/api/events/${encodeURIComponent(id ?? '')}`, eventDetailSchema);
   const event = resource.data?.event;
-  const cover = event ? eventCover(event) : activityCover('event', 'Event');
+  const cover = event ? eventCover(event) : { ...activityCover('event', 'Event'), custom: false };
+  const coverTheme = useEventCoverTone(cover);
   if (!event) return <div className="story-loading"><LoadState language={language} {...resource} /></div>;
-  return <div className="story-page" data-tone={cover.tone}><div className="story-ambient" style={{ backgroundImage: `url(${cover.src})` }} aria-hidden="true" /><div className="story-wrap"><Link className="story-back" to="/events"><Icon name="arrow-left" size={17} />{t.backEvents}</Link><div className="story-grid"><div className="story-aside"><img className="story-cover" src={cover.src} alt="" width="570" height="570" decoding="async" /><div className="story-source"><span className="source-mark"><Icon name="spark" size={22} /></span><div><small>{language === 'de' ? 'Präsentiert von' : 'Presented by'}</small><strong>GSO Engineering Lab</strong></div></div></div><div className="story-main"><div className="story-heading"><h1>{event.title}</h1>{event.status === 'CANCELLED' || event.status === 'COMPLETED' ? <span className="story-status">{event.status === 'CANCELLED' ? t.cancelled : t.completed}</span> : null}</div><div className="story-facts"><EventMoment event={event} language={language} /><EventPlace event={event} language={language} /></div><div className="story-action-bar">{event.plannedDate && event.status !== 'CANCELLED' && <button type="button" onClick={() => downloadCalendar(event)}><Icon name="calendar" size={17} />{t.addCalendar}</button>}{event.placeType === 'OTHER' && event.generalLocation && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.generalLocation)}`} target="_blank" rel="noreferrer"><Icon name="pin" size={17} />{t.maps}</a>}</div><section className="story-body"><h2>{t.about}</h2><div className="story-prose">{event.description.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>{event.materials && <><h3>{language === 'de' ? 'Materialien' : 'Materials'}</h3><p>{event.materials}</p></>}{event.ideaId && <Link className="related-link" to={`/ideas/${event.ideaId}`}><Icon name="idea" size={17} />{t.relatedIdea}<Icon name="arrow-right" size={17} /></Link>}</section></div></div><div className="story-end"><Link to="/events">{t.moreEvents}<Icon name="arrow-right" size={17} /></Link></div></div></div>;
+  return <div className="story-page" data-tone={coverTheme.tone} data-custom-cover={cover.custom || undefined}><div className="story-ambient" style={{ backgroundImage: `url(${cover.src})` }} aria-hidden="true" /><div className="story-wrap"><Link className="story-back" to="/events"><Icon name="arrow-left" size={17} />{t.backEvents}</Link><div className="story-grid"><div className="story-aside"><img className="story-cover" src={cover.src} alt="" width="570" height="570" decoding="async" onLoad={event => coverTheme.onLoad(event.currentTarget)} /><div className="story-source"><span className="source-mark"><Icon name="spark" size={22} /></span><div><small>{language === 'de' ? 'Präsentiert von' : 'Presented by'}</small><strong>GSO Engineering Lab</strong></div></div></div><div className="story-main"><div className="story-heading"><h1>{event.title}</h1>{event.status === 'CANCELLED' || event.status === 'COMPLETED' ? <span className="story-status">{event.status === 'CANCELLED' ? t.cancelled : t.completed}</span> : null}</div><div className="story-facts"><EventMoment event={event} language={language} /><EventPlace event={event} language={language} /></div><GoingButton event={event} language={language} /><div className="story-action-bar">{event.plannedDate && event.status !== 'CANCELLED' && <button type="button" onClick={() => downloadCalendar(event)}><Icon name="calendar" size={17} />{t.addCalendar}</button>}{event.placeType === 'OTHER' && event.generalLocation && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.generalLocation)}`} target="_blank" rel="noreferrer"><Icon name="pin" size={17} />{t.maps}</a>}</div><section className="story-body"><h2>{t.about}</h2><div className="story-prose">{event.description.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>{event.materials && <><h3>{language === 'de' ? 'Materialien' : 'Materials'}</h3><p>{event.materials}</p></>}{event.ideaId && <Link className="related-link" to={`/ideas/${event.ideaId}`}><Icon name="idea" size={17} />{t.relatedIdea}<Icon name="arrow-right" size={17} /></Link>}</section></div></div><div className="story-end"><Link to="/events">{t.moreEvents}<Icon name="arrow-right" size={17} /></Link></div></div></div>;
 }
 
 function IdeaDetail({ language }: { language: Language }) {

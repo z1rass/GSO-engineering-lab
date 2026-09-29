@@ -6,7 +6,7 @@ Shared product context for the web frontend and API. This record summarizes conf
 
 ## Current public launch (2026-09-28)
 
-The public website shows Events and Ideas. Visitors browse, submit Ideas, and vote without accounts. Admin access is password-protected at a direct `/admin` URL and absent from navigation. Admins publish and remove Events, set a classroom and cover, and edit or remove Ideas. Events, Ideas, votes and covers use one SQLite file. Previous member and Ops workflows are retired from the running application; their old records are not part of the new database. See [ADR 0003](docs/adr/0003-open-ideas-and-direct-event-publishing.md) and [ADR 0004](docs/adr/0004-sqlite-for-public-launch.md). Older product rules below describe the original domain model, not the present public launch.
+The public website introduces the club and shows Events and Ideas. Visitors browse, submit Ideas, vote and mark “Ich bin dabei” on scheduled Events without accounts; they can withdraw that mark. Admin access is password-protected at a direct `/admin` URL and absent from navigation. Admins publish and remove Events, set a classroom and cover, and edit or remove Ideas. Events, Ideas, votes, attendance marks and covers use one SQLite file. Previous member and Ops workflows are retired from the running application; their old records are not part of the new database. See [ADR 0003](docs/adr/0003-open-ideas-and-direct-event-publishing.md) and [ADR 0004](docs/adr/0004-sqlite-for-public-launch.md). Older product rules below describe the original domain model, not the present public launch.
 
 ## Platform
 

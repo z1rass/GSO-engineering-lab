@@ -8,6 +8,7 @@ export const eventSchema = z.object({
   status: z.enum(['PLANNING', 'ACTIVE', 'COMPLETED', 'CANCELLED']),
   coverUrl: z.string().nullable(),
   ideaId: z.number().nullable(), materials: z.string(),
+  goingCount: z.number().int().nonnegative(), going: z.boolean(),
 });
 export const ideaSchema = z.object({
   id: z.number().int(), title: z.string(), description: z.string(),

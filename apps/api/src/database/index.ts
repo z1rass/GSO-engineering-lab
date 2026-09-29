@@ -43,6 +43,11 @@ export function openDatabase(path: string): Database {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS event_going (
+      event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+      visitor_id TEXT NOT NULL,
+      PRIMARY KEY (event_id, visitor_id)
+    );
     CREATE TABLE IF NOT EXISTS cover_uploads (
       id TEXT PRIMARY KEY,
       mime_type TEXT NOT NULL,

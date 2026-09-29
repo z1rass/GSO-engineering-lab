@@ -14,11 +14,13 @@ test.afterAll(() => {
 
 test('public ideas and direct admin event management', async ({ page }) => {
   await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Technik ist besser, wenn wir sie gemeinsam machen.' })).toBeVisible();
+  await expect(page.locator('.landing-feature-copy').getByText('Eine Tech-Community an der GSO für gemeinsame Projekte, Events, Lernen und Austausch rund um moderne Technologien.')).toBeVisible();
   await expect(page.getByRole('link', { name: /Verwalten|Manage/ })).toHaveCount(0);
   await page.goto('/ideas');
   await page.getByRole('link', { name: 'Idee hinzufügen' }).click();
-  await page.getByRole('textbox', { name: 'Titel' }).fill(`${marker} idea`);
-  await page.getByRole('textbox', { name: 'Beschreibe deine Idee' }).fill('Build something together.');
+  await page.getByRole('textbox', { name: 'Deine Idee in einem Satz' }).fill(`${marker} idea`);
+  await page.getByRole('textbox', { name: 'Erzähl uns mehr' }).fill('Build something together.');
   await page.getByRole('button', { name: 'Idee veröffentlichen' }).click();
   await expect(page.getByRole('heading', { name: `${marker} idea` })).toBeVisible();
   await page.getByRole('button', { name: /Stimme geben/ }).click();
@@ -39,12 +41,20 @@ test('public ideas and direct admin event management', async ({ page }) => {
   await page.getByRole('dialog', { name: 'Beginn' }).getByRole('button', { name: '10:00' }).click();
   await page.locator('button[data-picker-name="endTime"]').click();
   await page.getByRole('dialog', { name: 'Ende' }).getByRole('button', { name: '12:00' }).click();
-  await page.getByRole('button', { name: 'Vorlage 2' }).click();
+  await page.getByRole('button', { name: 'Vorlage 7' }).click();
   await page.getByRole('textbox', { name: 'Beschreibung' }).fill('Bring a laptop.');
   await page.getByRole('button', { name: 'Veröffentlichen' }).click();
   await expect(page.getByRole('heading', { name: `${marker} event` })).toBeVisible();
   await expect(page.getByText('B102')).toBeVisible();
   await expect(page.getByText('In Planung')).toHaveCount(0);
+  await page.goto('/events');
+  await page.getByRole('link', { name: new RegExp(`${marker} event`) }).click();
+  await page.getByRole('button', { name: 'Ich bin dabei' }).click();
+  await expect(page.getByText('1 Person ist dabei')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('1 Person ist dabei')).toBeVisible();
+  await page.getByRole('button', { name: 'Zusage zurücknehmen' }).click();
+  await expect(page.getByText('Sei dabei')).toBeVisible();
   await page.goto('/admin');
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('listitem').filter({ hasText: `${marker} event` }).getByRole('button', { name: 'Entfernen' }).click();
@@ -56,17 +66,19 @@ test('public ideas and direct admin event management', async ({ page }) => {
 
 test('idea flow and admin form fit a narrow phone viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.goto('/ideas');
   await expect(page.getByRole('link', { name: 'Idee hinzufügen' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.getByRole('link', { name: 'Idee hinzufügen' }).click();
-  await expect(page.getByRole('textbox', { name: 'Beschreibe deine Idee' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Erzähl uns mehr' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.goto('/admin');
   await page.getByLabel('Passwort').fill('a-local-admin-password-for-browser-tests');
   await page.getByRole('button', { name: 'Anmelden' }).click();
   await page.getByRole('link', { name: 'Event erstellen' }).click();
-  await expect(page.getByRole('button', { name: 'Vorlage 1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Vorlage 1', exact: true })).toBeVisible();
   await expect(page.locator('input[name="generalLocation"]')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
