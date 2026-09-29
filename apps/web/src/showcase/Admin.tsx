@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
-import { activityCover, eventCover } from '../activity-covers';
+import { eventCover, ideaCover } from '../activity-covers';
 import { CoverPicker } from './CoverPicker';
 import { Icon } from '../shared/icon';
 import { DateField, TimeField } from '../shared/date-time';
@@ -78,7 +78,7 @@ function AdminHome({ language }: { language: Language }) {
     {error && <p className="admin-error" role="alert">{error}</p>}
     <div className="admin-lists">
       <section><h2>{t.events}</h2>{events.data ? events.data.events.length ? <ul>{events.data.events.map(event => <li key={event.id}><img src={eventCover(event).src} alt="" width="56" height="56" /><span>{event.title}</span><Link to={`/admin/events/${event.id}/edit`}>{t.edit}<Icon name="arrow-right" size={16} /></Link><button type="button" className="admin-remove" onClick={() => void remove('events', event.id)}>{language === 'de' ? 'Entfernen' : 'Remove'}</button></li>)}</ul> : <p>{t.noEvents}</p> : <AdminLoadState language={language} loading={events.loading} retry={events.retry} />}</section>
-      <section><h2>{t.ideas}</h2>{ideas.data ? ideas.data.ideas.length ? <ul>{ideas.data.ideas.map(idea => <li key={idea.id}><img src={activityCover('idea', idea.title).src} alt="" width="56" height="56" /><span>{idea.title}</span><Link to={`/admin/ideas/${idea.id}/edit`}>{t.edit}<Icon name="arrow-right" size={16} /></Link><button type="button" className="admin-remove" onClick={() => void remove('ideas', idea.id)}>{language === 'de' ? 'Entfernen' : 'Remove'}</button></li>)}</ul> : <p>{t.noIdeas}</p> : <AdminLoadState language={language} loading={ideas.loading} retry={ideas.retry} />}</section>
+      <section><h2>{t.ideas}</h2>{ideas.data ? ideas.data.ideas.length ? <ul>{ideas.data.ideas.map(idea => <li key={idea.id}><img src={ideaCover(idea).src} alt="" width="56" height="56" /><span>{idea.title}</span><Link to={`/admin/ideas/${idea.id}/edit`}>{t.edit}<Icon name="arrow-right" size={16} /></Link><button type="button" className="admin-remove" onClick={() => void remove('ideas', idea.id)}>{language === 'de' ? 'Entfernen' : 'Remove'}</button></li>)}</ul> : <p>{t.noIdeas}</p> : <AdminLoadState language={language} loading={ideas.loading} retry={ideas.retry} />}</section>
     </div>
   </>;
 }
@@ -92,7 +92,7 @@ function AdminForm({ language, kind, item }: { language: Language; kind: 'event'
   const [selectedCover, setSelectedCover] = useState<string | null>(event?.coverUrl ?? null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<'invalid' | 'session' | 'error' | null>(null);
-  const cover = kind === 'event' ? eventCover({ title, coverUrl: selectedCover }) : activityCover('idea', title);
+  const cover = kind === 'event' ? eventCover({ title, coverUrl: selectedCover }) : ideaCover(item && 'voteCount' in item ? item : { title });
   async function submit(submission: FormEvent<HTMLFormElement>) {
     submission.preventDefault(); setError(null);
     const values = new FormData(submission.currentTarget);

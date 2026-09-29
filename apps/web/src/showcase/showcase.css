@@ -12,6 +12,10 @@ a { color: inherit; }
 .skip-link { position: absolute; z-index: 100; top: -80px; left: 24px; padding: 11px 15px; background: #fff; color: #111; border-radius: 8px; }
 .skip-link:focus { top: 8px; }
 .showcase-app { --page-bg: #151515; --page-fg: #f7f7f5; --page-muted: #aaa9aa; --page-line: #313131; min-height: 100vh; background: var(--page-bg); color: var(--page-fg); transition: background .3s ease; }
+.showcase-app:has(.showcase-landing) { position: relative; background: radial-gradient(ellipse 720px 560px at 50% 390px, #292327 0%, #1b1b1b 45%, #151515 100%); }
+.showcase-app:has(.showcase-landing)::before { position: absolute; inset: 0 0 auto; height: 900px; background: url('/textures/grain.png') repeat; background-size: 256px 256px; mask-image: radial-gradient(ellipse 650px 520px at 50% 390px, #000 20%, transparent 100%); pointer-events: none; content: ''; }
+.showcase-app:has(.showcase-landing) .showcase-header { background: transparent; }
+.showcase-app:has(.showcase-landing) main { position: relative; z-index: 1; }
 .showcase-app:has(.story-page[data-tone="plum"]) { --page-bg: #321e3e; --page-fg: #fff5ff; --page-muted: #d3bfdc; --page-line: #684a72; }
 .showcase-app:has(.story-page[data-tone="teal"]) { --page-bg: #123b3b; --page-fg: #f2ffff; --page-muted: #bbd8d7; --page-line: #426b69; }
 .showcase-app:has(.story-page[data-tone="slate"]) { --page-bg: #1f2935; --page-fg: #f4f7ff; --page-muted: #b8c5d1; --page-line: #4a5867; }
@@ -43,8 +47,7 @@ main:focus { outline: none; }
 
 /* The club's purpose anchors the landing; the cover collage is decorative. */
 .showcase-landing { width: min(100% - 64px, 1320px); margin: auto; }
-.landing-feature { position: relative; display: grid; place-items: center; min-height: 690px; margin-top: 6px; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 50% 42%, #292327 0, #1b1b1b 38%, #151515 75%); }
-.landing-feature::after { position: absolute; z-index: -1; inset: auto 0 0; height: 135px; background: linear-gradient(transparent, #151515); content: ''; }
+.landing-feature { position: relative; display: grid; place-items: center; min-height: 690px; margin-top: 6px; overflow: hidden; isolation: isolate; }
 .landing-feature-copy { position: relative; z-index: 2; width: min(100% - 420px, 620px); padding: 90px 0; text-align: center; }
 .landing-identity { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 30px; color: #c3c0c1; font-size: 12px; font-weight: 600; letter-spacing: .03em; }
 .landing-feature h1 { margin: 0; font-size: clamp(47px, 5.5vw, 76px); line-height: 1.04; letter-spacing: -.055em; font-weight: 700; text-wrap: balance; }

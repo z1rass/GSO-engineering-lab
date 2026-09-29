@@ -70,12 +70,16 @@ test('admin publishes, updates and removes a room event with a selected or uploa
 
 test('any visitor can suggest an idea and vote once per browser; admin can remove it', async () => {
   expect((await write('/api/ideas', 'POST', { title: 'No', description: 'Wrong origin' }, '', 'https://other.example')).status).toBe(403);
-  const created = await write('/api/ideas', 'POST', { title: 'Open lab', description: 'Build something together.' });
+  expect((await write('/api/ideas', 'POST', { title: 'No', description: 'Wrong cover', coverUrl: 'https://other.example/image.jpg' })).status).toBe(400);
+  const coverUrl = '/covers/cover-ideas-paper.webp';
+  const created = await write('/api/ideas', 'POST', { title: 'Open lab', description: 'Build something together.', coverUrl });
   expect(created.status).toBe(201);
-  const id = (await created.json()).idea.id as number;
+  const createdIdea = (await created.json()).idea as { id: number; coverUrl: string };
+  const id = createdIdea.id;
+  expect(createdIdea.coverUrl).toBe(coverUrl);
   const firstView = await fetch(`${base}/api/ideas/${id}`);
   const voter = firstView.headers.get('set-cookie')!.split(';')[0]!;
-  expect((await firstView.json()).idea).toMatchObject({ voteCount: 0, voted: false });
+  expect((await firstView.json()).idea).toMatchObject({ voteCount: 0, voted: false, coverUrl });
   expect((await write(`/api/ideas/${id}/vote`, 'POST', undefined, voter)).status).toBe(200);
   expect((await write(`/api/ideas/${id}/vote`, 'POST', undefined, voter).then(response => response.json()))).toMatchObject({ voteCount: 1, voted: true });
   expect((await fetch(`${base}/api/ideas/${id}`, { headers: { cookie: voter } }).then(response => response.json())).idea).toMatchObject({ voteCount: 1, voted: true });
@@ -83,6 +87,8 @@ test('any visitor can suggest an idea and vote once per browser; admin can remov
   expect((await write(`/api/ideas/${id}/vote`, 'POST', undefined, secondVisitor).then(response => response.json()))).toMatchObject({ voteCount: 2, voted: true });
   expect((await write(`/api/ideas/${id}/vote`, 'DELETE', undefined, voter).then(response => response.json()))).toMatchObject({ voteCount: 1, voted: false });
   const admin = await adminCookie();
+  expect((await write(`/api/admin/ideas/${id}`, 'PATCH', { title: 'Renamed lab', description: 'Still building together.' }, admin)).status).toBe(200);
+  expect((await fetch(`${base}/api/ideas/${id}`).then(response => response.json())).idea.coverUrl).toBe(coverUrl);
   expect((await write(`/api/admin/ideas/${id}`, 'DELETE', undefined, admin)).status).toBe(200);
   expect((await fetch(`${base}/api/ideas/${id}`)).status).toBe(404);
 });

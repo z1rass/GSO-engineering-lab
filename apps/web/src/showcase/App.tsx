@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom';
-import { activityCover, eventCover, uploadedCoverTone, type CoverTone } from '../activity-covers';
+import { activityCover, eventCover, ideaCover, uploadedCoverTone, type CoverTone } from '../activity-covers';
 import { Icon } from '../shared/icon';
 import { useResource } from '../shared/use-resource';
 import { eventDate, eventDetailSchema, eventIsPast, eventsSchema, ideaDate, ideaDetailSchema, ideasSchema, type Event, type Idea } from './data';
@@ -80,7 +80,7 @@ function EventCard({ event, language, priority = false }: { event: Event; langua
 }
 
 function IdeaCard({ idea, language, priority = false }: { idea: Idea; language: Language; priority?: boolean }) {
-  const cover = activityCover('idea', idea.title);
+  const cover = ideaCover(idea);
   return <li className="idea-card-item"><Link className="idea-card" to={`/ideas/${idea.id}`}><img src={cover.src} alt="" width="400" height="400" loading={priority ? 'eager' : 'lazy'} decoding="async" /><span className="idea-card-copy"><span className="idea-card-date">{ideaDate(idea.createdAt, language)}</span><strong>{idea.title}</strong><span className="idea-card-description">{idea.description}</span></span></Link><VoteButton idea={idea} language={language} /></li>;
 }
 
@@ -142,7 +142,7 @@ function IdeaDetail({ language }: { language: Language }) {
   const { id } = useParams();
   const resource = useResource(`/api/ideas/${encodeURIComponent(id ?? '')}`, ideaDetailSchema);
   const idea = resource.data?.idea;
-  const cover = activityCover('idea', idea?.title ?? 'Idea');
+  const cover = ideaCover(idea ?? { title: 'Idea' });
   if (!idea) return <div className="story-loading"><LoadState language={language} {...resource} /></div>;
   return <div className="story-page idea-story" data-tone={cover.tone}><div className="story-ambient" style={{ backgroundImage: `url(${cover.src})` }} aria-hidden="true" /><div className="story-wrap"><Link className="story-back" to="/ideas"><Icon name="arrow-left" size={17} />{t.backIdeas}</Link><div className="story-grid"><div className="story-aside"><img className="story-cover" src={cover.src} alt="" width="570" height="570" decoding="async" /><div className="story-source"><span className="source-mark"><Icon name="idea" size={22} /></span><div><small>{t.published}</small><strong>{ideaDate(idea.createdAt, language)}</strong></div></div></div><div className="story-main"><div className="story-heading"><h1>{idea.title}</h1></div><VoteButton idea={idea} language={language} /><section className="story-body"><h2>{t.theIdea}</h2><div className="story-prose">{idea.description.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></section></div></div><div className="story-end"><Link to="/ideas">{t.moreIdeas}<Icon name="arrow-right" size={17} /></Link></div></div></div>;
 }

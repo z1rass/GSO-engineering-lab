@@ -19,10 +19,12 @@ test('public ideas and direct admin event management', async ({ page }) => {
   await expect(page.getByRole('link', { name: /Verwalten|Manage/ })).toHaveCount(0);
   await page.goto('/ideas');
   await page.getByRole('link', { name: 'Idee hinzufügen' }).click();
+  const selectedIdeaCover = await page.locator('.idea-form-preview img').getAttribute('src');
   await page.getByRole('textbox', { name: 'Deine Idee in einem Satz' }).fill(`${marker} idea`);
   await page.getByRole('textbox', { name: 'Erzähl uns mehr' }).fill('Build something together.');
   await page.getByRole('button', { name: 'Idee veröffentlichen' }).click();
   await expect(page.getByRole('heading', { name: `${marker} idea` })).toBeVisible();
+  await expect(page.locator('.idea-story .story-cover')).toHaveAttribute('src', selectedIdeaCover!);
   await page.getByRole('button', { name: /Stimme geben/ }).click();
   await expect(page.getByRole('button', { name: /Stimme entfernen/ })).toContainText('1');
   await page.reload();
@@ -83,7 +85,7 @@ test('idea flow and admin form fit a narrow phone viewport', async ({ page }) =>
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('idea preview cover stays stable while the title is typed', async ({ page }) => {
+test('idea preview chooses one cover for the form', async ({ page }) => {
   await page.goto('/ideas/new');
   const title = page.getByRole('textbox', { name: 'Deine Idee in einem Satz' });
   const cover = page.locator('.idea-form-preview img');
@@ -94,5 +96,5 @@ test('idea preview cover stays stable while the title is typed', async ({ page }
     await expect(cover).toHaveAttribute('src', initialCover!);
   }
   await title.blur();
-  await expect(cover).not.toHaveAttribute('src', initialCover!);
+  await expect(cover).toHaveAttribute('src', initialCover!);
 });

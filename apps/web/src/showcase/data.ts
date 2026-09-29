@@ -12,6 +12,7 @@ export const eventSchema = z.object({
 });
 export const ideaSchema = z.object({
   id: z.number().int(), title: z.string(), description: z.string(),
+  coverUrl: z.string().nullable(),
   voteCount: z.number().int().nonnegative(), voted: z.boolean(),
   createdAt: z.iso.datetime(), updatedAt: z.iso.datetime(),
 });

@@ -1,13 +1,17 @@
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import type { Express, RequestHandler } from 'express';
 import type { Database } from '../../database/index.js';
 import { z } from 'zod';
 import { trustedOrigin, limitWrites } from '../../shared/public-writes.js';
 
-const content = z.object({ title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(5000) }).strict();
+const ideaCovers = ['/covers/cover-ideas-paper.webp', '/covers/cover-circuit-riso.webp', '/covers/event-glass.jpg',
+  '/covers/event-ribbon.jpg', '/covers/project-amber.jpg', '/covers/project-structure.jpg',
+  '/covers/cover-glass-loop.webp', '/covers/event-chrome.jpg', '/covers/project-paper.jpg'] as const;
+const content = z.object({ title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(5000),
+  coverUrl: z.enum(ideaCovers).optional() }).strict();
 const ideaId = z.coerce.number().int().positive().max(2147483647);
 const voteCookie = 'gso_idea_voter';
-const publicFields = `i.id, i.title, i.description, i.created_at AS "createdAt", i.updated_at AS "updatedAt",
+const publicFields = `i.id, i.title, i.description, i.cover_url AS "coverUrl", i.created_at AS "createdAt", i.updated_at AS "updatedAt",
   (SELECT count(*) FROM idea_votes v WHERE v.idea_id=i.id) AS "voteCount",
   EXISTS(SELECT 1 FROM idea_votes v WHERE v.idea_id=i.id AND v.visitor_id=?) AS "voted"`;
 export function mountIdeas(app: Express, db: Database) {
@@ -35,8 +39,10 @@ export function mountIdeas(app: Express, db: Database) {
     const input = content.safeParse(request.body);
     if (!input.success) { response.status(400).json({ error: 'INVALID_IDEA' }); return; }
     const now = new Date().toISOString();
-    const idea = db.prepare(`INSERT INTO ideas(title,description,created_at,updated_at) VALUES(?,?,?,?)
-      RETURNING id,title,description,created_at AS "createdAt",updated_at AS "updatedAt"`).get(input.data.title, input.data.description, now, now);
+    const coverUrl = input.data.coverUrl ?? ideaCovers[randomInt(ideaCovers.length)]!;
+    const idea = db.prepare(`INSERT INTO ideas(title,description,cover_url,created_at,updated_at) VALUES(?,?,?,?,?)
+      RETURNING id,title,description,cover_url AS "coverUrl",created_at AS "createdAt",updated_at AS "updatedAt"`)
+      .get(input.data.title, input.data.description, coverUrl, now, now);
     response.status(201).json({ idea });
   });
   app.post('/api/ideas/:id/vote', trustedOrigin, limitWrites(60, 60 * 60_000), (request, response) => {

@@ -3,6 +3,8 @@ name: GSO Engineering Lab
 description: A club-first public showcase for Events and Ideas, with a quiet charcoal admin.
 colors:
   canvas: "#151515"
+  landing-glow: "#292327"
+  landing-glow-mid: "#1b1b1b"
   card: "#202020"
   card-hover: "#262626"
   admin-field: "#292929"
@@ -116,7 +118,7 @@ The public site is an image-led showcase for Events and Ideas. A minimal charcoa
 
 ## Colors
 
-The default public shell and admin use charcoal (`{colors.canvas}`), lighter cards (`{colors.card}`), fine borders (`{colors.border}`), off-white text (`{colors.ink}`), and gray metadata (`{colors.muted}`). Mint (`{colors.focus-mint}`) marks focus, selection, and small accents. Admin inputs use `{colors.admin-field}` and grouped schedule and place controls use `{colors.admin-panel}`. Error text uses `{colors.error}`.
+The default public shell and admin use charcoal (`{colors.canvas}`), lighter cards (`{colors.card}`), fine borders (`{colors.border}`), off-white text (`{colors.ink}`), and gray metadata (`{colors.muted}`). The landing has a low-contrast light (`{colors.landing-glow}` through `{colors.landing-glow-mid}`) behind the introduction; its transparent header shares that canvas. Fine grain appears only within the light. Mint (`{colors.focus-mint}`) marks focus, selection, and small accents. Admin inputs use `{colors.admin-field}` and grouped schedule and place controls use `{colors.admin-panel}`. Error text uses `{colors.error}`.
 
 The ten preset covers use six surrounding public detail tones, including header and footer: plum (`{colors.plum-page}`), teal (`{colors.teal-page}`), slate (`{colors.slate-page}`), blue (`{colors.blue-page}`), amber (`{colors.amber-page}`), and graphite (`{colors.graphite-page}`). Blue and amber switch to dark ink (`{colors.blue-ink}`, `{colors.amber-ink}`) and a light color scheme. The other tones use pale ink. Custom uploaded covers are sampled after loading and mapped to a nearby page tone; red covers use deep oxblood (`{colors.red-page}`), while neutral covers use graphite. The landing introduction stays charcoal so the club purpose remains the focus.
 
@@ -152,7 +154,7 @@ The centered desktop navigation holds only Events and Ideas. Current and hovered
 
 ### Collections and details
 
-Event rows pair a date rail with a bordered charcoal card, square cover, time, title, classroom, and Going count when present; Past/Upcoming is a segmented control. Idea cards put the cover above published date, title, short description and vote action. The Event detail shows clear date and classroom rows, an anonymous Going action for scheduled events, and calendar and map actions only when their information exists. Idea detail uses the same cover-led stage, shows its publication date and includes a vote action. The public Idea form has labeled fields, a visibility note, and a live preview. Cover images are decorative beside real text.
+Event rows pair a date rail with a bordered charcoal card, square cover, time, title, classroom, and Going count when present; Past/Upcoming is a segmented control. Idea cards put the cover above published date, title, short description and vote action. The Event detail shows clear date and classroom rows, an anonymous Going action for scheduled events, and calendar and map actions only when their information exists. Idea detail uses the same cover-led stage, shows its publication date and includes a vote action. The public Idea form has labeled fields, a visibility note, and a preview whose cover is chosen once on entry and saved with the Idea. Cover images are decorative beside real text.
 
 ### Admin
 
@@ -162,7 +164,7 @@ Admin login is a narrow single-field screen. Admin home offers Event creation an
 
 ### Do:
 
-- **Do** use the selected Event cover across a public card, detail page, and admin preview. Ideas use a consistent title-derived cover.
+- **Do** use the selected Event cover across a public card, detail page, and admin preview. New Ideas keep their randomly selected cover; older Ideas retain a title-derived fallback.
 - **Do** allow each public detail tone to change the whole shell, with dark text on blue and amber.
 - **Do** keep Event date, time, and place visible and truthful, including requested school rooms.
 - **Do** keep German and English text, keyboard focus, and reduced-motion behavior usable.

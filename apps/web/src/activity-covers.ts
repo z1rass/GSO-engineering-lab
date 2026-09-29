@@ -41,12 +41,14 @@ export function uploadedCoverTone(image: HTMLImageElement): CoverTone {
   }
 }
 
+export const ideaCoverGallery = [eventCoverGallery[9], eventCoverGallery[7], eventCoverGallery[2], eventCoverGallery[0], eventCoverGallery[4], eventCoverGallery[5], eventCoverGallery[8], eventCoverGallery[1], eventCoverGallery[3]] as const;
+
 const covers = {
   event: eventCoverGallery,
-  idea: [eventCoverGallery[9], eventCoverGallery[7], eventCoverGallery[2], eventCoverGallery[0], eventCoverGallery[4], eventCoverGallery[5], eventCoverGallery[8], eventCoverGallery[1], eventCoverGallery[3]],
+  idea: ideaCoverGallery,
 } as const;
 
-// A stable, locally chosen cover avoids flicker and needs no stored media or upload.
+// Existing ideas and events without a stored cover keep a deterministic fallback.
 export function activityCover(kind: ActivityKind, title: string) {
   const key = title.trim().toLowerCase() || kind;
   let hash = 2166136261;
@@ -63,4 +65,8 @@ export function eventCover(event: { title: string; coverUrl?: string | null }) {
   if (!event.coverUrl) return { ...activityCover('event', event.title), custom: false };
   const preset = eventCoverGallery.find(cover => cover.src === event.coverUrl);
   return preset ? { ...preset, custom: false } : { src: event.coverUrl, tone: 'graphite' as const, custom: true };
+}
+
+export function ideaCover(idea: { title: string; coverUrl?: string | null }) {
+  return ideaCoverGallery.find(cover => cover.src === idea.coverUrl) ?? activityCover('idea', idea.title);
 }

@@ -15,6 +15,7 @@ export function openDatabase(path: string): Database {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
+      cover_url TEXT,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       hidden INTEGER NOT NULL DEFAULT 0
@@ -54,5 +55,7 @@ export function openDatabase(path: string): Database {
       data TEXT NOT NULL
     );
   `);
+  const ideaColumns = db.prepare('PRAGMA table_info(ideas)').all() as { name: string }[];
+  if (!ideaColumns.some(column => column.name === 'cover_url')) db.exec('ALTER TABLE ideas ADD COLUMN cover_url TEXT');
   return db;
 }
