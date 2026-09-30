@@ -123,14 +123,14 @@ test('visitors can join and leave a scheduled event; rescheduling clears commitm
 test('share images turn public covers into wide JPEG previews and hide removed content', async () => {
   const admin = await adminCookie();
   const event = await write('/api/admin/events', 'POST', {
-    title: 'Shareable workshop', description: 'Build a circuit together.', category: 'WORKSHOP',
+    title: 'Workshop <AI> & Robotics', description: 'Build a circuit together.', category: 'WORKSHOP',
     plannedDate: null, endDate: null, startTime: null, endTime: null,
     placeType: 'SCHOOL', generalLocation: 'B102', coverUrl: '/covers/cover-robotics.webp',
   }, admin);
   expect(event.status).toBe(201);
   const eventId = (await event.json()).id as number;
   const idea = await write('/api/ideas', 'POST', {
-    title: 'Shareable idea', description: 'Something to try together.', coverUrl: '/covers/cover-ideas-paper.webp',
+    title: 'Idee für Schüler:innen & Maker', description: 'Something to try together.', coverUrl: '/covers/cover-ideas-paper.webp',
   });
   expect(idea.status).toBe(201);
   const ideaId = (await idea.json()).idea.id as number;

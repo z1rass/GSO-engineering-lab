@@ -34,7 +34,7 @@ test('public ideas and direct admin event management', async ({ page }) => {
   const forwardedIdeaHtml = await page.request.get(ideaPath, {
     headers: { 'x-forwarded-host': 'lab.example.org', 'x-forwarded-proto': 'https' },
   }).then(response => response.text());
-  expect(forwardedIdeaHtml).toContain(`<meta property="og:image" content="https://lab.example.org/api/share${ideaPath}/image.jpg" />`);
+  expect(forwardedIdeaHtml).toContain(`<meta property="og:image" content="https://lab.example.org/api/share${ideaPath}/image.jpg?v=2-`);
   await expect(page.locator('.idea-story .story-cover')).toHaveAttribute('src', selectedIdeaCover!);
   await expect(page.locator('.idea-story')).toHaveAttribute('data-tone', selectedIdeaTone!);
   expect(await page.locator('.showcase-app').evaluate(element => getComputedStyle(element).getPropertyValue('--page-bg').trim())).toBe(selectedIdeaBackground);
@@ -68,6 +68,7 @@ test('public ideas and direct admin event management', async ({ page }) => {
   const eventHtml = await page.request.get(eventPath).then(response => response.text());
   expect(eventHtml).toContain(`<meta property="og:title" content="${marker} event" />`);
   expect(eventHtml).toContain(`<meta property="og:url" content="http://127.0.0.1:5174${eventPath}" />`);
+  expect(eventHtml).toContain(`<meta property="og:image" content="http://127.0.0.1:5174/api/share${eventPath}/image.jpg?v=2-`);
   expect((await page.request.get(`/api/share${eventPath}/image.jpg`)).headers()['content-type']).toContain('image/jpeg');
   await page.getByRole('button', { name: 'Ich bin dabei' }).click();
   await expect(page.getByText('1 Person ist dabei')).toBeVisible();

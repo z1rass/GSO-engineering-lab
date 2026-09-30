@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
-type SharedContent = { title: string; description: string };
+type SharedContent = { title: string; description: string; updatedAt?: string };
 type Next = (error?: unknown) => void;
 
 function escapeHtml(value: string) {
@@ -34,7 +34,8 @@ function renderMetadata(html: string, content: SharedContent, kind: 'events' | '
     : plainDescription;
   const description = escapeHtml(shortDescription);
   const url = escapeHtml(`${origin}/${kind}/${id}`);
-  const image = escapeHtml(`${origin}/api/share/${kind}/${id}/image.jpg`);
+  const version = Number.isFinite(Date.parse(content.updatedAt ?? '')) ? Date.parse(content.updatedAt!) : 0;
+  const image = escapeHtml(`${origin}/api/share/${kind}/${id}/image.jpg?v=2-${version}`);
   const tags = [
     `<link rel="canonical" href="${url}" />`,
     '<meta property="og:type" content="website" />',
@@ -71,20 +72,26 @@ export function sharePreview(apiTarget: string): Plugin {
     const kind = match[1] as 'events' | 'ideas';
     const id = match[2]!;
     const origin = requestOrigin(request);
-    if (!origin) { next(); return; }
+    const unavailable = (status = 503) => {
+      response.statusCode = status;
+      response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      response.setHeader('Cache-Control', 'no-store');
+      response.end(request.method === 'HEAD' ? undefined : status === 404 ? 'Not found' : 'Temporarily unavailable');
+    };
+    if (!origin) { unavailable(); return; }
     try {
       const apiResponse = await fetch(new URL(`/api/${kind}/${id}`, apiTarget), { signal: AbortSignal.timeout(5000) });
-      if (!apiResponse.ok) { next(); return; }
+      if (!apiResponse.ok) { unavailable(apiResponse.status === 404 ? 404 : 503); return; }
       const payload = await apiResponse.json() as { event?: SharedContent; idea?: SharedContent };
       const content = kind === 'events' ? payload.event : payload.idea;
-      if (typeof content?.title !== 'string' || typeof content.description !== 'string') { next(); return; }
+      if (typeof content?.title !== 'string' || typeof content.description !== 'string') { unavailable(); return; }
       const html = renderMetadata(await readFile(template, 'utf8'), content, kind, id, origin);
       const result = await transform(path, html);
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
       response.setHeader('Cache-Control', 'no-cache');
       response.setHeader('Vary', 'Host, X-Forwarded-Host, X-Forwarded-Proto');
       response.end(request.method === 'HEAD' ? undefined : result);
-    } catch { next(); }
+    } catch { unavailable(); }
   }
 
   return {

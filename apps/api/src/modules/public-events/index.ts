@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { limitWrites, trustedOrigin } from '../../shared/public-writes.js';
 
 const id = z.coerce.number().int().positive().max(2147483647);
-const fields = `e.id,e.title,e.description,e.status,e.cover_url AS "coverUrl",e.materials,
+const fields = `e.id,e.title,e.description,e.status,e.cover_url AS "coverUrl",e.materials,e.updated_at AS "updatedAt",
   (SELECT i.id FROM ideas i WHERE i.id=e.idea_id AND i.hidden=0) AS "ideaId",
   e.category,e.planned_date AS "plannedDate",e.end_date AS "endDate",
   e.start_time AS "startTime",e.end_time AS "endTime",e.general_location AS "generalLocation",
