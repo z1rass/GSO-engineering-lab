@@ -3,6 +3,7 @@ import type { Database } from './database/index.js';
 import { mountSiteAdmin } from './modules/site-admin/index.js';
 import { mountIdeas } from './modules/ideas/index.js';
 import { mountPublicEvents } from './modules/public-events/index.js';
+import { mountSocialPreviews } from './modules/social-preview/index.js';
 
 export function createApp(db: Database) {
   const app = express();
@@ -13,6 +14,7 @@ export function createApp(db: Database) {
   mountSiteAdmin(app, db);
   mountIdeas(app, db);
   mountPublicEvents(app, db);
+  mountSocialPreviews(app, db);
   app.get('/api/health', (_request, response) => response.json({ status: 'ok' }));
   const handleError: ErrorRequestHandler = (error, _request, response, _next) => {
     void _next;

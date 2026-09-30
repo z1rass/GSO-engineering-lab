@@ -20,6 +20,7 @@ services:
     build: .
     environment:
       API_PROXY_TARGET: http://api:3001
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-}
     depends_on:
       api: { condition: service_healthy }
     command: ["npm", "run", "dev:web"]

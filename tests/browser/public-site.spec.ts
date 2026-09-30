@@ -26,6 +26,15 @@ test('public ideas and direct admin event management', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Erzähl uns mehr' }).fill('Build something together.');
   await page.getByRole('button', { name: 'Idee veröffentlichen' }).click();
   await expect(page.getByRole('heading', { name: `${marker} idea` })).toBeVisible();
+  const ideaPath = new URL(page.url()).pathname;
+  const ideaHtml = await page.request.get(ideaPath).then(response => response.text());
+  expect(ideaHtml).toContain(`<meta property="og:title" content="${marker} idea" />`);
+  expect(ideaHtml).toContain(`<meta property="og:url" content="http://127.0.0.1:5174${ideaPath}" />`);
+  expect((await page.request.get(`/api/share${ideaPath}/image.jpg`)).headers()['content-type']).toContain('image/jpeg');
+  const forwardedIdeaHtml = await page.request.get(ideaPath, {
+    headers: { 'x-forwarded-host': 'lab.example.org', 'x-forwarded-proto': 'https' },
+  }).then(response => response.text());
+  expect(forwardedIdeaHtml).toContain(`<meta property="og:image" content="https://lab.example.org/api/share${ideaPath}/image.jpg" />`);
   await expect(page.locator('.idea-story .story-cover')).toHaveAttribute('src', selectedIdeaCover!);
   await expect(page.locator('.idea-story')).toHaveAttribute('data-tone', selectedIdeaTone!);
   expect(await page.locator('.showcase-app').evaluate(element => getComputedStyle(element).getPropertyValue('--page-bg').trim())).toBe(selectedIdeaBackground);
@@ -55,6 +64,11 @@ test('public ideas and direct admin event management', async ({ page }) => {
   await expect(page.getByText('In Planung')).toHaveCount(0);
   await page.goto('/events');
   await page.getByRole('link', { name: new RegExp(`${marker} event`) }).click();
+  const eventPath = new URL(page.url()).pathname;
+  const eventHtml = await page.request.get(eventPath).then(response => response.text());
+  expect(eventHtml).toContain(`<meta property="og:title" content="${marker} event" />`);
+  expect(eventHtml).toContain(`<meta property="og:url" content="http://127.0.0.1:5174${eventPath}" />`);
+  expect((await page.request.get(`/api/share${eventPath}/image.jpg`)).headers()['content-type']).toContain('image/jpeg');
   await page.getByRole('button', { name: 'Ich bin dabei' }).click();
   await expect(page.getByText('1 Person ist dabei')).toBeVisible();
   await page.reload();

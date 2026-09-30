@@ -2,6 +2,7 @@ import { once } from 'node:events';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, expect, test } from 'vitest';
+import sharp from 'sharp';
 import { createApp } from '../src/app.js';
 import { openDatabase } from '../src/database/index.js';
 
@@ -117,4 +118,31 @@ test('visitors can join and leave a scheduled event; rescheduling clears commitm
   expect((await fetch(`${base}/api/events/${id}`).then(response => response.json())).event.goingCount).toBe(0);
   expect((await write(`/api/admin/events/${id}`, 'PATCH', { ...plan, plannedDate: null, startTime: null, endTime: null }, admin)).status).toBe(200);
   expect((await write(`/api/events/${id}/going`, 'POST', undefined, visitorTwo)).status).toBe(409);
+});
+
+test('share images turn public covers into wide JPEG previews and hide removed content', async () => {
+  const admin = await adminCookie();
+  const event = await write('/api/admin/events', 'POST', {
+    title: 'Shareable workshop', description: 'Build a circuit together.', category: 'WORKSHOP',
+    plannedDate: null, endDate: null, startTime: null, endTime: null,
+    placeType: 'SCHOOL', generalLocation: 'B102', coverUrl: '/covers/cover-robotics.webp',
+  }, admin);
+  expect(event.status).toBe(201);
+  const eventId = (await event.json()).id as number;
+  const idea = await write('/api/ideas', 'POST', {
+    title: 'Shareable idea', description: 'Something to try together.', coverUrl: '/covers/cover-ideas-paper.webp',
+  });
+  expect(idea.status).toBe(201);
+  const ideaId = (await idea.json()).idea.id as number;
+  for (const path of [`/api/share/events/${eventId}/image.jpg`, `/api/share/ideas/${ideaId}/image.jpg`]) {
+    const response = await fetch(`${base}${path}`);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('image/jpeg');
+    const metadata = await sharp(Buffer.from(await response.arrayBuffer())).metadata();
+    expect(metadata).toMatchObject({ format: 'jpeg', width: 1200, height: 630 });
+  }
+  expect((await write(`/api/admin/events/${eventId}`, 'DELETE', undefined, admin)).status).toBe(200);
+  expect((await write(`/api/admin/ideas/${ideaId}`, 'DELETE', undefined, admin)).status).toBe(200);
+  expect((await fetch(`${base}/api/share/events/${eventId}/image.jpg`)).status).toBe(404);
+  expect((await fetch(`${base}/api/share/ideas/${ideaId}/image.jpg`)).status).toBe(404);
 });
